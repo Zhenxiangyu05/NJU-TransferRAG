@@ -12,7 +12,12 @@ public record QueryRewriteResult(
         List<String> ambiguousEntities,
         Integer explicitYear,
         Integer resolvedYear,
-        boolean multiYearQuery
+        boolean multiYearQuery,
+        boolean experienceQuery,
+        Integer cycleYear,
+        Integer cohortYear,
+        ApplicantStage applicantStage,
+        boolean policyQuery
 ) {
 
     public QueryRewriteResult {
@@ -28,7 +33,7 @@ public record QueryRewriteResult(
                               List<MatchedEntity> matchedEntities) {
         this(originalQuery, rewrittenQuery, matchedEntities,
                 List.of(), legacyDepartments(matchedEntities), legacyMajors(matchedEntities), List.of(),
-                null, null, false);
+                null, null, false, false, null, null, null, false);
     }
 
     public QueryRewriteResult(String originalQuery,
@@ -47,10 +52,56 @@ public record QueryRewriteResult(
                 List.of(),
                 explicitYear,
                 resolvedYear,
-                multiYearQuery
+                multiYearQuery,
+                false,
+                null,
+                null,
+                null,
+                false
         );
     }
 
+    public QueryRewriteResult(String originalQuery,
+                              String rewrittenQuery,
+                              List<MatchedEntity> matchedEntities,
+                              Integer explicitYear,
+                              Integer resolvedYear,
+                              boolean multiYearQuery,
+                              boolean experienceQuery) {
+        this(
+                originalQuery,
+                rewrittenQuery,
+                matchedEntities,
+                List.of(),
+                legacyDepartments(matchedEntities),
+                legacyMajors(matchedEntities),
+                List.of(),
+                explicitYear,
+                resolvedYear,
+                multiYearQuery,
+                experienceQuery,
+                null,
+                null,
+                null,
+                false
+        );
+    }
+
+    public QueryRewriteResult(String originalQuery,
+                              String rewrittenQuery,
+                              List<MatchedEntity> matchedEntities,
+                              List<ResolvedEntity> resolvedEntities,
+                              List<String> departments,
+                              List<String> majors,
+                              List<String> ambiguousEntities,
+                              Integer explicitYear,
+                              Integer resolvedYear,
+                              boolean multiYearQuery,
+                              boolean experienceQuery) {
+        this(originalQuery, rewrittenQuery, matchedEntities, resolvedEntities,
+                departments, majors, ambiguousEntities, explicitYear, resolvedYear,
+                multiYearQuery, experienceQuery, null, null, null, false);
+    }
 
     public QueryRewriteResult withResolvedYear(Integer year) {
         return new QueryRewriteResult(
@@ -63,7 +114,12 @@ public record QueryRewriteResult(
                 ambiguousEntities,
                 explicitYear,
                 year,
-                multiYearQuery
+                multiYearQuery,
+                experienceQuery,
+                cycleYear,
+                cohortYear,
+                applicantStage,
+                policyQuery
         );
     }
 

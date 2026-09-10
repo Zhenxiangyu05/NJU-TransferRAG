@@ -1,6 +1,7 @@
 package com.yu.transferrag.service;
 
 import com.yu.transferrag.dto.EntityRole;
+import com.yu.transferrag.dto.ApplicantStage;
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.entity.EntityAlias;
 import com.yu.transferrag.repository.EntityAliasRepository;
@@ -144,7 +145,27 @@ class QueryRewriteServiceTest {
         assertEquals(true, result.multiYearQuery());
     }
 
+    @Test
+    void shouldRecognizeExperienceQueryByKeyword() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
 
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext(
+                "数学学院保研有什么经验？"
+        );
+
+        assertTrue(result.experienceQuery());
+    }
+
+    @Test
+    void shouldNotClassifyPolicyQueryAsExperienceQuery() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext(
+                "软件学院转专业有哪些准入课程？"
+        );
+
+        assertFalse(result.experienceQuery());
+    }
 
     @Test
     void shouldResolveMajorToCanonicalDepartment() {
@@ -258,10 +279,62 @@ class QueryRewriteServiceTest {
         assertEquals(List.of("软件工程"), result.majors());
     }
 
+    @Test
+    void shouldResolveFirstYearInExplicitPolicyCycle() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
 
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("2026年大一转专业条件");
 
+        assertTrue(result.policyQuery());
+        assertEquals(2026, result.cycleYear());
+        assertEquals(2025, result.cohortYear());
+        assertEquals(ApplicantStage.FIRST_YEAR, result.applicantStage());
+    }
 
+    @Test
+    void shouldResolveSecondYearInExplicitPolicyCycle() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
 
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("2026年大二转专业条件");
+
+        assertEquals(2026, result.cycleYear());
+        assertEquals(2024, result.cohortYear());
+        assertEquals(ApplicantStage.SECOND_YEAR, result.applicantStage());
+    }
+
+    @Test
+    void shouldNotForceCohortWhenPolicyStageIsAbsent() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("2026年转专业条件");
+
+        assertEquals(2026, result.cycleYear());
+        assertEquals(null, result.cohortYear());
+        assertEquals(null, result.applicantStage());
+    }
+
+    @Test
+    void shouldNotInterpretAcademicStageOutsidePolicyContext() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("2026年大一课程怎么规划？");
+
+        assertFalse(result.policyQuery());
+        assertEquals(null, result.cycleYear());
+        assertEquals(null, result.cohortYear());
+        assertEquals(null, result.applicantStage());
+    }
+
+    @Test
+    void shouldResolveExplicitCohortOutsidePolicyContext() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("2024级数理大类分流比例");
+
+        assertFalse(result.policyQuery());
+        assertEquals(null, result.cycleYear());
+        assertEquals(2024, result.cohortYear());
+    }
 
     private EntityAlias alias(String standardName, String alias, String entityType) {
         EntityAlias entityAlias = new EntityAlias();

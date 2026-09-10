@@ -13,22 +13,25 @@ public class StructuredPolicyChunker {
 
     private static final Pattern RECORD_HEADER_PATTERN = Pattern.compile(
             "(?m)^[\\t ]*(?:(?<department>[\\p{IsHan}A-Za-z·（）()]{1,30}(?:学院|学系|系))[\\t ]+)?"
-                    + "(?<year>(?:19|20)\\d{2})[\\t ]+"
-                    + "(?<major>[^\\r\\n]+?)[\\t ]+"
-                    + "(?<quota>\\d+)[\\t ]*$"
+                    + "(?<year>(?:19|20)\\d{2})(?:[\\t ]+(?<rest>[^\\r\\n]*))?[\\t ]*$"
+    );
+
+    private static final Pattern MAJOR_AND_QUOTA_PATTERN = Pattern.compile(
+            "^(?<major>.+?)[\\t ]+(?<quota>\\d+)(?:[\\t ]+.*)?$"
     );
 
     private static final Pattern DEPARTMENT_NAME_PATTERN = Pattern.compile(
             "^[\\p{IsHan}A-Za-z·（）()]{1,30}(?:学院|学系|系)$"
     );
 
-    private static final Pattern ADDITIONAL_YEAR_ROW_PATTERN = Pattern.compile(
-            "(?m)^[\\t ]*(?:19|20)\\d{2}(?:[\\t ]|$)"
-    );
-
     private final TextChunker textChunker = new TextChunker();
 
     public List<PolicyChunk> split(String text, int chunkSize, int overlap) {
+        return split(text, chunkSize, overlap, null);
+    }
+
+    public List<PolicyChunk> split(String text, int chunkSize, int overlap,
+                                   Integer policyYear) {
         validate(text, chunkSize, overlap);
 
         String normalizedText = text.replace("\r\n", "\n").replace('\r', '\n');
@@ -39,6 +42,7 @@ public class StructuredPolicyChunker {
 
         Set<String> knownDepartments = findKnownDepartments(normalizedText, headers);
         List<PolicyChunk> chunks = new ArrayList<>();
+        String lastResolvedDepartment = null;
 
         for (int index = 0; index < headers.size(); index++) {
             RecordHeader header = headers.get(index);
@@ -50,19 +54,22 @@ public class StructuredPolicyChunker {
                 continue;
             }
 
-            String department = resolveDepartment(
+            String department = firstNonNull(
                     header.department(),
-                    header.major(),
-                    knownDepartments
+                    precedingDepartment(
+                            normalizedText,
+                            index == 0 ? 0 : headers.get(index - 1).start(),
+                            header.start(),
+                            knownDepartments
+                    ),
+                    resolveDepartment(null, header.major(), knownDepartments)
             );
-            boolean reliableMetadata = hasReliableMetadata(
-                    recordContent,
-                    department,
-                    knownDepartments
-            );
-            Integer policyYear = reliableMetadata ? header.policyYear() : null;
-            String chunkDepartment = reliableMetadata ? department : null;
-            String major = reliableMetadata ? header.major() : null;
+            if (department == null && header.major() == null) {
+                department = lastResolvedDepartment;
+            }
+            if (department != null) {
+                lastResolvedDepartment = department;
+            }
             List<String> recordParts = textChunker.split(recordContent, chunkSize, overlap);
             for (int partIndex = 0; partIndex < recordParts.size(); partIndex++) {
                 String content = recordParts.get(partIndex);
@@ -72,8 +79,9 @@ public class StructuredPolicyChunker {
                 chunks.add(new PolicyChunk(
                         content,
                         policyYear,
-                        chunkDepartment,
-                        major
+                        header.cohortYear(),
+                        department,
+                        header.major()
                 ));
             }
         }
@@ -81,35 +89,11 @@ public class StructuredPolicyChunker {
         return chunks;
     }
 
-    private boolean hasReliableMetadata(String recordContent,
-                                        String resolvedDepartment,
-                                        Set<String> knownDepartments) {
-        int firstLineEnd = recordContent.indexOf('\n');
-        String contentAfterHeader = firstLineEnd < 0
-                ? ""
-                : recordContent.substring(firstLineEnd + 1);
-        if (ADDITIONAL_YEAR_ROW_PATTERN.matcher(contentAfterHeader).find()) {
-            return false;
-        }
-
-        for (String line : contentAfterHeader.split("\\n", -1)) {
-            String normalizedLine = normalize(line);
-            if (knownDepartments.contains(normalizedLine)
-                    && !normalizedLine.equals(resolvedDepartment)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private List<RecordHeader> findRecordHeaders(String text) {
         List<RecordHeader> headers = new ArrayList<>();
         Matcher matcher = RECORD_HEADER_PATTERN.matcher(text);
         while (matcher.find()) {
-            String major = normalize(matcher.group("major"));
-            if (!isPlausibleMajor(major)) {
-                continue;
-            }
+            String major = extractMajor(normalize(matcher.group("rest")));
             headers.add(new RecordHeader(
                     matcher.start(),
                     Integer.valueOf(matcher.group("year")),
@@ -119,6 +103,49 @@ public class StructuredPolicyChunker {
             ));
         }
         return headers;
+    }
+
+    private String extractMajor(String rest) {
+        if (rest == null || rest.matches("\\d+(?:\\s+.*)?")) {
+            return null;
+        }
+        Matcher matcher = MAJOR_AND_QUOTA_PATTERN.matcher(rest);
+        if (!matcher.matches()) {
+            return null;
+        }
+        String major = normalize(matcher.group("major"));
+        return isPlausibleMajor(major) ? major : null;
+    }
+
+    private String precedingDepartment(String text, int lowerBound, int start,
+                                       Set<String> knownDepartments) {
+        String[] lines = text.substring(lowerBound, start).split("\\n", -1);
+        for (int index = lines.length - 1; index >= 0; index--) {
+            String line = normalize(lines[index]);
+            if (line == null) {
+                continue;
+            }
+            if (index > 0) {
+                String previousLine = normalize(lines[index - 1]);
+                String combined = previousLine == null ? null : previousLine + line;
+                if (knownDepartments.contains(combined)) {
+                    return combined;
+                }
+            }
+            if (knownDepartments.contains(line)) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    private String firstNonNull(String... values) {
+        for (String value : values) {
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private Set<String> findKnownDepartments(String text, List<RecordHeader> headers) {
@@ -267,14 +294,18 @@ public class StructuredPolicyChunker {
     public record PolicyChunk(
             String content,
             Integer policyYear,
+            Integer cohortYear,
             String department,
             String major
     ) {
+        public PolicyChunk(String content, Integer policyYear, String department, String major) {
+            this(content, policyYear, null, department, major);
+        }
     }
 
     private record RecordHeader(
             int start,
-            Integer policyYear,
+            Integer cohortYear,
             String department,
             String major,
             String originalLine

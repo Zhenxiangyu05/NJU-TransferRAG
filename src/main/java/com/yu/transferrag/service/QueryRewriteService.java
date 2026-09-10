@@ -1,6 +1,7 @@
 package com.yu.transferrag.service;
 
 import com.yu.transferrag.dto.EntityRole;
+import com.yu.transferrag.dto.ApplicantStage;
 import com.yu.transferrag.dto.MatchedEntity;
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.dto.ResolvedEntity;
@@ -24,7 +25,16 @@ import java.util.regex.Pattern;
 public class QueryRewriteService {
 
     private static final Pattern YEAR_PATTERN = Pattern.compile("(?<!\\d)((?:19|20)\\d{2})(?!\\d)");
+    private static final Pattern COHORT_YEAR_PATTERN = Pattern.compile("(?<!\\d)((?:19|20)\\d{2})\\s*级");
+    private static final List<String> POLICY_QUERY_KEYWORDS = List.of(
+            "转专业", "准入", "跨大类", "跨类", "转入"
+    );
     private static final List<String> CURRENT_YEAR_EXPRESSIONS = List.of("今年", "本年度", "当前");
+    private static final List<String> EXPERIENCE_QUERY_KEYWORDS = List.of(
+            "经验贴", "怎么准备", "如何准备", "面试经验", "机试经验", "考试经验",
+            "保研经验", "转专业经验", "备考经验", "流程分享", "经验", "攻略",
+            "复盘", "准备", "心得", "建议", "踩坑", "备考"
+    );
     private static final List<String> AMBIGUOUS_SHORT_EXPRESSIONS = List.of("电子", "光电");
 
     private final EntityAliasRepository entityAliasRepository;
@@ -49,6 +59,7 @@ public class QueryRewriteService {
         }
 
         YearUnderstanding yearUnderstanding = understandYear(query);
+        PolicyTimeUnderstanding policyTime = understandPolicyTime(query, yearUnderstanding);
         Map<MatchPosition, MatchDetails> detailsByPosition = new LinkedHashMap<>();
         for (EntityAlias entityAlias : entityAliasRepository.findAll()) {
             addEntityMatches(query, entityAlias, detailsByPosition);
@@ -70,46 +81,17 @@ public class QueryRewriteService {
         addUncoveredAmbiguousExpressions(query, selectedMatches, resolution);
 
         return new QueryRewriteResult(
-                query,
-                applyMatches(query, selectedMatches),
+                query, applyMatches(query, selectedMatches),
                 List.copyOf(resolution.matchedEntities()),
                 List.copyOf(resolution.resolvedEntities()),
                 List.copyOf(resolution.departments()),
                 List.copyOf(resolution.majors()),
                 List.copyOf(resolution.ambiguousEntities()),
-                yearUnderstanding.explicitYear(),
-                yearUnderstanding.resolvedYear(),
-                yearUnderstanding.multiYearQuery()
+                yearUnderstanding.explicitYear(), yearUnderstanding.resolvedYear(),
+                yearUnderstanding.multiYearQuery(), isExperienceQuery(query),
+                policyTime.cycleYear(), policyTime.cohortYear(),
+                policyTime.applicantStage(), policyTime.policyQuery()
         );
-    }
-
-    private YearUnderstanding understandYear(String query) {
-        Set<Integer> mentionedYears = new LinkedHashSet<>();
-        Matcher matcher = YEAR_PATTERN.matcher(query);
-        while (matcher.find()) {
-            mentionedYears.add(Integer.valueOf(matcher.group(1)));
-        }
-
-        int currentYear = LocalDate.now().getYear();
-        boolean usesCurrentYearExpression = CURRENT_YEAR_EXPRESSIONS.stream()
-                .anyMatch(query::contains);
-
-        Set<Integer> resolvedCandidates = new LinkedHashSet<>(mentionedYears);
-        if (usesCurrentYearExpression) {
-            resolvedCandidates.add(currentYear);
-        }
-
-        if (resolvedCandidates.size() > 1) {
-            return new YearUnderstanding(null, null, true);
-        }
-        if (mentionedYears.size() == 1) {
-            Integer explicitYear = mentionedYears.iterator().next();
-            return new YearUnderstanding(explicitYear, explicitYear, false);
-        }
-        if (usesCurrentYearExpression) {
-            return new YearUnderstanding(null, currentYear, false);
-        }
-        return new YearUnderstanding(null, null, false);
     }
 
     private void addEntityMatches(String query,
@@ -132,6 +114,7 @@ public class QueryRewriteService {
             addMatches(query, alias, standardName, matchedEntity, detailsByPosition);
         }
     }
+
     private void addMatches(String query,
                             String matchedName,
                             String relatedName,
@@ -261,11 +244,93 @@ public class QueryRewriteService {
         return left.start() < right.end() && right.start() < left.end();
     }
 
-    private String normalize(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
+    private boolean isExperienceQuery(String query) {
+        return EXPERIENCE_QUERY_KEYWORDS.stream().anyMatch(query::contains);
+    }
+
+    private YearUnderstanding understandYear(String query) {
+        Set<Integer> mentionedYears = new LinkedHashSet<>();
+        Matcher matcher = YEAR_PATTERN.matcher(query);
+        while (matcher.find()) {
+            mentionedYears.add(Integer.valueOf(matcher.group(1)));
         }
-        return value.trim();
+        int currentYear = LocalDate.now().getYear();
+        boolean usesCurrentYearExpression = CURRENT_YEAR_EXPRESSIONS.stream().anyMatch(query::contains);
+        Set<Integer> resolvedCandidates = new LinkedHashSet<>(mentionedYears);
+        if (usesCurrentYearExpression) {
+            resolvedCandidates.add(currentYear);
+        }
+        if (resolvedCandidates.size() > 1) {
+            return new YearUnderstanding(null, null, true);
+        }
+        if (mentionedYears.size() == 1) {
+            Integer explicitYear = mentionedYears.iterator().next();
+            return new YearUnderstanding(explicitYear, explicitYear, false);
+        }
+        if (usesCurrentYearExpression) {
+            return new YearUnderstanding(null, currentYear, false);
+        }
+        return new YearUnderstanding(null, null, false);
+    }
+
+    private PolicyTimeUnderstanding understandPolicyTime(String query,
+                                                          YearUnderstanding yearUnderstanding) {
+        boolean policyQuery = POLICY_QUERY_KEYWORDS.stream().anyMatch(query::contains);
+        Set<Integer> cohortYears = new LinkedHashSet<>();
+        List<Span> cohortSpans = new ArrayList<>();
+        Matcher cohortMatcher = COHORT_YEAR_PATTERN.matcher(query);
+        while (cohortMatcher.find()) {
+            cohortYears.add(Integer.valueOf(cohortMatcher.group(1)));
+            cohortSpans.add(new Span(cohortMatcher.start(1), cohortMatcher.end(1)));
+        }
+
+        Integer explicitCohortYear = cohortYears.size() == 1
+                ? cohortYears.iterator().next()
+                : null;
+        if (!policyQuery) {
+            return new PolicyTimeUnderstanding(false, null, explicitCohortYear, null);
+        }
+
+        Set<Integer> cycleYears = new LinkedHashSet<>();
+        Matcher yearMatcher = YEAR_PATTERN.matcher(query);
+        while (yearMatcher.find()) {
+            int start = yearMatcher.start(1);
+            int end = yearMatcher.end(1);
+            boolean cohortYear = cohortSpans.stream()
+                    .anyMatch(span -> span.start() == start && span.end() == end);
+            if (!cohortYear) {
+                cycleYears.add(Integer.valueOf(yearMatcher.group(1)));
+            }
+        }
+        if (cycleYears.isEmpty()
+                && CURRENT_YEAR_EXPRESSIONS.stream().anyMatch(query::contains)
+                && yearUnderstanding.resolvedYear() != null) {
+            cycleYears.add(yearUnderstanding.resolvedYear());
+        }
+
+        ApplicantStage stage = resolveApplicantStage(query);
+        Integer cycleYear = cycleYears.size() == 1 ? cycleYears.iterator().next() : null;
+        Integer cohortYear = explicitCohortYear;
+        if (cohortYear == null && cycleYear != null && stage != null) {
+            cohortYear = stage == ApplicantStage.FIRST_YEAR
+                    ? cycleYear - 1
+                    : cycleYear - 2;
+        }
+        return new PolicyTimeUnderstanding(policyQuery, cycleYear, cohortYear, stage);
+    }
+
+    private ApplicantStage resolveApplicantStage(String query) {
+        if (query.contains("大二") || query.contains("第二学年")) {
+            return ApplicantStage.SECOND_YEAR;
+        }
+        if (query.contains("大一") || query.contains("第一学年")) {
+            return ApplicantStage.FIRST_YEAR;
+        }
+        return null;
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private record MatchPosition(int start, int end) {
@@ -301,5 +366,12 @@ public class QueryRewriteService {
 
     private record YearUnderstanding(Integer explicitYear, Integer resolvedYear,
                                      boolean multiYearQuery) {
+    }
+
+    private record PolicyTimeUnderstanding(boolean policyQuery, Integer cycleYear,
+                                           Integer cohortYear, ApplicantStage applicantStage) {
+    }
+
+    private record Span(int start, int end) {
     }
 }

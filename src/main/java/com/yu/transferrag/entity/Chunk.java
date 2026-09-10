@@ -32,6 +32,8 @@ public class Chunk {
 
     private Integer policyYear;
 
+    private Integer cohortYear;
+
     private String department;
 
     private String major;
@@ -82,6 +84,14 @@ public class Chunk {
 
     public void setPolicyYear(Integer policyYear) {
         this.policyYear = policyYear;
+    }
+
+    public Integer getCohortYear() {
+        return cohortYear;
+    }
+
+    public void setCohortYear(Integer cohortYear) {
+        this.cohortYear = cohortYear;
     }
 
     public String getDepartment() {

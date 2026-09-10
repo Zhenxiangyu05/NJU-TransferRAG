@@ -33,8 +33,14 @@ public class QueryResolutionController {
         response.put("explicitYear", result.explicitYear());
         response.put("resolvedYear", result.resolvedYear());
         response.put("multiYearQuery", result.multiYearQuery());
+        response.put("experienceQuery", result.experienceQuery());
+        response.put("policyQuery", result.policyQuery());
+        response.put("cycleYear", result.cycleYear());
+        response.put("cohortYear", result.cohortYear());
+        response.put("applicantStage", result.applicantStage());
         response.put("ambiguousEntities", result.ambiguousEntities());
         response.put("finalDepartmentFilter", describeDepartmentFilter(result));
+        response.put("finalYearFilter", describeYearFilter(result));
         return response;
     }
 
@@ -47,4 +53,19 @@ public class QueryResolutionController {
                 + result.departments() + ")";
     }
 
+    private String describeYearFilter(QueryRewriteResult result) {
+        if (result.policyQuery() && result.cycleYear() != null) {
+            String filter = "policyYear = " + result.cycleYear();
+            if (result.cohortYear() != null) {
+                filter += " AND cohortYear = " + result.cohortYear();
+            }
+            return filter;
+        }
+        if (result.cohortYear() != null && result.cycleYear() == null) {
+            return "cohortYear = " + result.cohortYear();
+        }
+        return result.resolvedYear() == null
+                ? "<resolved during retrieval>"
+                : "effectiveYear = " + result.resolvedYear();
+    }
 }

@@ -85,7 +85,8 @@ class VectorIndexServiceTest {
         chunk.setDocument(sourceDocument);
         chunk.setContent("汉语言文学专业准入条件");
         chunk.setChunkIndex(0);
-        chunk.setPolicyYear(2025);
+        chunk.setPolicyYear(2026);
+        chunk.setCohortYear(2025);
         chunk.setDepartment("文学院");
         chunk.setMajor("汉语言文学");
         when(chunkRepository.findByDocument_IdOrderByChunkIndexAsc(6L)).thenReturn(List.of(chunk));
@@ -101,8 +102,9 @@ class VectorIndexServiceTest {
         assertEquals("GLOBAL", metadata.get("scope"));
         assertEquals("本科生院", metadata.get("department"));
         assertEquals(2026, metadata.get("year"));
-        assertEquals(2025, metadata.get("policyYear"));
-        assertEquals(2025, metadata.get("effectiveYear"));
+        assertEquals(2026, metadata.get("policyYear"));
+        assertEquals(2025, metadata.get("cohortYear"));
+        assertEquals(2026, metadata.get("effectiveYear"));
         assertEquals("文学院", metadata.get("chunkDepartment"));
         assertEquals("汉语言文学", metadata.get("major"));
     }

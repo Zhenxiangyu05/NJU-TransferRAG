@@ -8,6 +8,7 @@ public class SearchResultResponse {
     private Long documentId;
     private Integer chunkIndex;
     private Integer policyYear;
+    private Integer cohortYear;
     private Integer effectiveYear;
     private String chunkDepartment;
     private String major;
@@ -58,6 +59,14 @@ public class SearchResultResponse {
 
     public void setPolicyYear(Integer policyYear) {
         this.policyYear = policyYear;
+    }
+
+    public Integer getCohortYear() {
+        return cohortYear;
+    }
+
+    public void setCohortYear(Integer cohortYear) {
+        this.cohortYear = cohortYear;
     }
 
     public Integer getEffectiveYear() {

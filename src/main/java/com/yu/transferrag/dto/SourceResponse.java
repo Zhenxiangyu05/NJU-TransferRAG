@@ -15,8 +15,11 @@ public class SourceResponse {
     private String chunkDepartment;
     private String major;
     private Integer policyYear;
+    private Integer cohortYear;
     private Integer effectiveYear;
     private Double score;
+    private boolean fileAvailable;
+    private String sourceUrl;
 
     public String getCitationId() {
         return citationId;
@@ -122,6 +125,14 @@ public class SourceResponse {
         this.policyYear = policyYear;
     }
 
+    public Integer getCohortYear() {
+        return cohortYear;
+    }
+
+    public void setCohortYear(Integer cohortYear) {
+        this.cohortYear = cohortYear;
+    }
+
     public Integer getEffectiveYear() {
         return effectiveYear;
     }
@@ -136,5 +147,21 @@ public class SourceResponse {
 
     public void setScore(Double score) {
         this.score = score;
+    }
+
+    public boolean isFileAvailable() {
+        return fileAvailable;
+    }
+
+    public void setFileAvailable(boolean fileAvailable) {
+        this.fileAvailable = fileAvailable;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
     }
 }

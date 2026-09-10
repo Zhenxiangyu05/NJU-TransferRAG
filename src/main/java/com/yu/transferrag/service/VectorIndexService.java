@@ -62,6 +62,9 @@ public class VectorIndexService {
         if (chunk.getPolicyYear() != null) {
             builder.metadata("policyYear", chunk.getPolicyYear());
         }
+        if (chunk.getCohortYear() != null) {
+            builder.metadata("cohortYear", chunk.getCohortYear());
+        }
         if (chunk.getDepartment() != null) {
             builder.metadata("chunkDepartment", chunk.getDepartment());
         }

@@ -10,6 +10,7 @@ import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,12 @@ import java.util.Set;
 
 @Service
 public class RetrievalService {
+
+    private static final int EXPERIENCE_CANDIDATE_MULTIPLIER = 3;
+    private static final int MIN_EXPERIENCE_CANDIDATES = 10;
+    private static final double LATEST_YEAR_BONUS = 0.03;
+    private static final double PREVIOUS_YEAR_BONUS = 0.02;
+    private static final double TWO_YEARS_AGO_BONUS = 0.01;
 
     private final VectorStore vectorStore;
     private final QueryRewriteService queryRewriteService;
@@ -40,45 +47,181 @@ public class RetrievalService {
 
         QueryRewriteResult rewriteResult = queryRewriteService.rewriteWithContext(query);
         Set<String> departments = new LinkedHashSet<>(rewriteResult.departments());
-        Integer resolvedYear = resolveYear(rewriteResult, departments);
+        boolean historicalCohortQuery = isHistoricalCohortQuery(rewriteResult);
+        boolean crossYearExperienceQuery = shouldSearchExperienceAcrossYears(rewriteResult);
+        Integer resolvedYear = historicalCohortQuery
+                ? null
+                : resolveYear(rewriteResult, departments);
         rewriteResult = rewriteResult.withResolvedYear(resolvedYear);
+        Integer filterYear = crossYearExperienceQuery ? null : rewriteResult.resolvedYear();
+        int searchTopK = crossYearExperienceQuery ? experienceCandidateTopK(topK) : topK;
 
         if (departments.isEmpty()) {
             Filter.Expression metadataFilter = buildMetadataFilter(
                     departments,
-                    rewriteResult.resolvedYear(),
+                    filterYear,
                     rewriteResult.multiYearQuery(),
-                    false
+                    false,
+                    rewriteResult
             );
-            return executeSearch(rewriteResult.rewrittenQuery(), topK, metadataFilter);
+            List<SearchResultResponse> results = executeSearch(
+                    rewriteResult.rewrittenQuery(),
+                    searchTopK,
+                    metadataFilter
+            );
+            if (historicalCohortQuery && results.isEmpty()) {
+                return searchUntaggedHistoricalFallback(
+                        rewriteResult.rewrittenQuery(), departments, topK
+                );
+            }
+            return finalizeResults(results, topK, resolvedYear, crossYearExperienceQuery);
         }
 
         Filter.Expression strictFilter = buildMetadataFilter(
                 departments,
-                rewriteResult.resolvedYear(),
+                filterYear,
                 rewriteResult.multiYearQuery(),
-                true
+                true,
+                rewriteResult
         );
         List<SearchResultResponse> strictResults = executeSearch(
                 rewriteResult.rewrittenQuery(),
-                topK,
+                searchTopK,
                 strictFilter
         );
         if (!strictResults.isEmpty()) {
-            return strictResults;
+            return finalizeResults(
+                    strictResults,
+                    topK,
+                    resolvedYear,
+                    crossYearExperienceQuery
+            );
         }
 
         Filter.Expression fallbackFilter = buildMetadataFilter(
                 departments,
-                rewriteResult.resolvedYear(),
+                filterYear,
                 rewriteResult.multiYearQuery(),
-                false
+                false,
+                rewriteResult
         );
-        return executeSearch(
+        List<SearchResultResponse> fallbackResults = executeSearch(
                 rewriteResult.rewrittenQuery(),
-                topK,
+                searchTopK,
                 fallbackFilter
         );
+        if (historicalCohortQuery && fallbackResults.isEmpty()) {
+            return searchUntaggedHistoricalFallback(
+                    rewriteResult.rewrittenQuery(), departments, topK
+            );
+        }
+        return finalizeResults(
+                fallbackResults,
+                topK,
+                resolvedYear,
+                crossYearExperienceQuery
+        );
+    }
+
+    private boolean isHistoricalCohortQuery(QueryRewriteResult rewriteResult) {
+        return rewriteResult.cohortYear() != null && rewriteResult.cycleYear() == null;
+    }
+
+    private List<SearchResultResponse> searchUntaggedHistoricalFallback(
+            String rewrittenQuery, Set<String> departments, int topK) {
+        if (departments.isEmpty()) {
+            return untagged(executeSearch(rewrittenQuery, topK, null));
+        }
+
+        List<SearchResultResponse> strict = untagged(executeSearch(
+                rewrittenQuery,
+                topK,
+                buildDepartmentOnlyFilter(departments, true)
+        ));
+        if (!strict.isEmpty()) {
+            return strict;
+        }
+        return untagged(executeSearch(
+                rewrittenQuery,
+                topK,
+                buildDepartmentOnlyFilter(departments, false)
+        ));
+    }
+
+    private List<SearchResultResponse> untagged(List<SearchResultResponse> results) {
+        return results.stream()
+                .filter(result -> result.getCohortYear() == null)
+                .toList();
+    }
+
+    private Filter.Expression buildDepartmentOnlyFilter(Set<String> departments,
+                                                        boolean strictGlobalChunks) {
+        FilterExpressionBuilder builder = new FilterExpressionBuilder();
+        FilterExpressionBuilder.Op filter = buildDepartmentFilter(
+                builder, departments, strictGlobalChunks
+        );
+        return filter == null ? null : filter.build();
+    }
+
+    private boolean shouldSearchExperienceAcrossYears(QueryRewriteResult rewriteResult) {
+        return rewriteResult.experienceQuery()
+                && rewriteResult.explicitYear() == null
+                && rewriteResult.resolvedYear() == null
+                && !rewriteResult.multiYearQuery();
+    }
+
+    private int experienceCandidateTopK(int topK) {
+        int multipliedTopK = topK > Integer.MAX_VALUE / EXPERIENCE_CANDIDATE_MULTIPLIER
+                ? Integer.MAX_VALUE
+                : topK * EXPERIENCE_CANDIDATE_MULTIPLIER;
+        return Math.max(multipliedTopK, MIN_EXPERIENCE_CANDIDATES);
+    }
+
+    private List<SearchResultResponse> finalizeResults(List<SearchResultResponse> results,
+                                                       int topK,
+                                                       Integer latestYear,
+                                                       boolean crossYearExperienceQuery) {
+        if (!crossYearExperienceQuery) {
+            return results;
+        }
+
+        Comparator<SearchResultResponse> ranking = Comparator
+                .comparingDouble((SearchResultResponse result) -> adjustedScore(result, latestYear))
+                .reversed()
+                .thenComparing(
+                        SearchResultResponse::getEffectiveYear,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                )
+                .thenComparing(
+                        SearchResultResponse::getScore,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                );
+
+        return results.stream()
+                .sorted(ranking)
+                .limit(topK)
+                .toList();
+    }
+
+    private double adjustedScore(SearchResultResponse result, Integer latestYear) {
+        double vectorScore = result.getScore() == null
+                ? -Double.MAX_VALUE
+                : result.getScore();
+        return vectorScore + yearBonus(result.getEffectiveYear(), latestYear);
+    }
+
+    private double yearBonus(Integer effectiveYear, Integer latestYear) {
+        if (effectiveYear == null || latestYear == null) {
+            return 0.0;
+        }
+
+        int yearDifference = latestYear - effectiveYear;
+        return switch (yearDifference) {
+            case 0 -> LATEST_YEAR_BONUS;
+            case 1 -> PREVIOUS_YEAR_BONUS;
+            case 2 -> TWO_YEARS_AGO_BONUS;
+            default -> 0.0;
+        };
     }
 
     private List<SearchResultResponse> executeSearch(String rewrittenQuery,
@@ -114,18 +257,11 @@ public class RetrievalService {
         );
     }
 
-    private Filter.Expression buildDepartmentOnlyFilter(Set<String> departments,
-                                                        boolean strictGlobalChunks) {
-        FilterExpressionBuilder builder = new FilterExpressionBuilder();
-        FilterExpressionBuilder.Op departmentFilter = buildDepartmentFilter(
-                builder, departments, strictGlobalChunks
-        );
-        return departmentFilter == null ? null : departmentFilter.build();
-    }
     private Filter.Expression buildMetadataFilter(Set<String> departments,
                                                    Integer resolvedYear,
                                                    boolean multiYearQuery,
-                                                   boolean strictGlobalChunks) {
+                                                   boolean strictGlobalChunks,
+                                                   QueryRewriteResult rewriteResult) {
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
         FilterExpressionBuilder.Op combinedFilter = buildDepartmentFilter(
                 builder,
@@ -133,8 +269,21 @@ public class RetrievalService {
                 strictGlobalChunks
         );
 
-        if (!multiYearQuery && resolvedYear != null) {
-            FilterExpressionBuilder.Op yearFilter = builder.eq("effectiveYear", resolvedYear);
+        FilterExpressionBuilder.Op yearFilter = null;
+        if (rewriteResult.policyQuery() && rewriteResult.cycleYear() != null) {
+            yearFilter = builder.eq("policyYear", rewriteResult.cycleYear());
+            if (rewriteResult.cohortYear() != null) {
+                yearFilter = builder.and(
+                        yearFilter,
+                        builder.eq("cohortYear", rewriteResult.cohortYear())
+                );
+            }
+        } else if (isHistoricalCohortQuery(rewriteResult)) {
+            yearFilter = builder.eq("cohortYear", rewriteResult.cohortYear());
+        } else if (!multiYearQuery && resolvedYear != null) {
+            yearFilter = builder.eq("effectiveYear", resolvedYear);
+        }
+        if (yearFilter != null) {
             combinedFilter = combinedFilter == null
                     ? yearFilter
                     : builder.and(combinedFilter, yearFilter);
@@ -195,6 +344,7 @@ public class RetrievalService {
         response.setDocumentId(toLong(metadata.get("documentId"), "documentId"));
         response.setChunkIndex(toInteger(metadata.get("chunkIndex"), "chunkIndex"));
         response.setPolicyYear(toInteger(metadata.get("policyYear"), "policyYear"));
+        response.setCohortYear(toInteger(metadata.get("cohortYear"), "cohortYear"));
         response.setEffectiveYear(toInteger(metadata.get("effectiveYear"), "effectiveYear"));
         response.setChunkDepartment(toStringValue(metadata.get("chunkDepartment")));
         response.setMajor(toStringValue(metadata.get("major")));

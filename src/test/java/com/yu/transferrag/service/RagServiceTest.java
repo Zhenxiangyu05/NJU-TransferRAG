@@ -9,6 +9,7 @@ import com.yu.transferrag.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,11 +19,14 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -47,6 +51,9 @@ class RagServiceTest {
     @Mock
     private DocumentRepository documentRepository;
 
+    @TempDir
+    private Path tempDir;
+
     private RagService ragService;
 
     @BeforeEach
@@ -60,7 +67,7 @@ class RagServiceTest {
     }
 
     @Test
-    void shouldBuildStableCitationsAndCompleteSourcesWithOneBatchDocumentQuery() {
+    void shouldBuildStableCitationsAndCompleteSourcesWithOneBatchDocumentQuery() throws Exception {
         String question = "2025年汉语言文学转专业需要什么条件？";
         List<SearchResultResponse> results = List.of(
                 searchResult(6, 116, 0, 0.677, "文学院", "汉语言文学", 2025, 2025),
@@ -83,15 +90,16 @@ class RagServiceTest {
                 "PERSONAL",
                 "DEPARTMENT"
         );
+        Path officialFile = tempDir.resolve("official.pdf");
+        Files.writeString(officialFile, "test");
+        official.setFilePath(officialFile.toString());
+        official.setSourceUrl("https://example.edu.cn/policy");
+        personal.setSourceUrl("javascript:alert('unsafe')");
         when(retrievalService.search(question, 3)).thenReturn(results);
         when(documentRepository.findAllById(Set.of(6L, 20L)))
                 .thenReturn(List.of(official, personal));
         when(answerabilityService.check(anyString(), anyString(), anyList()))
-                .thenReturn(new AnswerabilityResult(
-                        true,
-                        List.of("S1", "S2", "S3"),
-                        "Sources contain the requested requirements."
-                ));
+                .thenReturn(new AnswerabilityResult(true, List.of("S1", "S2", "S3"), "证据覆盖"));
         when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse(
                 "官方要求见准入计划。[S1] 经验资料另有备考建议。[S2]"
         ));
@@ -119,10 +127,14 @@ class RagServiceTest {
         assertEquals(2025, sourceOne.getPolicyYear());
         assertEquals(2025, sourceOne.getEffectiveYear());
         assertEquals(0.677, sourceOne.getScore());
+        assertTrue(sourceOne.isFileAvailable());
+        assertEquals("https://example.edu.cn/policy", sourceOne.getSourceUrl());
 
         SourceResponse sourceTwo = response.getSources().get(1);
         assertEquals("PERSONAL", sourceTwo.getSourceType());
         assertFalse(sourceTwo.isOfficial());
+        assertFalse(sourceTwo.isFileAvailable());
+        assertNull(sourceTwo.getSourceUrl());
 
         verify(documentRepository).findAllById(Set.of(6L, 20L));
 
@@ -208,11 +220,7 @@ class RagServiceTest {
                 document(20, "个人经验", "文学院", 2025, "PERSONAL", "DEPARTMENT")
         ));
         when(answerabilityService.check(anyString(), anyString(), anyList()))
-                .thenReturn(new AnswerabilityResult(
-                        true,
-                        List.of("S1"),
-                        "S1 lists the required courses."
-                ));
+                .thenReturn(new AnswerabilityResult(true, List.of("S1"), "证据覆盖"));
         when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("准入课程见官方计划。[S1]"));
 
         RagResponse response = ragService.ask(question);

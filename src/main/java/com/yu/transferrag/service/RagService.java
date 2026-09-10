@@ -14,10 +14,14 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,7 +32,6 @@ public class RagService {
     private static final double MIN_SIMILARITY_SCORE = 0.55;
     private static final String INSUFFICIENT_KNOWLEDGE_ANSWER =
             "根据当前知识库资料无法确定。";
-
     private static final String SYSTEM_INSTRUCTION = """
             你是高校转专业知识问答助手。
             你只能依据用户消息中提供的 Sources 回答，不得利用模型自身知识补充政策事实。
@@ -139,6 +142,7 @@ public class RagService {
     }
 
     private RagResponse insufficientKnowledgeResponse(String question) {
+
         RagResponse response = new RagResponse();
         response.setQuestion(question);
         response.setAnswer(INSUFFICIENT_KNOWLEDGE_ANSWER);
@@ -211,6 +215,7 @@ public class RagService {
                     source.setChunkDepartment(result.getChunkDepartment());
                     source.setMajor(result.getMajor());
                     source.setPolicyYear(result.getPolicyYear());
+                    source.setCohortYear(result.getCohortYear());
                     source.setEffectiveYear(result.getEffectiveYear());
                     source.setScore(result.getScore());
 
@@ -221,10 +226,57 @@ public class RagService {
                         source.setDocumentDepartment(document.getDepartment());
                         source.setDocumentYear(document.getYear());
                         source.setScope(document.getScope());
+                        source.setFileAvailable(hasLocalFile(document));
+                        source.setSourceUrl(safeSourceUrl(document.getSourceUrl()));
                     }
                     return source;
                 })
                 .toList();
+    }
+
+    private boolean hasLocalFile(Document document) {
+        if (document.getFilePath() == null || document.getFilePath().isBlank()) {
+            return false;
+        }
+        try {
+            Path path = Path.of(document.getFilePath());
+            String originalExtension = extensionOf(document.getOriginalFileName());
+            String storedExtension = extensionOf(path.getFileName().toString());
+            Set<String> supportedExtensions = Set.of("pdf", "docx", "md", "txt");
+            boolean supported = (originalExtension != null && supportedExtensions.contains(originalExtension))
+                    || (storedExtension != null && supportedExtensions.contains(storedExtension));
+            return supported && Files.isRegularFile(path);
+        } catch (RuntimeException exception) {
+            return false;
+        }
+    }
+
+    private String extensionOf(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return null;
+        }
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
+            return null;
+        }
+        return fileName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private String safeSourceUrl(String sourceUrl) {
+        if (sourceUrl == null || sourceUrl.isBlank()) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(sourceUrl.trim());
+            String scheme = uri.getScheme();
+            if (uri.getHost() == null
+                    || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))) {
+                return null;
+            }
+            return uri.toString();
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     private Map<Long, Document> loadDocuments(List<SearchResultResponse> searchResults) {

@@ -51,6 +51,7 @@ class ChunkServiceTest {
         assertTrue(count > 1);
         assertTrue(chunks.stream().allMatch(chunk ->
                 chunk.getPolicyYear() == null
+                        && chunk.getCohortYear() == null
                         && chunk.getDepartment() == null
                         && chunk.getMajor() == null
         ));
@@ -75,7 +76,8 @@ class ChunkServiceTest {
         assertEquals(2, count);
         assertEquals("文学院", chunks.get(0).getDepartment());
         assertEquals("汉语言文学", chunks.get(0).getMajor());
-        assertEquals(2025, chunks.get(0).getPolicyYear());
+        assertEquals(2026, chunks.get(0).getPolicyYear());
+        assertEquals(2025, chunks.get(0).getCohortYear());
         assertEquals("法学院", chunks.get(1).getDepartment());
     }
 
@@ -90,6 +92,22 @@ class ChunkServiceTest {
 
         List<Chunk> chunks = captureSavedChunks();
         assertTrue(count > 1);
+        assertTrue(chunks.stream().allMatch(chunk -> chunk.getPolicyYear() == null));
+    }
+
+    @Test
+    void shouldKeepDocumentYearAndExtractGuideCohortYear() {
+        Document document = document(28L, "南京大学人文大类求生指南", "DEPARTMENT", "PERSONAL");
+        String text = "2024年发布。\n2023级人文大类有110人，分流进入不同专业。";
+        when(documentRepository.findById(28L)).thenReturn(Optional.of(document));
+        when(documentParserService.extractText(28L)).thenReturn(text);
+
+        chunkService.createChunks(28L);
+
+        List<Chunk> chunks = captureSavedChunks();
+        assertEquals(2026, document.getYear());
+        assertTrue(chunks.stream().anyMatch(chunk -> Integer.valueOf(2023)
+                .equals(chunk.getCohortYear())));
         assertTrue(chunks.stream().allMatch(chunk -> chunk.getPolicyYear() == null));
     }
 
