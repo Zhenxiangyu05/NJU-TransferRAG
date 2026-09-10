@@ -1,6 +1,8 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.dto.EntityRole;
 import com.yu.transferrag.dto.MatchedEntity;
+import com.yu.transferrag.dto.ResolvedEntity;
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.dto.SearchResultResponse;
 import com.yu.transferrag.repository.ChunkRepository;
@@ -69,6 +71,37 @@ class RetrievalServiceTest {
         assertEquals(List.of(11L), results.stream().map(SearchResultResponse::getChunkId).toList());
     }
 
+    @Test
+    void shouldUseOnlyResolvedTargetDepartmentsForStrictFilter() {
+        String query = "软院之外，电子学院转专业有什么要求？";
+        when(queryRewriteService.rewriteWithContext(query)).thenReturn(new QueryRewriteResult(
+                query,
+                "软院（软件学院）之外，电子学院（电子科学与工程学院）转专业有什么要求？",
+                List.of(
+                        new MatchedEntity("软件学院", "DEPARTMENT", "软件学院"),
+                        new MatchedEntity("电子科学与工程学院", "DEPARTMENT", "电子科学与工程学院")
+                ),
+                List.of(
+                        new ResolvedEntity("软件学院", "DEPARTMENT", "软件学院", "软院", EntityRole.EXCLUDED),
+                        new ResolvedEntity("电子科学与工程学院", "DEPARTMENT", "电子科学与工程学院", "电子学院", EntityRole.TARGET)
+                ),
+                List.of("电子科学与工程学院"),
+                List.of(),
+                List.of(),
+                2026,
+                2026,
+                false
+        ));
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
+                vectorResult(14, 98, "电子科学与工程学院", "电子信息类")
+        ));
+
+        retrievalService.search(query, 3);
+
+        SearchRequest request = capturedRequests(1).getFirst();
+        assertEquals(expectedDepartmentFilter(Set.of("电子科学与工程学院"), 2026, true),
+                request.getFilterExpression());
+    }
     @Test
     void shouldNotExecuteFallbackWhenStrictResultsReachTopK() {
         String query = "2025年法学转专业条件";

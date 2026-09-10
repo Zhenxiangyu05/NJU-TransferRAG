@@ -1,5 +1,6 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.dto.EntityRole;
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.entity.EntityAlias;
 import com.yu.transferrag.repository.EntityAliasRepository;
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -141,11 +144,139 @@ class QueryRewriteServiceTest {
         assertEquals(true, result.multiYearQuery());
     }
 
+
+
+    @Test
+    void shouldResolveMajorToCanonicalDepartment() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("计算机科学与技术", null, "MAJOR", "计算机学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext(
+                "2026年计算机科学与技术转专业需要什么条件？"
+        );
+
+        assertEquals(List.of("计算机学院"), result.departments());
+        assertEquals(List.of("计算机科学与技术"), result.majors());
+        assertEquals(2026, result.explicitYear());
+    }
+
+    @Test
+    void shouldApplyLongestMatchToResolvedEntities() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("光电信息科学与工程", "光电信息类", "MAJOR", "现代工程与应用科学学院"),
+                alias("光电系统信息材料实验班", "光电", "PROGRAM", "现代工程与应用科学学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("光电信息类怎么转专业？");
+
+        assertEquals(1, result.matchedEntities().size());
+        assertEquals("光电信息科学与工程", result.matchedEntities().getFirst().standardName());
+        assertEquals(List.of("光电信息科学与工程"), result.majors());
+    }
+
+    @Test
+    void shouldResolveMultipleTargetEntities() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("软件学院", "软院", "DEPARTMENT", "软件学院"),
+                alias("电子科学与工程学院", "电子学院", "DEPARTMENT", "电子科学与工程学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("软院和电子学院怎么选？");
+
+        assertEquals(List.of("软件学院", "电子科学与工程学院"), result.departments());
+        assertEquals(2, result.resolvedEntities().size());
+    }
+
+    @Test
+    void shouldNotUseExcludedEntityAsDepartmentFilter() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("软件学院", "软院", "DEPARTMENT", "软件学院"),
+                alias("电子科学与工程学院", "电子学院", "DEPARTMENT", "电子科学与工程学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext(
+                "软院之外，电子学院转专业有什么要求？"
+        );
+
+        assertEquals(List.of("电子科学与工程学院"), result.departments());
+        assertEquals(EntityRole.EXCLUDED, result.resolvedEntities().getFirst().role());
+        assertEquals(EntityRole.TARGET, result.resolvedEntities().get(1).role());
+        assertTrue(result.rewrittenQuery().contains("软院（软件学院）之外"));
+    }
+
+    @Test
+    void shouldRecognizePrefixExclusionAndComparisonRoles() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("软件学院", "软院", "DEPARTMENT", "软件学院"),
+                alias("电子科学与工程学院", "电子学院", "DEPARTMENT", "电子科学与工程学院")
+        ));
+
+        QueryRewriteResult excluded = queryRewriteService.rewriteWithContext("除了软院，电子学院呢？");
+        QueryRewriteResult comparison = queryRewriteService.rewriteWithContext("相比软院，电子学院如何？");
+
+        assertEquals(EntityRole.EXCLUDED, excluded.resolvedEntities().getFirst().role());
+        assertEquals(EntityRole.COMPARISON, comparison.resolvedEntities().getFirst().role());
+        assertEquals(List.of("电子科学与工程学院"), excluded.departments());
+        assertEquals(List.of("电子科学与工程学院"), comparison.departments());
+    }
+
+    @Test
+    void shouldKeepBareElectronicAndOpticalExpressionsAmbiguous() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of());
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("电子和光电怎么选？");
+
+        assertTrue(result.departments().isEmpty());
+        assertEquals(List.of("电子", "光电"), result.ambiguousEntities());
+        assertTrue(result.resolvedEntities().stream()
+                .allMatch(entity -> entity.role() == EntityRole.AMBIGUOUS));
+    }
+
+    @Test
+    void shouldRecognizeAliasWithoutCollegeSuffix() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("现代工程与应用科学学院", "现工", "DEPARTMENT", "现代工程与应用科学学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("现工转专业怎么准备？");
+
+        assertEquals(List.of("现代工程与应用科学学院"), result.departments());
+    }
+
+    @Test
+    void shouldKeepSoftwareMajorDistinctFromSoftwareCollege() {
+        when(entityAliasRepository.findAll()).thenReturn(List.of(
+                alias("软件工程", null, "MAJOR", "软件学院"),
+                alias("软件学院", "软院", "DEPARTMENT", "软件学院")
+        ));
+
+        QueryRewriteResult result = queryRewriteService.rewriteWithContext("软件工程转专业要求");
+
+        assertEquals(1, result.matchedEntities().size());
+        assertEquals("软件工程", result.matchedEntities().getFirst().standardName());
+        assertEquals(List.of("软件工程"), result.majors());
+    }
+
+
+
+
+
+
     private EntityAlias alias(String standardName, String alias, String entityType) {
         EntityAlias entityAlias = new EntityAlias();
         entityAlias.setStandardName(standardName);
         entityAlias.setAlias(alias);
         entityAlias.setEntityType(entityType);
+        return entityAlias;
+    }
+
+    private EntityAlias alias(String standardName,
+                              String alias,
+                              String entityType,
+                              String department) {
+        EntityAlias entityAlias = alias(standardName, alias, entityType);
+        entityAlias.setDepartment(department);
         return entityAlias;
     }
 }

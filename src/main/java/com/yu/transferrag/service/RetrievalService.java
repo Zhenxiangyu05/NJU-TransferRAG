@@ -1,6 +1,5 @@
 package com.yu.transferrag.service;
 
-import com.yu.transferrag.dto.MatchedEntity;
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.dto.SearchResultResponse;
 import com.yu.transferrag.repository.ChunkRepository;
@@ -40,7 +39,7 @@ public class RetrievalService {
         }
 
         QueryRewriteResult rewriteResult = queryRewriteService.rewriteWithContext(query);
-        Set<String> departments = extractDepartments(rewriteResult.matchedEntities());
+        Set<String> departments = new LinkedHashSet<>(rewriteResult.departments());
         Integer resolvedYear = resolveYear(rewriteResult, departments);
         rewriteResult = rewriteResult.withResolvedYear(resolvedYear);
 
@@ -97,17 +96,6 @@ public class RetrievalService {
                 .toList();
     }
 
-    private Set<String> extractDepartments(List<MatchedEntity> matchedEntities) {
-        Set<String> departments = new LinkedHashSet<>();
-        for (MatchedEntity matchedEntity : matchedEntities) {
-            String department = matchedEntity.department();
-            if (department != null && !department.isBlank()) {
-                departments.add(department.trim());
-            }
-        }
-        return departments;
-    }
-
     private Integer resolveYear(QueryRewriteResult rewriteResult,
                                 Set<String> departments) {
         if (rewriteResult.multiYearQuery()) {
@@ -126,6 +114,14 @@ public class RetrievalService {
         );
     }
 
+    private Filter.Expression buildDepartmentOnlyFilter(Set<String> departments,
+                                                        boolean strictGlobalChunks) {
+        FilterExpressionBuilder builder = new FilterExpressionBuilder();
+        FilterExpressionBuilder.Op departmentFilter = buildDepartmentFilter(
+                builder, departments, strictGlobalChunks
+        );
+        return departmentFilter == null ? null : departmentFilter.build();
+    }
     private Filter.Expression buildMetadataFilter(Set<String> departments,
                                                    Integer resolvedYear,
                                                    boolean multiYearQuery,

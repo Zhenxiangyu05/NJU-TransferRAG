@@ -1,7 +1,9 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.dto.EntityRole;
 import com.yu.transferrag.dto.MatchedEntity;
 import com.yu.transferrag.dto.QueryRewriteResult;
+import com.yu.transferrag.dto.ResolvedEntity;
 import com.yu.transferrag.entity.EntityAlias;
 import com.yu.transferrag.repository.EntityAliasRepository;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class QueryRewriteService {
 
     private static final Pattern YEAR_PATTERN = Pattern.compile("(?<!\\d)((?:19|20)\\d{2})(?!\\d)");
     private static final List<String> CURRENT_YEAR_EXPRESSIONS = List.of("今年", "本年度", "当前");
+    private static final List<String> AMBIGUOUS_SHORT_EXPRESSIONS = List.of("电子", "光电");
 
     private final EntityAliasRepository entityAliasRepository;
 
@@ -46,83 +49,34 @@ public class QueryRewriteService {
         }
 
         YearUnderstanding yearUnderstanding = understandYear(query);
-        List<EntityAlias> aliases = entityAliasRepository.findAll();
-        if (aliases.isEmpty()) {
-            return toResult(query, query, List.of(), yearUnderstanding);
-        }
-
         Map<MatchPosition, MatchDetails> detailsByPosition = new LinkedHashMap<>();
-        Set<MatchedEntity> alreadyMatchedEntities = new LinkedHashSet<>();
-        for (EntityAlias entityAlias : aliases) {
-            String standardName = normalize(entityAlias.getStandardName());
-            String alias = normalize(entityAlias.getAlias());
-            String entityType = normalize(entityAlias.getEntityType());
-            if (standardName == null || entityType == null) {
-                continue;
-            }
-
-            MatchedEntity matchedEntity = new MatchedEntity(
-                    standardName,
-                    entityType,
-                    normalize(entityAlias.getDepartment())
-            );
-            addMatchedEntityIfPresent(query, standardName, matchedEntity, alreadyMatchedEntities);
-            addMatchedEntityIfPresent(query, alias, matchedEntity, alreadyMatchedEntities);
-
-            // 没有可靠别名时仍可通过标准名称识别实体和 department，但不改写查询。
-            if (alias == null || standardName.equals(alias)) {
-                continue;
-            }
-            if (alreadyExpanded(query, standardName, alias)) {
-                alreadyMatchedEntities.add(matchedEntity);
-                continue;
-            }
-
-            addMatches(query, standardName, alias, matchedEntity, detailsByPosition);
-            addMatches(query, alias, standardName, matchedEntity, detailsByPosition);
+        for (EntityAlias entityAlias : entityAliasRepository.findAll()) {
+            addEntityMatches(query, entityAlias, detailsByPosition);
         }
 
-        List<RewriteMatch> matches = detailsByPosition.entrySet().stream()
+        List<RewriteMatch> candidates = detailsByPosition.entrySet().stream()
                 .map(entry -> new RewriteMatch(
-                        entry.getKey().start(),
-                        entry.getKey().end(),
+                        entry.getKey().start(), entry.getKey().end(),
                         List.copyOf(entry.getValue().additions()),
-                        List.copyOf(entry.getValue().matchedEntities())
+                        List.copyOf(entry.getValue().descriptors())
                 ))
                 .sorted(Comparator.comparingInt(RewriteMatch::length)
-                        .reversed()
-                        .thenComparingInt(RewriteMatch::start))
+                        .reversed().thenComparingInt(RewriteMatch::start))
                 .toList();
 
-        List<RewriteMatch> selectedMatches = selectNonOverlapping(matches);
-        if (selectedMatches.isEmpty()) {
-            return toResult(
-                    query,
-                    query,
-                    List.copyOf(alreadyMatchedEntities),
-                    yearUnderstanding
-            );
-        }
+        List<RewriteMatch> selectedMatches = selectNonOverlapping(candidates);
         selectedMatches.sort(Comparator.comparingInt(RewriteMatch::start));
+        Resolution resolution = resolveSelectedEntities(query, selectedMatches);
+        addUncoveredAmbiguousExpressions(query, selectedMatches, resolution);
 
-        Set<MatchedEntity> matchedEntities = new LinkedHashSet<>(alreadyMatchedEntities);
-        selectedMatches.forEach(match -> matchedEntities.addAll(match.matchedEntities()));
-        return toResult(
+        return new QueryRewriteResult(
                 query,
                 applyMatches(query, selectedMatches),
-                List.copyOf(matchedEntities),
-                yearUnderstanding
-        );
-    }
-
-    private QueryRewriteResult toResult(String originalQuery,
-                                        String rewrittenQuery,
-                                        List<MatchedEntity> matchedEntities,
-                                        YearUnderstanding yearUnderstanding) {
-        return new QueryRewriteResult(
-                originalQuery,
-                rewrittenQuery,
-                matchedEntities,
+                List.copyOf(resolution.matchedEntities()),
+                List.copyOf(resolution.resolvedEntities()),
+                List.copyOf(resolution.departments()),
+                List.copyOf(resolution.majors()),
+                List.copyOf(resolution.ambiguousEntities()),
                 yearUnderstanding.explicitYear(),
                 yearUnderstanding.resolvedYear(),
                 yearUnderstanding.multiYearQuery()
@@ -158,15 +112,26 @@ public class QueryRewriteService {
         return new YearUnderstanding(null, null, false);
     }
 
-    private void addMatchedEntityIfPresent(String query,
-                                           String name,
-                                           MatchedEntity matchedEntity,
-                                           Set<MatchedEntity> matchedEntities) {
-        if (name != null && query.contains(name)) {
-            matchedEntities.add(matchedEntity);
+    private void addEntityMatches(String query,
+                                  EntityAlias entityAlias,
+                                  Map<MatchPosition, MatchDetails> detailsByPosition) {
+        String standardName = normalize(entityAlias.getStandardName());
+        String alias = normalize(entityAlias.getAlias());
+        String entityType = normalize(entityAlias.getEntityType());
+        if (standardName == null || entityType == null) {
+            return;
+        }
+
+        String department = normalize(entityAlias.getDepartment());
+        if (department == null && "DEPARTMENT".equalsIgnoreCase(entityType)) {
+            department = standardName;
+        }
+        MatchedEntity matchedEntity = new MatchedEntity(standardName, entityType, department);
+        addMatches(query, standardName, alias, matchedEntity, detailsByPosition);
+        if (alias != null && !standardName.equals(alias)) {
+            addMatches(query, alias, standardName, matchedEntity, detailsByPosition);
         }
     }
-
     private void addMatches(String query,
                             String matchedName,
                             String relatedName,
@@ -178,14 +143,14 @@ public class QueryRewriteService {
             if (start < 0) {
                 return;
             }
-
             int end = start + matchedName.length();
             MatchDetails details = detailsByPosition.computeIfAbsent(
-                    new MatchPosition(start, end),
-                    ignored -> new MatchDetails()
+                    new MatchPosition(start, end), ignored -> new MatchDetails()
             );
-            details.additions().add(relatedName);
-            details.matchedEntities().add(matchedEntity);
+            if (relatedName != null && !relatedName.equals(matchedName)) {
+                details.additions().add(relatedName);
+            }
+            details.descriptors().add(new EntityDescriptor(matchedEntity));
             fromIndex = end;
         }
     }
@@ -193,9 +158,7 @@ public class QueryRewriteService {
     private List<RewriteMatch> selectNonOverlapping(List<RewriteMatch> matches) {
         List<RewriteMatch> selected = new ArrayList<>();
         for (RewriteMatch candidate : matches) {
-            boolean overlaps = selected.stream()
-                    .anyMatch(existing -> candidate.start() < existing.end()
-                            && existing.start() < candidate.end());
+            boolean overlaps = selected.stream().anyMatch(existing -> overlaps(candidate, existing));
             if (!overlaps) {
                 selected.add(candidate);
             }
@@ -203,27 +166,99 @@ public class QueryRewriteService {
         return selected;
     }
 
+    private Resolution resolveSelectedEntities(String query, List<RewriteMatch> selectedMatches) {
+        Resolution resolution = new Resolution();
+        for (RewriteMatch match : selectedMatches) {
+            Set<MatchedEntity> meanings = new LinkedHashSet<>();
+            match.descriptors().forEach(descriptor -> meanings.add(descriptor.entity()));
+            EntityRole role = meanings.size() > 1
+                    ? EntityRole.AMBIGUOUS
+                    : determineRole(query, match.start(), match.end());
+            String matchedText = query.substring(match.start(), match.end());
+
+            for (MatchedEntity entity : meanings) {
+                resolution.matchedEntities().add(entity);
+                resolution.resolvedEntities().add(new ResolvedEntity(
+                        entity.standardName(), entity.entityType(), entity.department(), matchedText, role
+                ));
+                if (role == EntityRole.TARGET) {
+                    addTarget(entity, resolution);
+                }
+            }
+            if (role == EntityRole.AMBIGUOUS) {
+                resolution.ambiguousEntities().add(matchedText);
+            }
+        }
+        return resolution;
+    }
+
+    private void addTarget(MatchedEntity entity, Resolution resolution) {
+        if (entity.department() != null && !entity.department().isBlank()) {
+            resolution.departments().add(entity.department().trim());
+        }
+        if (("MAJOR".equalsIgnoreCase(entity.entityType())
+                || "PROGRAM".equalsIgnoreCase(entity.entityType()))
+                && entity.standardName() != null && !entity.standardName().isBlank()) {
+            resolution.majors().add(entity.standardName().trim());
+        }
+    }
+
+    private EntityRole determineRole(String query, int start, int end) {
+        String before = query.substring(0, start).replaceAll("\\s+$", "");
+        String after = query.substring(end).replaceAll("^\\s+", "");
+        if (after.startsWith("之外") || before.endsWith("除了")) {
+            return EntityRole.EXCLUDED;
+        }
+        if (before.endsWith("不同于") || before.endsWith("相比")) {
+            return EntityRole.COMPARISON;
+        }
+        return EntityRole.TARGET;
+    }
+
+    private void addUncoveredAmbiguousExpressions(String query,
+                                                  List<RewriteMatch> selectedMatches,
+                                                  Resolution resolution) {
+        for (String expression : AMBIGUOUS_SHORT_EXPRESSIONS) {
+            int fromIndex = 0;
+            while (fromIndex < query.length()) {
+                int start = query.indexOf(expression, fromIndex);
+                if (start < 0) {
+                    break;
+                }
+                int end = start + expression.length();
+                boolean covered = selectedMatches.stream()
+                        .anyMatch(match -> start >= match.start() && end <= match.end());
+                if (!covered) {
+                    resolution.resolvedEntities().add(new ResolvedEntity(
+                            expression, "AMBIGUOUS", null, expression, EntityRole.AMBIGUOUS
+                    ));
+                    resolution.ambiguousEntities().add(expression);
+                }
+                fromIndex = end;
+            }
+        }
+    }
+
     private String applyMatches(String query, List<RewriteMatch> matches) {
+        if (matches.isEmpty()) {
+            return query;
+        }
         StringBuilder rewritten = new StringBuilder(query.length() + matches.size() * 16);
         int currentIndex = 0;
-
         for (RewriteMatch match : matches) {
             rewritten.append(query, currentIndex, match.start());
-            rewritten.append(query, match.start(), match.end())
-                    .append('（')
-                    .append(String.join("、", match.additions()))
-                    .append('）');
+            rewritten.append(query, match.start(), match.end());
+            if (!match.additions().isEmpty()) {
+                rewritten.append('（').append(String.join("、", match.additions())).append('）');
+            }
             currentIndex = match.end();
         }
         rewritten.append(query, currentIndex, query.length());
         return rewritten.toString();
     }
 
-    private boolean alreadyExpanded(String query, String standardName, String alias) {
-        return query.contains(standardName + "（" + alias + "）")
-                || query.contains(alias + "（" + standardName + "）")
-                || query.contains(standardName + "(" + alias + ")")
-                || query.contains(alias + "(" + standardName + ")");
+    private boolean overlaps(RewriteMatch left, RewriteMatch right) {
+        return left.start() < right.end() && right.start() < left.end();
     }
 
     private String normalize(String value) {
@@ -236,36 +271,35 @@ public class QueryRewriteService {
     private record MatchPosition(int start, int end) {
     }
 
+    private record EntityDescriptor(MatchedEntity entity) {
+    }
+
     private static final class MatchDetails {
-
         private final Set<String> additions = new LinkedHashSet<>();
+        private final Set<EntityDescriptor> descriptors = new LinkedHashSet<>();
+        private Set<String> additions() { return additions; }
+        private Set<EntityDescriptor> descriptors() { return descriptors; }
+    }
+
+    private record RewriteMatch(int start, int end, List<String> additions,
+                                List<EntityDescriptor> descriptors) {
+        private int length() { return end - start; }
+    }
+
+    private static final class Resolution {
         private final Set<MatchedEntity> matchedEntities = new LinkedHashSet<>();
-
-        private Set<String> additions() {
-            return additions;
-        }
-
-        private Set<MatchedEntity> matchedEntities() {
-            return matchedEntities;
-        }
+        private final List<ResolvedEntity> resolvedEntities = new ArrayList<>();
+        private final Set<String> departments = new LinkedHashSet<>();
+        private final Set<String> majors = new LinkedHashSet<>();
+        private final Set<String> ambiguousEntities = new LinkedHashSet<>();
+        private Set<MatchedEntity> matchedEntities() { return matchedEntities; }
+        private List<ResolvedEntity> resolvedEntities() { return resolvedEntities; }
+        private Set<String> departments() { return departments; }
+        private Set<String> majors() { return majors; }
+        private Set<String> ambiguousEntities() { return ambiguousEntities; }
     }
 
-    private record RewriteMatch(
-            int start,
-            int end,
-            List<String> additions,
-            List<MatchedEntity> matchedEntities
-    ) {
-
-        private int length() {
-            return end - start;
-        }
-    }
-
-    private record YearUnderstanding(
-            Integer explicitYear,
-            Integer resolvedYear,
-            boolean multiYearQuery
-    ) {
+    private record YearUnderstanding(Integer explicitYear, Integer resolvedYear,
+                                     boolean multiYearQuery) {
     }
 }
