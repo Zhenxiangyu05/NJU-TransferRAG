@@ -49,6 +49,19 @@ src/main/resources/application-secret.properties
 *.log
 logs/
 
+### Evaluation local checkpoints / debug artifacts ###
+evaluation/**/*-results.json
+evaluation/**/query-resolution-after.json
+evaluation/**/semantic-review.json
+evaluation/**/answerability-trace.md
+evaluation/**/blocker-trace.md
+**/pause-checkpoint.md
+**/code-snapshots/
+**/trace-snapshots.json
+**/debug-checker-outputs.json
+**/protected-hashes*.json
+**/*.tmp
+
 ### OS ###
 .DS_Store
 Thumbs.db
