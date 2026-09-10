@@ -66,6 +66,17 @@ public class DocumentService {
                                                String department,
                                                Integer year,
                                                String sourceType) {
+        return uploadDocumentIfAbsent(
+                file, title, department, year, sourceType, Document.SCOPE_DEPARTMENT
+        );
+    }
+
+    public UploadResult uploadDocumentIfAbsent(MultipartFile file,
+                                               String title,
+                                               String department,
+                                               Integer year,
+                                               String sourceType,
+                                               String scope) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("上传文件不能为空");
         }
@@ -95,6 +106,7 @@ public class DocumentService {
         document.setDepartment(department);
         document.setYear(year);
         document.setSourceType(sourceType);
+        document.setScope(normalizeScope(scope));
         document.setFilePath(targetPath.toString());
         document.setOriginalFileName(originalFileName);
         document.setFileSize(file.getSize());
@@ -163,6 +175,19 @@ public class DocumentService {
             throw new IllegalArgumentException("不支持的文件类型，仅允许上传 .pdf、.md、.txt、.docx 文件");
         }
         return extension;
+    }
+
+    private String normalizeScope(String scope) {
+        if (scope == null || scope.isBlank()) {
+            return Document.SCOPE_DEPARTMENT;
+        }
+
+        String normalized = scope.trim().toUpperCase(Locale.ROOT);
+        if (!Document.SCOPE_DEPARTMENT.equals(normalized)
+                && !Document.SCOPE_GLOBAL.equals(normalized)) {
+            throw new IllegalArgumentException("scope 仅支持 DEPARTMENT 或 GLOBAL");
+        }
+        return normalized;
     }
 
     private DocumentResponse toResponse(Document document) {

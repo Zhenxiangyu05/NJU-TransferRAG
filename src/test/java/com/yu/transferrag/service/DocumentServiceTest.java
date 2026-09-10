@@ -104,6 +104,26 @@ class DocumentServiceTest {
         assertTrue(Files.isRegularFile(Path.of(savedDocument.getFilePath())));
     }
 
+    @Test
+    void shouldPersistExplicitGlobalScope() {
+        MockMultipartFile file = file("global.md", "全校转专业政策");
+        when(documentRepository.findByFileHash(anyString())).thenReturn(Optional.empty());
+        when(documentRepository.save(any(Document.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        documentService.uploadDocumentIfAbsent(
+                file,
+                "全校转专业政策",
+                "本科生院",
+                2026,
+                "OFFICIAL",
+                "GLOBAL"
+        );
+
+        ArgumentCaptor<Document> documentCaptor = ArgumentCaptor.forClass(Document.class);
+        verify(documentRepository).save(documentCaptor.capture());
+        assertEquals(Document.SCOPE_GLOBAL, documentCaptor.getValue().getScope());
+    }
+
     private MockMultipartFile file(String fileName, String content) {
         return new MockMultipartFile(
                 "file",

@@ -4,6 +4,7 @@ import com.yu.transferrag.dto.BatchDocumentImportItemResponse;
 import com.yu.transferrag.dto.BatchDocumentImportResponse;
 import com.yu.transferrag.dto.DocumentImportResponse;
 import com.yu.transferrag.dto.DocumentResponse;
+import com.yu.transferrag.entity.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,18 +35,39 @@ public class DocumentImportService {
                                                  String department,
                                                  Integer year,
                                                  String sourceType) {
+        return importDocumentInternal(
+                file, title, department, year, sourceType, Document.SCOPE_DEPARTMENT, false
+        );
+    }
+
+    public DocumentImportResponse importDocument(MultipartFile file,
+                                                 String title,
+                                                 String department,
+                                                 Integer year,
+                                                 String sourceType,
+                                                 String scope) {
+        return importDocumentInternal(file, title, department, year, sourceType, scope, true);
+    }
+
+    private DocumentImportResponse importDocumentInternal(MultipartFile file,
+                                                          String title,
+                                                          String department,
+                                                          Integer year,
+                                                          String sourceType,
+                                                          String scope,
+                                                          boolean explicitScope) {
         validateMetadata(department, year, sourceType);
         String resolvedTitle = resolveTitle(title, file);
 
         DocumentService.UploadResult uploadResult;
         try {
-            uploadResult = documentService.uploadDocumentIfAbsent(
-                    file,
-                    resolvedTitle,
-                    department.trim(),
-                    year,
-                    sourceType.trim()
-            );
+            uploadResult = explicitScope
+                    ? documentService.uploadDocumentIfAbsent(
+                            file, resolvedTitle, department.trim(), year, sourceType.trim(), scope
+                    )
+                    : documentService.uploadDocumentIfAbsent(
+                            file, resolvedTitle, department.trim(), year, sourceType.trim()
+                    );
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (RuntimeException e) {

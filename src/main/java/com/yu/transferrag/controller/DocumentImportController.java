@@ -31,10 +31,11 @@ public class DocumentImportController {
                                             @RequestParam(required = false) String title,
                                             @RequestParam String department,
                                             @RequestParam Integer year,
-                                            @RequestParam String sourceType) {
+                                            @RequestParam String sourceType,
+                                            @RequestParam(defaultValue = "DEPARTMENT") String scope) {
         try {
             DocumentImportResponse response = documentImportService.importDocument(
-                    file, title, department, year, sourceType
+                    file, title, department, year, sourceType, scope
             );
             HttpStatus status = response.isDuplicate() ? HttpStatus.OK : HttpStatus.CREATED;
             return ResponseEntity.status(status).body(response);
