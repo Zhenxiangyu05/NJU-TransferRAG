@@ -50,9 +50,10 @@ const sourcePageUrl = computed(() => {
     <h3>《{{ source.title || '未命名资料' }}》</h3>
     <dl class="source-details">
       <div><dt>来源类型</dt><dd>{{ sourceTypeText }}</dd></div>
-      <div><dt>学院</dt><dd>{{ source.chunkDepartment || '未标注' }}</dd></div>
+      <div><dt>学院</dt><dd>{{ source.chunkDepartment || source.documentDepartment || '未标注' }}</dd></div>
       <div><dt>专业</dt><dd>{{ source.major || '未标注' }}</dd></div>
-      <div><dt>政策年份</dt><dd>{{ source.policyYear || '未标注' }}</dd></div>
+      <div><dt>资料年份</dt><dd>{{ source.documentYear || '未标注' }}</dd></div>
+      <div v-if="source.policyYear != null"><dt>政策年份</dt><dd>{{ source.policyYear }}</dd></div>
       <div><dt>检索年份</dt><dd>{{ source.effectiveYear || '未标注' }}</dd></div>
     </dl>
     <div v-if="localFileUrl || sourcePageUrl" class="source-actions">
