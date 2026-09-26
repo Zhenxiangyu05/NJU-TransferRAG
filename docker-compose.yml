@@ -1,0 +1,31 @@
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: transfer-mysql
+    restart: always
+    env_file:
+      - /etc/nju-transfer-rag-compose.env
+    environment:
+      MYSQL_DATABASE: transfer_rag
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: transfer-qdrant
+    restart: always
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+
+volumes:
+  mysql_data:
+  qdrant_data:

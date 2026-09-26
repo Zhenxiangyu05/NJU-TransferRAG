@@ -82,7 +82,7 @@ const DEPARTMENT_OPTIONS = [
   '现代生物研究院',
 ]
 const MAX_FILE_SIZE = 20 * 1024 * 1024
-const QUESTION_APP_URL = import.meta.env.VITE_QUESTION_APP_URL || 'http://localhost:5173/'
+const QUESTION_APP_URL = import.meta.env.VITE_QUESTION_APP_URL || '/'
 
 const metadata = reactive({
   title: '',
@@ -206,7 +206,7 @@ async function startImport() {
   formData.append('scope', metadata.scope)
 
   try {
-    const response = await fetch('/api/documents/import', {
+    const response = await fetch('api/documents/import', {
       method: 'POST',
       body: formData,
     })
