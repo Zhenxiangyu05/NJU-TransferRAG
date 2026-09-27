@@ -1,5 +1,7 @@
 package com.yu.transferrag.dto;
 
+import com.yu.transferrag.entity.DocumentRole;
+
 public class SearchResultResponse {
 
     private String content;
@@ -12,6 +14,12 @@ public class SearchResultResponse {
     private Integer effectiveYear;
     private String chunkDepartment;
     private String major;
+    private DocumentRole documentRole;
+    private String section;
+    private String retrievalLayer;
+    private String documentDepartment;
+    private String scope;
+    private String sourceType;
 
     public String getContent() {
         return content;
@@ -91,5 +99,53 @@ public class SearchResultResponse {
 
     public void setMajor(String major) {
         this.major = major;
+    }
+
+    public DocumentRole getDocumentRole() {
+        return documentRole;
+    }
+
+    public void setDocumentRole(DocumentRole documentRole) {
+        this.documentRole = documentRole;
+    }
+
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
+
+    public String getRetrievalLayer() {
+        return retrievalLayer;
+    }
+
+    public void setRetrievalLayer(String retrievalLayer) {
+        this.retrievalLayer = retrievalLayer;
+    }
+
+    public String getDocumentDepartment() {
+        return documentDepartment;
+    }
+
+    public void setDocumentDepartment(String documentDepartment) {
+        this.documentDepartment = documentDepartment;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
     }
 }

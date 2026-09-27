@@ -2,6 +2,7 @@ package com.yu.transferrag.service;
 
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.dto.SearchResultResponse;
+import com.yu.transferrag.entity.DocumentRole;
 import com.yu.transferrag.repository.ChunkRepository;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -11,6 +12,7 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,17 +26,22 @@ public class RetrievalService {
     private static final double LATEST_YEAR_BONUS = 0.03;
     private static final double PREVIOUS_YEAR_BONUS = 0.02;
     private static final double TWO_YEARS_AGO_BONUS = 0.01;
+    private static final int EVIDENCE_CANDIDATE_MULTIPLIER = 4;
+    private static final int MIN_EVIDENCE_CANDIDATES = 20;
 
     private final VectorStore vectorStore;
     private final QueryRewriteService queryRewriteService;
     private final ChunkRepository chunkRepository;
+    private final PrecomputedVectorSearch precomputedVectorSearch;
 
     public RetrievalService(VectorStore vectorStore,
                             QueryRewriteService queryRewriteService,
-                            ChunkRepository chunkRepository) {
+                            ChunkRepository chunkRepository,
+                            PrecomputedVectorSearch precomputedVectorSearch) {
         this.vectorStore = vectorStore;
         this.queryRewriteService = queryRewriteService;
         this.chunkRepository = chunkRepository;
+        this.precomputedVectorSearch = precomputedVectorSearch;
     }
 
     public List<SearchResultResponse> search(String query, int topK) {
@@ -45,14 +52,110 @@ public class RetrievalService {
             throw new IllegalArgumentException("topK 必须大于 0");
         }
 
+        RetrievalPlan plan = createPlan(query);
+        return executePlan(plan, topK, (candidateTopK, filter) -> executeSearch(
+                plan.rewriteResult().rewrittenQuery(), candidateTopK, filter
+        ), null);
+    }
+
+    public PreparedQuery prepareCanonicalFirst(String query) {
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException("query 不能为空");
+        }
+        RetrievalPlan plan = createPlan(query);
+        float[] embedding = precomputedVectorSearch.embed(plan.rewriteResult().rewrittenQuery());
+        return new PreparedQuery(plan, embedding);
+    }
+
+    public List<SearchResultResponse> searchCanonical(PreparedQuery preparedQuery, int topK) {
+        validatePrepared(preparedQuery, topK);
+        return executePreparedPlan(preparedQuery, topK, DocumentRole.CANONICAL);
+    }
+
+    public List<SearchResultResponse> searchEvidence(PreparedQuery preparedQuery, int topK) {
+        validatePrepared(preparedQuery, topK);
+        return executePreparedPlan(preparedQuery, topK, DocumentRole.EVIDENCE);
+    }
+
+    private List<SearchResultResponse> executePreparedPlan(PreparedQuery preparedQuery,
+                                                            int topK,
+                                                            DocumentRole role) {
+        RetrievalPlan plan = preparedQuery.plan;
+        QueryRewriteResult rewrite = plan.rewriteResult();
+        Integer filterYear = plan.crossYearExperienceQuery() ? null : rewrite.resolvedYear();
+        Filter.Expression filter = plan.historicalCohortQuery()
+                ? buildDepartmentOnlyFilter(plan.departments(), false, role)
+                : buildMetadataFilter(
+                        plan.departments(), filterYear, rewrite.multiYearQuery(),
+                        false, rewrite, role
+                );
+        int candidateTopK = preparedCandidateTopK(topK, plan.crossYearExperienceQuery());
+        List<SearchResultResponse> candidates = executePrecomputed(
+                preparedQuery.embedding, candidateTopK, filter, role
+        );
+
+        if (plan.historicalCohortQuery()) {
+            List<SearchResultResponse> exactCohort = candidates.stream()
+                    .filter(result -> rewrite.cohortYear().equals(result.getCohortYear()))
+                    .toList();
+            candidates = exactCohort.isEmpty() ? untagged(candidates) : exactCohort;
+        }
+
+        if (!plan.departments().isEmpty()) {
+            List<SearchResultResponse> strict = candidates.stream()
+                    .filter(result -> isStrictDepartmentMatch(result, plan.departments()))
+                    .toList();
+            if (!strict.isEmpty()) {
+                candidates = strict;
+            }
+        }
+        return finalizeResults(candidates, topK, plan.resolvedYear(),
+                plan.crossYearExperienceQuery()).stream().limit(topK).toList();
+    }
+
+    private int preparedCandidateTopK(int topK, boolean crossYearExperienceQuery) {
+        if (crossYearExperienceQuery) {
+            return experienceCandidateTopK(topK);
+        }
+        int multiplied = topK > Integer.MAX_VALUE / EVIDENCE_CANDIDATE_MULTIPLIER
+                ? Integer.MAX_VALUE
+                : topK * EVIDENCE_CANDIDATE_MULTIPLIER;
+        return Math.max(MIN_EVIDENCE_CANDIDATES, multiplied);
+    }
+
+    private boolean isStrictDepartmentMatch(SearchResultResponse result,
+                                            Set<String> departments) {
+        if (departments.contains(result.getDocumentDepartment())) {
+            return true;
+        }
+        return com.yu.transferrag.entity.Document.SCOPE_GLOBAL.equals(result.getScope())
+                && departments.contains(result.getChunkDepartment());
+    }
+
+    private RetrievalPlan createPlan(String query) {
         QueryRewriteResult rewriteResult = queryRewriteService.rewriteWithContext(query);
         Set<String> departments = new LinkedHashSet<>(rewriteResult.departments());
         boolean historicalCohortQuery = isHistoricalCohortQuery(rewriteResult);
         boolean crossYearExperienceQuery = shouldSearchExperienceAcrossYears(rewriteResult);
-        Integer resolvedYear = historicalCohortQuery
-                ? null
-                : resolveYear(rewriteResult, departments);
-        rewriteResult = rewriteResult.withResolvedYear(resolvedYear);
+        Integer resolvedYear = historicalCohortQuery ? null : resolveYear(rewriteResult, departments);
+        return new RetrievalPlan(
+                rewriteResult.withResolvedYear(resolvedYear),
+                Collections.unmodifiableSet(departments),
+                historicalCohortQuery,
+                crossYearExperienceQuery,
+                resolvedYear
+        );
+    }
+
+    private List<SearchResultResponse> executePlan(RetrievalPlan plan,
+                                                    int topK,
+                                                    SearchExecutor searchExecutor,
+                                                    DocumentRole role) {
+        QueryRewriteResult rewriteResult = plan.rewriteResult();
+        Set<String> departments = plan.departments();
+        boolean historicalCohortQuery = plan.historicalCohortQuery();
+        boolean crossYearExperienceQuery = plan.crossYearExperienceQuery();
+        Integer resolvedYear = plan.resolvedYear();
         Integer filterYear = crossYearExperienceQuery ? null : rewriteResult.resolvedYear();
         int searchTopK = crossYearExperienceQuery ? experienceCandidateTopK(topK) : topK;
 
@@ -62,17 +165,12 @@ public class RetrievalService {
                     filterYear,
                     rewriteResult.multiYearQuery(),
                     false,
-                    rewriteResult
+                    rewriteResult,
+                    role
             );
-            List<SearchResultResponse> results = executeSearch(
-                    rewriteResult.rewrittenQuery(),
-                    searchTopK,
-                    metadataFilter
-            );
+            List<SearchResultResponse> results = searchExecutor.search(searchTopK, metadataFilter);
             if (historicalCohortQuery && results.isEmpty()) {
-                return searchUntaggedHistoricalFallback(
-                        rewriteResult.rewrittenQuery(), departments, topK
-                );
+                return searchUntaggedHistoricalFallback(departments, topK, role, searchExecutor);
             }
             return finalizeResults(results, topK, resolvedYear, crossYearExperienceQuery);
         }
@@ -82,13 +180,10 @@ public class RetrievalService {
                 filterYear,
                 rewriteResult.multiYearQuery(),
                 true,
-                rewriteResult
+                rewriteResult,
+                role
         );
-        List<SearchResultResponse> strictResults = executeSearch(
-                rewriteResult.rewrittenQuery(),
-                searchTopK,
-                strictFilter
-        );
+        List<SearchResultResponse> strictResults = searchExecutor.search(searchTopK, strictFilter);
         if (!strictResults.isEmpty()) {
             return finalizeResults(
                     strictResults,
@@ -103,17 +198,12 @@ public class RetrievalService {
                 filterYear,
                 rewriteResult.multiYearQuery(),
                 false,
-                rewriteResult
+                rewriteResult,
+                role
         );
-        List<SearchResultResponse> fallbackResults = executeSearch(
-                rewriteResult.rewrittenQuery(),
-                searchTopK,
-                fallbackFilter
-        );
+        List<SearchResultResponse> fallbackResults = searchExecutor.search(searchTopK, fallbackFilter);
         if (historicalCohortQuery && fallbackResults.isEmpty()) {
-            return searchUntaggedHistoricalFallback(
-                    rewriteResult.rewrittenQuery(), departments, topK
-            );
+            return searchUntaggedHistoricalFallback(departments, topK, role, searchExecutor);
         }
         return finalizeResults(
                 fallbackResults,
@@ -128,23 +218,24 @@ public class RetrievalService {
     }
 
     private List<SearchResultResponse> searchUntaggedHistoricalFallback(
-            String rewrittenQuery, Set<String> departments, int topK) {
+            Set<String> departments,
+            int topK,
+            DocumentRole role,
+            SearchExecutor searchExecutor) {
         if (departments.isEmpty()) {
-            return untagged(executeSearch(rewrittenQuery, topK, null));
+            return untagged(searchExecutor.search(topK, withDocumentRole(null, role)));
         }
 
-        List<SearchResultResponse> strict = untagged(executeSearch(
-                rewrittenQuery,
+        List<SearchResultResponse> strict = untagged(searchExecutor.search(
                 topK,
-                buildDepartmentOnlyFilter(departments, true)
+                buildDepartmentOnlyFilter(departments, true, role)
         ));
         if (!strict.isEmpty()) {
             return strict;
         }
-        return untagged(executeSearch(
-                rewrittenQuery,
+        return untagged(searchExecutor.search(
                 topK,
-                buildDepartmentOnlyFilter(departments, false)
+                buildDepartmentOnlyFilter(departments, false, role)
         ));
     }
 
@@ -155,12 +246,14 @@ public class RetrievalService {
     }
 
     private Filter.Expression buildDepartmentOnlyFilter(Set<String> departments,
-                                                        boolean strictGlobalChunks) {
+                                                        boolean strictGlobalChunks,
+                                                        DocumentRole role) {
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
         FilterExpressionBuilder.Op filter = buildDepartmentFilter(
-                builder, departments, strictGlobalChunks
+                builder, departments, strictGlobalChunks, role
         );
-        return filter == null ? null : filter.build();
+        Filter.Expression result = filter == null ? null : filter.build();
+        return withDocumentRole(result, role);
     }
 
     private boolean shouldSearchExperienceAcrossYears(QueryRewriteResult rewriteResult) {
@@ -239,6 +332,17 @@ public class RetrievalService {
                 .toList();
     }
 
+    private List<SearchResultResponse> executePrecomputed(float[] embedding,
+                                                          int topK,
+                                                          Filter.Expression metadataFilter,
+                                                          DocumentRole expectedRole) {
+        return precomputedVectorSearch.search(embedding, topK, metadataFilter).stream()
+                .map(this::toResponse)
+                .filter(result -> result.getDocumentRole() == expectedRole)
+                .limit(topK)
+                .toList();
+    }
+
     private Integer resolveYear(QueryRewriteResult rewriteResult,
                                 Set<String> departments) {
         if (rewriteResult.multiYearQuery()) {
@@ -261,12 +365,14 @@ public class RetrievalService {
                                                    Integer resolvedYear,
                                                    boolean multiYearQuery,
                                                    boolean strictGlobalChunks,
-                                                   QueryRewriteResult rewriteResult) {
+                                                   QueryRewriteResult rewriteResult,
+                                                   DocumentRole role) {
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
         FilterExpressionBuilder.Op combinedFilter = buildDepartmentFilter(
                 builder,
                 departments,
-                strictGlobalChunks
+                strictGlobalChunks,
+                role
         );
 
         FilterExpressionBuilder.Op yearFilter = null;
@@ -289,12 +395,14 @@ public class RetrievalService {
                     : builder.and(combinedFilter, yearFilter);
         }
 
-        return combinedFilter == null ? null : combinedFilter.build();
+        Filter.Expression result = combinedFilter == null ? null : combinedFilter.build();
+        return withDocumentRole(result, role);
     }
 
     private FilterExpressionBuilder.Op buildDepartmentFilter(FilterExpressionBuilder builder,
                                                              Set<String> departments,
-                                                             boolean strictGlobalChunks) {
+                                                             boolean strictGlobalChunks,
+                                                             DocumentRole role) {
         if (departments.isEmpty()) {
             return null;
         }
@@ -305,10 +413,15 @@ public class RetrievalService {
                 departments
         );
 
-        FilterExpressionBuilder.Op globalOfficialDocuments = builder.and(
-                builder.eq("scope", com.yu.transferrag.entity.Document.SCOPE_GLOBAL),
-                builder.eq("sourceType", "OFFICIAL")
-        );
+        FilterExpressionBuilder.Op globalOfficialDocuments = role == DocumentRole.CANONICAL
+                ? builder.and(
+                        builder.eq("scope", com.yu.transferrag.entity.Document.SCOPE_GLOBAL),
+                        builder.eq("documentRole", DocumentRole.CANONICAL.name())
+                )
+                : builder.and(
+                        builder.eq("scope", com.yu.transferrag.entity.Document.SCOPE_GLOBAL),
+                        builder.eq("sourceType", "OFFICIAL")
+                );
         if (strictGlobalChunks) {
             FilterExpressionBuilder.Op targetChunkDepartments = buildAnyDepartmentMatch(
                     builder,
@@ -348,7 +461,61 @@ public class RetrievalService {
         response.setEffectiveYear(toInteger(metadata.get("effectiveYear"), "effectiveYear"));
         response.setChunkDepartment(toStringValue(metadata.get("chunkDepartment")));
         response.setMajor(toStringValue(metadata.get("major")));
+        applyV2Metadata(response, metadata);
         return response;
+    }
+
+    private SearchResultResponse toResponse(PrecomputedVectorSearch.VectorMatch match) {
+        SearchResultResponse response = new SearchResultResponse();
+        Map<String, Object> metadata = match.metadata();
+        response.setContent(match.content());
+        response.setScore(match.score());
+        response.setChunkId(toLong(metadata.get("chunkId"), "chunkId"));
+        response.setDocumentId(toLong(metadata.get("documentId"), "documentId"));
+        response.setChunkIndex(toInteger(metadata.get("chunkIndex"), "chunkIndex"));
+        response.setPolicyYear(toInteger(metadata.get("policyYear"), "policyYear"));
+        response.setCohortYear(toInteger(metadata.get("cohortYear"), "cohortYear"));
+        response.setEffectiveYear(toInteger(metadata.get("effectiveYear"), "effectiveYear"));
+        response.setChunkDepartment(toStringValue(metadata.get("chunkDepartment")));
+        response.setMajor(toStringValue(metadata.get("major")));
+        applyV2Metadata(response, metadata);
+        return response;
+    }
+
+    private void applyV2Metadata(SearchResultResponse response, Map<String, Object> metadata) {
+        String roleValue = toStringValue(metadata.get("documentRole"));
+        DocumentRole role;
+        try {
+            role = roleValue == null ? DocumentRole.EVIDENCE : DocumentRole.valueOf(roleValue);
+        } catch (IllegalArgumentException exception) {
+            role = DocumentRole.EVIDENCE;
+        }
+        response.setDocumentRole(role);
+        response.setSection(toStringValue(metadata.get("section")));
+        response.setRetrievalLayer(role.name());
+        response.setDocumentDepartment(toStringValue(metadata.get("department")));
+        response.setScope(toStringValue(metadata.get("scope")));
+        response.setSourceType(toStringValue(metadata.get("sourceType")));
+    }
+
+    private Filter.Expression withDocumentRole(Filter.Expression filter, DocumentRole role) {
+        if (role != DocumentRole.CANONICAL) {
+            return filter;
+        }
+        FilterExpressionBuilder builder = new FilterExpressionBuilder();
+        FilterExpressionBuilder.Op roleFilter = builder.eq("documentRole", DocumentRole.CANONICAL.name());
+        return filter == null
+                ? roleFilter.build()
+                : builder.and(roleFilter, new FilterExpressionBuilder.Op(filter)).build();
+    }
+
+    private void validatePrepared(PreparedQuery preparedQuery, int topK) {
+        if (preparedQuery == null) {
+            throw new IllegalArgumentException("preparedQuery 不能为空");
+        }
+        if (topK <= 0) {
+            throw new IllegalArgumentException("topK 必须大于 0");
+        }
     }
 
     private String toStringValue(Object value) {
@@ -390,5 +557,29 @@ public class RetrievalService {
                 "无法将 metadata." + fieldName + " 转换为整数: " + value,
                 cause
         );
+    }
+
+    public static final class PreparedQuery {
+        private final RetrievalPlan plan;
+        private final float[] embedding;
+
+        private PreparedQuery(RetrievalPlan plan, float[] embedding) {
+            this.plan = plan;
+            this.embedding = embedding;
+        }
+    }
+
+    private record RetrievalPlan(
+            QueryRewriteResult rewriteResult,
+            Set<String> departments,
+            boolean historicalCohortQuery,
+            boolean crossYearExperienceQuery,
+            Integer resolvedYear
+    ) {
+    }
+
+    @FunctionalInterface
+    private interface SearchExecutor {
+        List<SearchResultResponse> search(int topK, Filter.Expression filter);
     }
 }

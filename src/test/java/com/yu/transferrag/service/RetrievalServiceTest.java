@@ -22,6 +22,7 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,11 +45,16 @@ class RetrievalServiceTest {
     @Mock
     private ChunkRepository chunkRepository;
 
+    @Mock
+    private PrecomputedVectorSearch precomputedVectorSearch;
+
     private RetrievalService retrievalService;
 
     @BeforeEach
     void setUp() {
-        retrievalService = new RetrievalService(vectorStore, queryRewriteService, chunkRepository);
+        retrievalService = new RetrievalService(
+                vectorStore, queryRewriteService, chunkRepository, precomputedVectorSearch
+        );
         lenient().when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
     }
 
@@ -520,6 +526,79 @@ class RetrievalServiceTest {
         assertEquals(0.70, results.getFirst().getScore());
     }
 
+    @Test
+    void shouldReuseOneEmbeddingAndKeepCanonicalAndEvidenceRolesSeparate() {
+        String query = "软件学院转专业条件";
+        when(queryRewriteService.rewriteWithContext(query)).thenReturn(new QueryRewriteResult(
+                query, query, List.of()
+        ));
+        when(chunkRepository.findMaxEffectiveYear()).thenReturn(2026);
+        float[] embedding = new float[]{0.1f, 0.2f};
+        when(precomputedVectorSearch.embed(query)).thenReturn(embedding);
+        when(precomputedVectorSearch.search(any(float[].class), any(Integer.class), any(Filter.Expression.class)))
+                .thenReturn(List.of(vectorMatch(1L, 101L, "CANONICAL", 0.80)))
+                .thenReturn(List.of(
+                        vectorMatch(2L, 201L, null, 0.75),
+                        vectorMatch(1L, 101L, "CANONICAL", 0.80),
+                        vectorMatch(3L, 301L, "EVIDENCE", 0.70)
+                ));
+
+        RetrievalService.PreparedQuery prepared = retrievalService.prepareCanonicalFirst(query);
+        List<SearchResultResponse> canonical = retrievalService.searchCanonical(prepared, 3);
+        List<SearchResultResponse> evidence = retrievalService.searchEvidence(prepared, 3);
+
+        assertEquals(List.of(101L), canonical.stream().map(SearchResultResponse::getChunkId).toList());
+        assertEquals(List.of(201L, 301L), evidence.stream().map(SearchResultResponse::getChunkId).toList());
+        verify(precomputedVectorSearch).embed(query);
+        ArgumentCaptor<Filter.Expression> filterCaptor = ArgumentCaptor.forClass(Filter.Expression.class);
+        verify(precomputedVectorSearch, times(2)).search(
+                any(float[].class), any(Integer.class), filterCaptor.capture());
+        assertEquals(true, filterCaptor.getAllValues().getFirst().toString()
+                .contains("documentRole"));
+        assertEquals(false, filterCaptor.getAllValues().get(1).toString()
+                .contains("documentRole"));
+    }
+
+    @Test
+    void shouldKeepDepartmentPolicyAndCohortFiltersForBothV2Layers() {
+        String query = "2026年大一软件学院转专业条件";
+        when(queryRewriteService.rewriteWithContext(query)).thenReturn(new QueryRewriteResult(
+                query, query,
+                List.of(new MatchedEntity("软件学院", "DEPARTMENT", "软件学院")),
+                List.of(), List.of("软件学院"), List.of(), List.of(),
+                2026, 2026, false, false,
+                2026, 2025, ApplicantStage.FIRST_YEAR, true
+        ));
+        when(precomputedVectorSearch.embed(query)).thenReturn(new float[]{0.1f});
+        when(precomputedVectorSearch.search(any(float[].class), any(Integer.class),
+                any(Filter.Expression.class)))
+                .thenReturn(List.of(vectorMatch(
+                        90L, 900L, "CANONICAL", 0.80,
+                        "软件学院", "DEPARTMENT", "软件学院"
+                )))
+                .thenReturn(List.of(vectorMatch(
+                        12L, 120L, null, 0.75,
+                        "软件学院", "DEPARTMENT", "软件学院"
+                )));
+
+        RetrievalService.PreparedQuery prepared = retrievalService.prepareCanonicalFirst(query);
+        retrievalService.searchCanonical(prepared, 3);
+        retrievalService.searchEvidence(prepared, 3);
+
+        ArgumentCaptor<Filter.Expression> filters = ArgumentCaptor.forClass(Filter.Expression.class);
+        verify(precomputedVectorSearch, times(2)).search(
+                any(float[].class), any(Integer.class), filters.capture());
+        String canonicalFilter = filters.getAllValues().get(0).toString();
+        String evidenceFilter = filters.getAllValues().get(1).toString();
+        for (String expected : List.of("department", "软件学院", "policyYear", "2026",
+                "cohortYear", "2025")) {
+            assertEquals(true, canonicalFilter.contains(expected));
+            assertEquals(true, evidenceFilter.contains(expected));
+        }
+        assertEquals(true, canonicalFilter.contains("documentRole"));
+        assertEquals(false, evidenceFilter.contains("documentRole"));
+    }
+
     private void stubRewrite(String query,
                              List<MatchedEntity> entities,
                              Integer resolvedYear,
@@ -645,5 +724,43 @@ class RetrievalServiceTest {
             builder.metadata("chunkDepartment", chunkDepartment);
         }
         return builder.build();
+    }
+
+    private PrecomputedVectorSearch.VectorMatch vectorMatch(long documentId,
+                                                            long chunkId,
+                                                            String role,
+                                                            double score) {
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("documentId", documentId);
+        metadata.put("chunkId", chunkId);
+        metadata.put("chunkIndex", Math.toIntExact(chunkId));
+        metadata.put("effectiveYear", 2026);
+        if (role != null) {
+            metadata.put("documentRole", role);
+        }
+        return new PrecomputedVectorSearch.VectorMatch("chunk-" + chunkId, metadata, score);
+    }
+
+    private PrecomputedVectorSearch.VectorMatch vectorMatch(long documentId,
+                                                            long chunkId,
+                                                            String role,
+                                                            double score,
+                                                            String documentDepartment,
+                                                            String scope,
+                                                            String chunkDepartment) {
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("documentId", documentId);
+        metadata.put("chunkId", chunkId);
+        metadata.put("chunkIndex", Math.toIntExact(chunkId));
+        metadata.put("policyYear", 2026);
+        metadata.put("cohortYear", 2025);
+        metadata.put("effectiveYear", 2026);
+        metadata.put("department", documentDepartment);
+        metadata.put("scope", scope);
+        metadata.put("chunkDepartment", chunkDepartment);
+        if (role != null) {
+            metadata.put("documentRole", role);
+        }
+        return new PrecomputedVectorSearch.VectorMatch("chunk-" + chunkId, metadata, score);
     }
 }

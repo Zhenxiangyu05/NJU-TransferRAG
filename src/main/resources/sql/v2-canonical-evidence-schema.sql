@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `evidence_ref` (
     `canonical_chunk_id` BIGINT NOT NULL,
     `evidence_document_id` BIGINT NOT NULL,
     `fact_index` INT NOT NULL,
-    `source_page` INT NOT NULL,
+    `source_page` INT NULL,
     `evidence_text` TEXT NOT NULL,
     PRIMARY KEY (`id`),
     INDEX `idx_evidence_ref_canonical_chunk` (`canonical_chunk_id`),

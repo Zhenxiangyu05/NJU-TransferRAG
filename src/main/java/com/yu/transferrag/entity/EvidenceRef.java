@@ -42,7 +42,6 @@ public class EvidenceRef {
     @Column(nullable = false)
     private Integer factIndex;
 
-    @Column(nullable = false)
     private Integer sourcePage;
 
     @Column(nullable = false, columnDefinition = "TEXT")

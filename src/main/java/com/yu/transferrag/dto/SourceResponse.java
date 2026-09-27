@@ -20,6 +20,7 @@ public class SourceResponse {
     private Double score;
     private boolean fileAvailable;
     private String sourceUrl;
+    private Integer sourcePage;
 
     public String getCitationId() {
         return citationId;
@@ -163,5 +164,13 @@ public class SourceResponse {
 
     public void setSourceUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
+    }
+
+    public Integer getSourcePage() {
+        return sourcePage;
+    }
+
+    public void setSourcePage(Integer sourcePage) {
+        this.sourcePage = sourcePage;
     }
 }

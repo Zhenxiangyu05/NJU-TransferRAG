@@ -145,7 +145,14 @@ public class CanonicalImportService {
             Chunk canonicalChunk = chunks.get(sectionIndex);
             List<CanonicalImportRequest.CanonicalFactRequest> facts = sections.get(sectionIndex).facts();
             for (int factIndex = 0; factIndex < facts.size(); factIndex++) {
+                Set<EvidenceIdentity> seenEvidence = new LinkedHashSet<>();
                 for (CanonicalImportRequest.EvidenceRefRequest requestRef : facts.get(factIndex).evidenceRefs()) {
+                    EvidenceIdentity identity = new EvidenceIdentity(
+                            requestRef.sourceDocumentId(), requestRef.page()
+                    );
+                    if (!seenEvidence.add(identity)) {
+                        continue;
+                    }
                     EvidenceRef reference = new EvidenceRef();
                     reference.setCanonicalChunk(canonicalChunk);
                     reference.setEvidenceDocument(evidenceDocuments.get(requestRef.sourceDocumentId()));
@@ -208,8 +215,8 @@ public class CanonicalImportService {
                 }
                 for (CanonicalImportRequest.EvidenceRefRequest ref : fact.evidenceRefs()) {
                     if (ref == null || ref.sourceDocumentId() == null || ref.sourceDocumentId() <= 0
-                            || ref.page() == null || ref.page() <= 0 || isBlank(ref.evidenceText())) {
-                        throw new IllegalArgumentException("EvidenceRef 缺少有效的 sourceDocumentId、page 或 evidenceText");
+                            || (ref.page() != null && ref.page() <= 0) || isBlank(ref.evidenceText())) {
+                        throw new IllegalArgumentException("EvidenceRef 包含无效的 sourceDocumentId、page 或 evidenceText");
                     }
                 }
             }
@@ -222,5 +229,8 @@ public class CanonicalImportService {
 
     private String trimToNull(String value) {
         return isBlank(value) ? null : value.trim();
+    }
+
+    private record EvidenceIdentity(Long documentId, Integer page) {
     }
 }

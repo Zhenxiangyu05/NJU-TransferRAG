@@ -40,7 +40,7 @@ public record CanonicalImportRequest(
 
     public record EvidenceRefRequest(
             @NotNull @Positive Long sourceDocumentId,
-            @NotNull @Positive Integer page,
+            @Positive Integer page,
             @NotBlank String evidenceText
     ) {
     }

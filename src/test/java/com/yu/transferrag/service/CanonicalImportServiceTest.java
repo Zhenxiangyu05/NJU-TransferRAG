@@ -152,6 +152,34 @@ class CanonicalImportServiceTest {
         verify(vectorIndexService).removeDocumentIndex(90L);
     }
 
+    @Test
+    void shouldDeduplicateEvidenceReferenceWithinFactIncludingNullPage() {
+        Document evidence = evidenceDocument(12L, DocumentRole.EVIDENCE);
+        stubSuccessfulImport(evidence);
+        CanonicalImportRequest request = new CanonicalImportRequest(
+                "软件学院知识卡", "软件学院", 2026, "DEPARTMENT", List.of(
+                new CanonicalImportRequest.CanonicalSectionRequest(
+                        "申请条件", 2026, null, "软件学院", null, List.of(
+                        new CanonicalImportRequest.CanonicalFactRequest(
+                                "需参加面试", List.of(
+                                new CanonicalImportRequest.EvidenceRefRequest(12L, null, "证据 A"),
+                                new CanonicalImportRequest.EvidenceRefRequest(12L, null, "重复证据"),
+                                new CanonicalImportRequest.EvidenceRefRequest(12L, 3, "第 3 页"),
+                                new CanonicalImportRequest.EvidenceRefRequest(12L, 3, "重复第 3 页")
+                        ))
+                ))
+        ));
+
+        CanonicalImportResponse response = canonicalImportService.importCanonical(request);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<EvidenceRef>> refsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(evidenceRefRepository).saveAll(refsCaptor.capture());
+        assertEquals(2, response.evidenceRefCount());
+        assertEquals(java.util.Arrays.asList(null, 3),
+                refsCaptor.getValue().stream().map(EvidenceRef::getSourcePage).toList());
+    }
+
     private void stubSuccessfulImport(Document evidenceDocument) {
         when(documentRepository.findAllById(any())).thenReturn(List.of(evidenceDocument));
         when(documentRepository.save(any(Document.class))).thenAnswer(invocation -> {

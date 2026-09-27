@@ -6,6 +6,7 @@ import com.yu.transferrag.dto.SearchResultResponse;
 import com.yu.transferrag.dto.SourceResponse;
 import com.yu.transferrag.entity.Document;
 import com.yu.transferrag.repository.DocumentRepository;
+import com.yu.transferrag.repository.EvidenceRefRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,9 @@ class RagServiceTest {
     @Mock
     private DocumentRepository documentRepository;
 
+    @Mock
+    private EvidenceRefRepository evidenceRefRepository;
+
     @TempDir
     private Path tempDir;
 
@@ -62,7 +66,9 @@ class RagServiceTest {
                 retrievalService,
                 answerabilityService,
                 chatModel,
-                documentRepository
+                documentRepository,
+                evidenceRefRepository,
+                false
         );
     }
 
@@ -168,6 +174,7 @@ class RagServiceTest {
         assertEquals("根据当前知识库资料无法确定。", response.getAnswer());
         assertEquals(List.of(), response.getSources());
         verifyNoInteractions(documentRepository, answerabilityService, chatModel);
+        verify(retrievalService, never()).prepareCanonicalFirst(anyString());
     }
 
     @Test
