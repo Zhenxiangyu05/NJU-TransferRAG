@@ -55,7 +55,7 @@ public class RetrievalService {
         RetrievalPlan plan = createPlan(query);
         return executePlan(plan, topK, (candidateTopK, filter) -> executeSearch(
                 plan.rewriteResult().rewrittenQuery(), candidateTopK, filter
-        ), null);
+        ), DocumentRole.EVIDENCE);
     }
 
     public PreparedQuery prepareCanonicalFirst(String query) {
@@ -329,6 +329,7 @@ public class RetrievalService {
 
         return vectorStore.similaritySearch(requestBuilder.build()).stream()
                 .map(this::toResponse)
+                .filter(result -> result.getDocumentRole() == DocumentRole.EVIDENCE)
                 .toList();
     }
 
@@ -499,11 +500,13 @@ public class RetrievalService {
     }
 
     private Filter.Expression withDocumentRole(Filter.Expression filter, DocumentRole role) {
-        if (role != DocumentRole.CANONICAL) {
+        if (role == null) {
             return filter;
         }
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
-        FilterExpressionBuilder.Op roleFilter = builder.eq("documentRole", DocumentRole.CANONICAL.name());
+        FilterExpressionBuilder.Op roleFilter = role == DocumentRole.CANONICAL
+                ? builder.eq("documentRole", DocumentRole.CANONICAL.name())
+                : builder.ne("documentRole", DocumentRole.CANONICAL.name());
         return filter == null
                 ? roleFilter.build()
                 : builder.and(roleFilter, new FilterExpressionBuilder.Op(filter)).build();

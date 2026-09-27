@@ -105,7 +105,7 @@ class RetrievalServiceTest {
                 ),
                 builder.and(builder.eq("policyYear", 2026), builder.eq("cohortYear", 2025))
         ).build();
-        assertEquals(expected, request.getFilterExpression());
+        assertEquals(expectedEvidenceFilter(expected), request.getFilterExpression());
     }
 
     @Test
@@ -134,7 +134,7 @@ class RetrievalServiceTest {
                 ),
                 builder.eq("policyYear", 2026)
         ).build();
-        assertEquals(expected, request.getFilterExpression());
+        assertEquals(expectedEvidenceFilter(expected), request.getFilterExpression());
     }
 
     @Test
@@ -148,7 +148,7 @@ class RetrievalServiceTest {
 
         SearchRequest request = capturedRequests(2).getFirst();
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
-        assertEquals(builder.eq("cohortYear", 2023).build(), request.getFilterExpression());
+        assertEquals(expectedEvidenceFilter(builder.eq("cohortYear", 2023).build()), request.getFilterExpression());
         verifyNoInteractions(chunkRepository);
     }
 
@@ -183,9 +183,9 @@ class RetrievalServiceTest {
 
         List<SearchRequest> requests = capturedRequests(2);
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
-        assertEquals(builder.eq("cohortYear", 2023).build(),
+        assertEquals(expectedEvidenceFilter(builder.eq("cohortYear", 2023).build()),
                 requests.getFirst().getFilterExpression());
-        assertEquals(null, requests.get(1).getFilterExpression());
+        assertEquals(expectedEvidenceFilter(null), requests.get(1).getFilterExpression());
         assertEquals(List.of(313L), results.stream().map(SearchResultResponse::getChunkId).toList());
     }
 
@@ -285,7 +285,7 @@ class RetrievalServiceTest {
 
         List<SearchRequest> requests = capturedRequests(1);
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
-        assertEquals(builder.eq("effectiveYear", 2026).build(),
+        assertEquals(expectedEvidenceFilter(builder.eq("effectiveYear", 2026).build()),
                 requests.get(0).getFilterExpression());
     }
 
@@ -555,7 +555,7 @@ class RetrievalServiceTest {
                 any(float[].class), any(Integer.class), filterCaptor.capture());
         assertEquals(true, filterCaptor.getAllValues().getFirst().toString()
                 .contains("documentRole"));
-        assertEquals(false, filterCaptor.getAllValues().get(1).toString()
+        assertEquals(true, filterCaptor.getAllValues().get(1).toString()
                 .contains("documentRole"));
     }
 
@@ -596,7 +596,7 @@ class RetrievalServiceTest {
             assertEquals(true, evidenceFilter.contains(expected));
         }
         assertEquals(true, canonicalFilter.contains("documentRole"));
-        assertEquals(false, evidenceFilter.contains("documentRole"));
+        assertEquals(true, evidenceFilter.contains("documentRole"));
     }
 
     private void stubRewrite(String query,
@@ -682,7 +682,48 @@ class RetrievalServiceTest {
         if (effectiveYear != null) {
             combined = builder.and(combined, builder.eq("effectiveYear", effectiveYear));
         }
-        return combined.build();
+        return expectedEvidenceFilter(combined.build());
+    }
+
+    @Test
+    void shouldExcludeCanonicalFromV1WhileKeepingLegacyEvidence() {
+        String query = "转专业申请条件";
+        when(queryRewriteService.rewriteWithContext(query)).thenReturn(new QueryRewriteResult(
+                query, query, List.of()
+        ));
+        when(chunkRepository.findMaxEffectiveYear()).thenReturn(2026);
+        Document canonical = Document.builder()
+                .text("[F0] canonical fact")
+                .metadata("chunkId", 21)
+                .metadata("documentId", 6)
+                .metadata("chunkIndex", 0)
+                .metadata("effectiveYear", 2026)
+                .metadata("documentRole", "CANONICAL")
+                .build();
+        Document legacyEvidence = Document.builder()
+                .text("original evidence")
+                .metadata("chunkId", 11)
+                .metadata("documentId", 4)
+                .metadata("chunkIndex", 0)
+                .metadata("effectiveYear", 2026)
+                .build();
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(canonical, legacyEvidence));
+
+        List<SearchResultResponse> results = retrievalService.search(query, 3);
+
+        assertEquals(List.of(11L), results.stream().map(SearchResultResponse::getChunkId).toList());
+        FilterExpressionBuilder builder = new FilterExpressionBuilder();
+        assertEquals(expectedEvidenceFilter(builder.eq("effectiveYear", 2026).build()),
+                capturedRequests(1).getFirst().getFilterExpression());
+    }
+
+    private Filter.Expression expectedEvidenceFilter(Filter.Expression filter) {
+        FilterExpressionBuilder builder = new FilterExpressionBuilder();
+        FilterExpressionBuilder.Op roleFilter = builder.ne("documentRole", "CANONICAL");
+        return filter == null
+                ? roleFilter.build()
+                : builder.and(roleFilter, new FilterExpressionBuilder.Op(filter)).build();
     }
 
     private FilterExpressionBuilder.Op anyDepartment(FilterExpressionBuilder builder,
