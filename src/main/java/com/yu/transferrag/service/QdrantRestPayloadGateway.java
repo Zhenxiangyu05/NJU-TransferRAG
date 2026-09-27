@@ -57,18 +57,30 @@ public class QdrantRestPayloadGateway implements QdrantPayloadGateway {
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
-            Map<String, Object> result = requiredMap(response, "result");
-            for (Object rawPoint : requiredList(result, "points")) {
-                Map<String, Object> point = requiredMap(rawPoint, "point");
-                Object pointId = point.get("id");
-                if (pointId == null) {
-                    throw new IllegalStateException("Qdrant point 缺少 id");
-                }
-                points.add(new QdrantPoint(pointId, requiredMap(point.get("payload"), "payload")));
-            }
-            offset = result.get("next_page_offset");
+            ScrollPage page = parseScrollPage(response);
+            points.addAll(page.points());
+            offset = page.nextPageOffset();
         } while (offset != null);
         return List.copyOf(points);
+    }
+
+    /**
+     * Qdrant scroll responses wrap both the point array and cursor in {@code result}.
+     * Keep this decoding in one place so pagination cannot accidentally read fields
+     * from the top-level transport envelope.
+     */
+    private ScrollPage parseScrollPage(Map<String, Object> response) {
+        Map<String, Object> result = requiredObjectField(response, "result");
+        List<QdrantPoint> points = new ArrayList<>();
+        for (Object rawPoint : requiredList(result, "points")) {
+            Map<String, Object> point = requiredMapValue(rawPoint, "point");
+            Object pointId = point.get("id");
+            if (pointId == null) {
+                throw new IllegalStateException("Qdrant point 缺少 id");
+            }
+            points.add(new QdrantPoint(pointId, requiredMapValue(point.get("payload"), "payload")));
+        }
+        return new ScrollPage(List.copyOf(points), result.get("next_page_offset"));
     }
 
     @Override
@@ -83,8 +95,15 @@ public class QdrantRestPayloadGateway implements QdrantPayloadGateway {
                 .toBodilessEntity();
     }
 
+    private Map<String, Object> requiredObjectField(Map<String, Object> source, String field) {
+        if (source == null || !source.containsKey(field)) {
+            throw new IllegalStateException("Qdrant 响应缺少对象字段: " + field);
+        }
+        return requiredMapValue(source.get(field), field);
+    }
+
     @SuppressWarnings("unchecked")
-    private Map<String, Object> requiredMap(Object value, String field) {
+    private Map<String, Object> requiredMapValue(Object value, String field) {
         if (value instanceof Map<?, ?> map) {
             return (Map<String, Object>) map;
         }
@@ -96,6 +115,10 @@ public class QdrantRestPayloadGateway implements QdrantPayloadGateway {
         if (value instanceof List<?> list) {
             return list;
         }
-        throw new IllegalStateException("Qdrant 响应缺少数组字段: " + key);
+        throw new IllegalStateException("Qdrant 响应缺少数组字段: " + key
+                + "，当前对象字段: " + source.keySet());
+    }
+
+    private record ScrollPage(List<QdrantPoint> points, Object nextPageOffset) {
     }
 }
