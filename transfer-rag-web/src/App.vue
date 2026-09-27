@@ -74,7 +74,7 @@ function selectQuestion(value) {
     <main class="main-content">
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">CAMPUS KNOWLEDGE SEARCH</p>
-        <h1 id="page-title">基于校园资料的可信知识检索与问答</h1>
+        <h1 id="page-title">南京大学校园知识助手</h1>
         <p class="intro-copy">
           汇集培养方案、转专业政策、学院指南与学习经验，通过检索相关资料提供带来源的校园知识问答。
         </p>
