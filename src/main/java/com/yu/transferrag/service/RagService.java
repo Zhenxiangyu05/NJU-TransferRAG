@@ -114,6 +114,10 @@ public class RagService {
         }
 
         Set<String> approvedIds = new LinkedHashSet<>(answerability.evidenceCitationIds());
+        if (bundle.facts().stream().anyMatch(fact -> fact.evidence().stream()
+                .noneMatch(evidence -> approvedIds.contains(evidence.citationId())))) {
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
+        }
         List<CanonicalCitation> selected = bundle.citations().stream()
                 .filter(citation -> approvedIds.contains(citation.source().getCitationId()))
                 .toList();
@@ -215,62 +219,107 @@ public class RagService {
         Map<FactKey, List<EvidenceRef>> refsByFact = refs.stream().collect(Collectors.groupingBy(
                 ref -> new FactKey(ref.getCanonicalChunk().getId(), ref.getFactIndex()),
                 LinkedHashMap::new, Collectors.toList()));
-        Set<FactKey> requiredFacts = new LinkedHashSet<>();
+        Map<FactKey, String> requiredFacts = new LinkedHashMap<>();
         for (SearchResultResponse result : canonicalResults) {
-            Set<Integer> factIndexes = factIndexes(result.getContent());
-            if (factIndexes.isEmpty()) {
+            Map<Integer, String> facts = parseFacts(result.getContent());
+            if (facts.isEmpty()) {
                 return CanonicalEvidenceBundle.incomplete();
             }
-            for (Integer factIndex : factIndexes) {
+            for (Map.Entry<Integer, String> fact : facts.entrySet()) {
+                Integer factIndex = fact.getKey();
                 FactKey factKey = new FactKey(result.getChunkId(), factIndex);
-                requiredFacts.add(factKey);
+                requiredFacts.put(factKey, fact.getValue());
                 if (refsByFact.getOrDefault(factKey, List.of()).isEmpty()) {
                     return CanonicalEvidenceBundle.incomplete();
                 }
             }
         }
 
-        Map<CitationKey, CanonicalCitation> deduplicated = new LinkedHashMap<>();
+        Map<CitationKey, SourceResponse> sourcesByKey = new LinkedHashMap<>();
+        Map<String, LinkedHashSet<String>> excerptsByCitation = new LinkedHashMap<>();
+        List<CanonicalFactContext> factContexts = new ArrayList<>();
         Map<Long, SearchResultResponse> resultsByChunk = canonicalResults.stream()
                 .collect(Collectors.toMap(SearchResultResponse::getChunkId, result -> result));
-        for (EvidenceRef ref : refs) {
-            FactKey factKey = new FactKey(ref.getCanonicalChunk().getId(), ref.getFactIndex());
-            if (!requiredFacts.contains(factKey)) {
-                continue;
+        for (Map.Entry<FactKey, String> fact : requiredFacts.entrySet()) {
+            FactKey key = fact.getKey();
+            List<FactEvidence> evidenceForFact = new ArrayList<>();
+            for (EvidenceRef ref : refsByFact.get(key)) {
+                Document document = ref.getEvidenceDocument();
+                if (document == null || document.getId() == null
+                        || document.getDocumentRole() != DocumentRole.EVIDENCE
+                        || ref.getEvidenceText() == null || ref.getEvidenceText().isBlank()) {
+                    return CanonicalEvidenceBundle.incomplete();
+                }
+                CitationKey citationKey = new CitationKey(document.getId(), ref.getSourcePage());
+                SourceResponse source = sourcesByKey.computeIfAbsent(citationKey, ignored ->
+                        evidenceSource(document, resultsByChunk.get(key.chunkId()), ref.getSourcePage(),
+                                "S" + (sourcesByKey.size() + 1)));
+                String citationId = source.getCitationId();
+                String excerpt = ref.getEvidenceText().trim();
+                evidenceForFact.add(new FactEvidence(citationId, excerpt));
+                excerptsByCitation.computeIfAbsent(citationId, ignored -> new LinkedHashSet<>()).add(excerpt);
             }
-            Document document = ref.getEvidenceDocument();
-            if (document == null || document.getId() == null
-                    || document.getDocumentRole() != DocumentRole.EVIDENCE) {
-                return CanonicalEvidenceBundle.incomplete();
-            }
-            CitationKey key = new CitationKey(document.getId(), ref.getSourcePage());
-            if (!deduplicated.containsKey(key)) {
-                SearchResultResponse canonical = resultsByChunk.get(ref.getCanonicalChunk().getId());
-                SourceResponse source = evidenceSource(document, canonical, ref.getSourcePage(),
-                        "S" + (deduplicated.size() + 1));
-                deduplicated.put(key, new CanonicalCitation(source, ref.getEvidenceText()));
-            }
+            SearchResultResponse result = resultsByChunk.get(key.chunkId());
+            factContexts.add(new CanonicalFactContext(result.getSection(), key.factIndex(),
+                    fact.getValue(), List.copyOf(evidenceForFact)));
         }
-        if (deduplicated.isEmpty()) {
+        if (sourcesByKey.isEmpty()) {
             return CanonicalEvidenceBundle.incomplete();
         }
-        List<CanonicalCitation> citations = List.copyOf(deduplicated.values());
+        List<CanonicalCitation> citations = sourcesByKey.values().stream()
+                .map(source -> new CanonicalCitation(source,
+                        List.copyOf(excerptsByCitation.get(source.getCitationId())))).toList();
         List<SourceResponse> sources = citations.stream().map(CanonicalCitation::source).toList();
-        String answerabilityContext = canonicalKnowledge(canonicalResults)
-                + "\n\nEvidence Sources:\n" + canonicalCitationContext(citations);
-        return new CanonicalEvidenceBundle(true, answerabilityContext, sources, citations);
+        String answerabilityContext = canonicalFactContext(factContexts)
+                + "\n\nEvidence Sources:\n" + canonicalSourceContext(citations);
+        return new CanonicalEvidenceBundle(true, answerabilityContext, sources, citations,
+                List.copyOf(factContexts));
     }
 
-    private Set<Integer> factIndexes(String content) {
+    private Map<Integer, String> parseFacts(String content) {
         if (content == null) {
-            return Set.of();
+            return Map.of();
         }
-        Set<Integer> indexes = new LinkedHashSet<>();
+        Map<Integer, String> facts = new LinkedHashMap<>();
         Matcher matcher = FACT_MARKER.matcher(content);
+        Integer previousIndex = null;
+        int previousStart = -1;
         while (matcher.find()) {
-            indexes.add(Integer.valueOf(matcher.group(1)));
+            if (previousIndex != null) {
+                String text = content.substring(previousStart, matcher.start()).trim();
+                if (text.isEmpty() || facts.putIfAbsent(previousIndex, text) != null) {
+                    return Map.of();
+                }
+            }
+            previousIndex = Integer.valueOf(matcher.group(1));
+            previousStart = matcher.end();
         }
-        return indexes;
+        if (previousIndex != null) {
+            String text = content.substring(previousStart).trim();
+            if (text.isEmpty() || facts.putIfAbsent(previousIndex, text) != null) {
+                return Map.of();
+            }
+        }
+        return facts;
+    }
+
+    private String canonicalFactContext(List<CanonicalFactContext> facts) {
+        return "Canonical Knowledge:\n" + facts.stream().map(fact ->
+                "section: " + valueOrUnknown(fact.section()) + "\n[F" + fact.factIndex() + "] "
+                        + fact.text() + "\n" + fact.evidence().stream()
+                        .map(evidence -> "Evidence: [" + evidence.citationId() + "]\nExcerpt: "
+                                + evidence.evidenceText())
+                        .collect(Collectors.joining("\n"))).collect(Collectors.joining("\n\n"));
+    }
+
+    private String canonicalSourceContext(List<CanonicalCitation> citations) {
+        return citations.stream().map(citation -> {
+            SourceResponse source = citation.source();
+            return "[" + source.getCitationId() + "]\n"
+                    + "title: " + valueOrUnknown(source.getTitle()) + "\n"
+                    + "sourceType: " + valueOrUnknown(source.getSourceType()) + "\n"
+                    + "page: " + valueOrUnknown(source.getSourcePage());
+        }).collect(Collectors.joining("\n\n"));
     }
 
     private String canonicalKnowledge(List<SearchResultResponse> results) {
@@ -291,7 +340,7 @@ public class RagService {
                     + "official: " + source.isOfficial() + "\n"
                     + "title: " + valueOrUnknown(source.getTitle()) + "\n"
                     + "page: " + valueOrUnknown(source.getSourcePage()) + "\n"
-                    + "content:\n" + citation.evidenceText();
+                    + "content:\n" + String.join("\n", citation.evidenceTexts());
         }).collect(Collectors.joining("\n\n"));
     }
 
@@ -473,12 +522,15 @@ public class RagService {
 
     private record FactKey(Long chunkId, Integer factIndex) { }
     private record CitationKey(Long documentId, Integer page) { }
-    private record CanonicalCitation(SourceResponse source, String evidenceText) { }
+    private record FactEvidence(String citationId, String evidenceText) { }
+    private record CanonicalFactContext(String section, Integer factIndex, String text,
+                                        List<FactEvidence> evidence) { }
+    private record CanonicalCitation(SourceResponse source, List<String> evidenceTexts) { }
     private record CanonicalEvidenceBundle(boolean complete, String answerabilityContext,
-                                           List<SourceResponse> sources,
-                                           List<CanonicalCitation> citations) {
+                                           List<SourceResponse> sources, List<CanonicalCitation> citations,
+                                           List<CanonicalFactContext> facts) {
         private static CanonicalEvidenceBundle incomplete() {
-            return new CanonicalEvidenceBundle(false, "", List.of(), List.of());
+            return new CanonicalEvidenceBundle(false, "", List.of(), List.of(), List.of());
         }
     }
     private record EvidenceSelection(List<SearchResultResponse> searchResults,

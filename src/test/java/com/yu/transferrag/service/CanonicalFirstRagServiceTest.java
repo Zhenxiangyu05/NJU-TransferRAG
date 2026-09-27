@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -211,10 +212,132 @@ class CanonicalFirstRagServiceTest {
         assertTrue(answerabilityContext.getValue().contains("证据 A"));
         assertTrue(answerabilityContext.getValue().contains("证据 B"));
         assertTrue(answerabilityContext.getValue().contains("无页码证据"));
-        assertFalse(answerabilityContext.getValue().contains("同页重复"));
+        assertTrue(answerabilityContext.getValue().contains("同页重复"));
         ArgumentCaptor<Prompt> prompt = ArgumentCaptor.forClass(Prompt.class);
         verify(chatModel).call(prompt.capture());
         assertFalse(prompt.getValue().getUserMessage().getText().contains("[F0]"));
+    }
+
+    @Test
+    void shouldKeepThreeFactExcerptsForOneDocumentWithoutPageAndReturnOneCitation() {
+        String question = "转软件工程申请需要修哪些课程？";
+        SearchResultResponse canonical = productionLikeCanonical();
+        Document evidence = evidenceDocument(4L, "2026转软件工程申请要求");
+        evidence.setSourceType("PERSONAL");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(21L)))
+                .thenReturn(productionLikeRefs(evidence));
+        AnswerabilityService realAnswerability = new AnswerabilityService(chatModel);
+        RagService service = new RagService(retrievalService, realAnswerability, chatModel,
+                documentRepository, evidenceRefRepository, true);
+        when(chatModel.call(any(Prompt.class))).thenReturn(
+                chatResponse("{\"answerable\":true,\"evidenceCitationIds\":[\"S1\"],\"reason\":\"三条事实均有证据\"}"),
+                chatResponse("需要完成微积分 I 和 II；大二申请还需线性代数；专业准入课程需已修或在修。[S1]"));
+
+        RagResponse response = service.ask(question);
+
+        assertEquals(1, response.getSources().size());
+        assertEquals(4L, response.getSources().getFirst().getDocumentId());
+        assertEquals("S1", response.getSources().getFirst().getCitationId());
+        assertEquals("PERSONAL", response.getSources().getFirst().getSourceType());
+        assertEquals(null, response.getSources().getFirst().getSourcePage());
+        verify(retrievalService, never()).searchEvidence(any(), any(Integer.class));
+        ArgumentCaptor<Prompt> prompts = ArgumentCaptor.forClass(Prompt.class);
+        verify(chatModel, times(2)).call(prompts.capture());
+        String checkerContext = prompts.getAllValues().getFirst().getUserMessage().getText();
+        for (int index = 0; index < 3; index++) {
+            assertTrue(checkerContext.contains("[F" + index + "]"));
+        }
+        assertEquals(3, checkerContext.split("Evidence: \\[S1]", -1).length - 1);
+        assertTrue(checkerContext.contains("微积分 I（第一层次）"));
+        assertTrue(checkerContext.contains("线性代数（第一层次）"));
+        assertTrue(checkerContext.contains("离散数学"));
+        String generationContext = prompts.getAllValues().get(1).getUserMessage().getText();
+        assertFalse(generationContext.contains("[F0]"));
+        assertTrue(generationContext.contains("线性代数（第一层次）"));
+        assertTrue(generationContext.contains("离散数学"));
+    }
+
+    @Test
+    void shouldFallbackWhenProductionLikeFactF2HasNoEvidenceRef() {
+        String question = "转软件工程申请需要修哪些课程？";
+        Document evidence = evidenceDocument(4L, "2026转软件工程申请要求");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(productionLikeCanonical()));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(21L)))
+                .thenReturn(productionLikeRefs(evidence).subList(0, 2));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
+
+        ragService.ask(question);
+
+        verify(answerabilityService, never()).check(anyString(), anyString(), anyList());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+    }
+
+    @Test
+    void shouldFallbackWhenModelCitesUnknownSourceForProductionLikeFacts() {
+        String question = "转软件工程申请需要修哪些课程？";
+        Document evidence = evidenceDocument(4L, "2026转软件工程申请要求");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(productionLikeCanonical()));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(21L)))
+                .thenReturn(productionLikeRefs(evidence));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
+        AnswerabilityService realAnswerability = new AnswerabilityService(chatModel);
+        RagService service = new RagService(retrievalService, realAnswerability, chatModel,
+                documentRepository, evidenceRefRepository, true);
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse(
+                "{\"answerable\":true,\"evidenceCitationIds\":[\"S99\"],\"reason\":\"错误引用\"}"));
+
+        RagResponse response = service.ask(question);
+
+        assertEquals("根据当前知识库资料无法确定。", response.getAnswer());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+        verify(chatModel, times(1)).call(any(Prompt.class));
+    }
+
+    @Test
+    void shouldFallbackWhenReferencedEvidenceDocumentIsMissing() {
+        String question = "转软件工程申请需要修哪些课程？";
+        Document evidence = evidenceDocument(4L, "2026转软件工程申请要求");
+        List<EvidenceRef> refs = new java.util.ArrayList<>(productionLikeRefs(evidence));
+        refs.get(2).setEvidenceDocument(null);
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(productionLikeCanonical()));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(21L)))
+                .thenReturn(refs);
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
+
+        ragService.ask(question);
+
+        verify(answerabilityService, never()).check(anyString(), anyString(), anyList());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+    }
+
+    private SearchResultResponse productionLikeCanonical() {
+        SearchResultResponse result = canonicalResult(21L, "[F0] 申请软件工程专业转专业，需要完成微积分 I（第一层次）和微积分 II（第一层次）。\n"
+                + "[F1] 若申请时为大二学生，还需完成线性代数（第一层次）。\n"
+                + "[F2] 申请前需已修或在修 C语言程序设计基础（CPL）、计算系统基础 I、离散数学、软件工程与计算 I。", 0.80);
+        result.setSection("申请要求");
+        result.setDocumentId(6L);
+        result.setMajor("软件工程");
+        result.setPolicyYear(null);
+        return result;
+    }
+
+    private List<EvidenceRef> productionLikeRefs(Document evidence) {
+        return List.of(
+                evidenceRef(1L, 21L, 0, evidence, null,
+                        "申请软件工程专业转专业，需要完成以下申请流程：\n- 微积分 I（第一层次）\n- 微积分 II（第一层次）"),
+                evidenceRef(2L, 21L, 1, evidence, null,
+                        "若申请时为大二学生，还需完成：\n- 线性代数（第一层次）"),
+                evidenceRef(3L, 21L, 2, evidence, null,
+                        "申请前需已修或在修以下专业准入课程：\n- C语言程序设计基础（CPL）\n- 计算系统基础 I\n- 离散数学\n- 软件工程与计算 I"));
     }
 
     private SearchResultResponse canonicalResult(long chunkId, String facts, double score) {
