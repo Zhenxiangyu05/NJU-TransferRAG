@@ -3,6 +3,7 @@ package com.yu.transferrag.service;
 import com.yu.transferrag.dto.CreateDocumentRequest;
 import com.yu.transferrag.dto.DocumentResponse;
 import com.yu.transferrag.entity.Document;
+import com.yu.transferrag.entity.DocumentRole;
 import com.yu.transferrag.repository.DocumentRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -42,6 +43,7 @@ public class DocumentService {
         document.setDepartment(request.getDepartment());
         document.setYear(request.getYear());
         document.setSourceType(request.getSourceType());
+        document.setDocumentRole(DocumentRole.EVIDENCE);
         document.setSourceUrl(request.getSourceUrl());
 
         Document savedDocument = documentRepository.save(document);
@@ -106,6 +108,7 @@ public class DocumentService {
         document.setDepartment(department);
         document.setYear(year);
         document.setSourceType(sourceType);
+        document.setDocumentRole(DocumentRole.EVIDENCE);
         document.setScope(normalizeScope(scope));
         document.setFilePath(targetPath.toString());
         document.setOriginalFileName(originalFileName);

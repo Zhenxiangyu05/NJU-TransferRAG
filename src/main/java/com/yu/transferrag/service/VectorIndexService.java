@@ -20,12 +20,7 @@ public class VectorIndexService {
     }
 
     public int indexDocument(Long documentId) {
-        Filter.Expression documentFilter = new Filter.Expression(
-                Filter.ExpressionType.EQ,
-                new Filter.Key("documentId"),
-                new Filter.Value(documentId.toString())
-        );
-        vectorStore.delete(documentFilter);
+        removeDocumentIndex(documentId);
 
         List<Chunk> chunks = chunkRepository
                 .findByDocument_IdOrderByChunkIndexAsc(documentId);
@@ -42,13 +37,31 @@ public class VectorIndexService {
         return vectorDocuments.size();
     }
 
+    /**
+     * Deletes only points belonging to one document. This is used as
+     * compensation if a new Canonical import partially reaches Qdrant before
+     * its database transaction is rolled back.
+     */
+    public void removeDocumentIndex(Long documentId) {
+        if (documentId == null) {
+            return;
+        }
+        Filter.Expression documentFilter = new Filter.Expression(
+                Filter.ExpressionType.EQ,
+                new Filter.Key("documentId"),
+                new Filter.Value(documentId.toString())
+        );
+        vectorStore.delete(documentFilter);
+    }
+
     private org.springframework.ai.document.Document toVectorDocument(Chunk chunk) {
         com.yu.transferrag.entity.Document sourceDocument = chunk.getDocument();
         var builder = org.springframework.ai.document.Document.builder()
                 .text(chunk.getContent())
                 .metadata("chunkId", chunk.getId().toString())
                 .metadata("documentId", sourceDocument.getId().toString())
-                .metadata("chunkIndex", chunk.getChunkIndex());
+                .metadata("chunkIndex", chunk.getChunkIndex())
+                .metadata("documentRole", sourceDocument.getDocumentRole().name());
 
         if (sourceDocument.getDepartment() != null) {
             builder.metadata("department", sourceDocument.getDepartment());
@@ -70,6 +83,9 @@ public class VectorIndexService {
         }
         if (chunk.getMajor() != null) {
             builder.metadata("major", chunk.getMajor());
+        }
+        if (chunk.getSection() != null && !chunk.getSection().isBlank()) {
+            builder.metadata("section", chunk.getSection());
         }
         Integer effectiveYear = chunk.getPolicyYear() != null
                 ? chunk.getPolicyYear()

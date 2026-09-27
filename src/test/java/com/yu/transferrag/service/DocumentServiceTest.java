@@ -1,6 +1,7 @@
 package com.yu.transferrag.service;
 
 import com.yu.transferrag.entity.Document;
+import com.yu.transferrag.entity.DocumentRole;
 import com.yu.transferrag.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,6 +102,7 @@ class DocumentServiceTest {
         assertFalse(result.duplicate());
         assertEquals(20L, result.document().getId());
         assertEquals(documentService.calculateSha256(file), savedDocument.getFileHash());
+        assertEquals(DocumentRole.EVIDENCE, savedDocument.getDocumentRole());
         assertTrue(Files.isRegularFile(Path.of(savedDocument.getFilePath())));
     }
 

@@ -1,6 +1,7 @@
 package com.yu.transferrag.service;
 
 import com.yu.transferrag.entity.Chunk;
+import com.yu.transferrag.entity.DocumentRole;
 import com.yu.transferrag.repository.ChunkRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,7 @@ class VectorIndexServiceTest {
         assertEquals(2026, metadata.get("year"));
         assertEquals("COMMUNITY", metadata.get("sourceType"));
         assertEquals("DEPARTMENT", metadata.get("scope"));
+        assertEquals("EVIDENCE", metadata.get("documentRole"));
         assertEquals(2026, metadata.get("effectiveYear"));
         assertNull(metadata.get("policyYear"));
         assertNull(metadata.get("chunkDepartment"));
@@ -107,5 +109,35 @@ class VectorIndexServiceTest {
         assertEquals(2026, metadata.get("effectiveYear"));
         assertEquals("文学院", metadata.get("chunkDepartment"));
         assertEquals("汉语言文学", metadata.get("major"));
+        assertEquals("EVIDENCE", metadata.get("documentRole"));
+    }
+
+    @Test
+    void shouldAddCanonicalRoleAndSectionToVectorMetadata() {
+        com.yu.transferrag.entity.Document canonical = new com.yu.transferrag.entity.Document();
+        canonical.setId(90L);
+        canonical.setDepartment("软件学院");
+        canonical.setYear(2026);
+        canonical.setSourceType("CURATED");
+        canonical.setDocumentRole(DocumentRole.CANONICAL);
+
+        Chunk chunk = new Chunk();
+        chunk.setId(901L);
+        chunk.setDocument(canonical);
+        chunk.setContent("申请条件\n- GPA 不低于 3.0");
+        chunk.setChunkIndex(0);
+        chunk.setSection("申请条件");
+        when(chunkRepository.findByDocument_IdOrderByChunkIndexAsc(90L)).thenReturn(List.of(chunk));
+
+        vectorIndexService.indexDocument(90L);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<org.springframework.ai.document.Document>> documentsCaptor =
+                ArgumentCaptor.forClass(List.class);
+        verify(vectorStore).add(documentsCaptor.capture());
+
+        Map<String, Object> metadata = documentsCaptor.getValue().getFirst().getMetadata();
+        assertEquals("CANONICAL", metadata.get("documentRole"));
+        assertEquals("申请条件", metadata.get("section"));
     }
 }

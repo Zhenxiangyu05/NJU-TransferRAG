@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -16,6 +18,7 @@ public class Document {
 
     public static final String SCOPE_GLOBAL = "GLOBAL";
     public static final String SCOPE_DEPARTMENT = "DEPARTMENT";
+    public static final String SOURCE_TYPE_CURATED = "CURATED";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +32,10 @@ public class Document {
     private Integer year;
 
     private String sourceType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private DocumentRole documentRole = DocumentRole.EVIDENCE;
 
     @Column(length = 32)
     private String scope = SCOPE_DEPARTMENT;
@@ -56,6 +63,7 @@ public class Document {
         if (scope == null || scope.isBlank()) {
             scope = SCOPE_DEPARTMENT;
         }
+        documentRole = DocumentRole.legacyDefault(documentRole);
         createdAt = LocalDateTime.now();
     }
 
@@ -97,6 +105,14 @@ public class Document {
 
     public void setSourceType(String sourceType) {
         this.sourceType = sourceType;
+    }
+
+    public DocumentRole getDocumentRole() {
+        return DocumentRole.legacyDefault(documentRole);
+    }
+
+    public void setDocumentRole(DocumentRole documentRole) {
+        this.documentRole = DocumentRole.legacyDefault(documentRole);
     }
 
     public String getScope() {

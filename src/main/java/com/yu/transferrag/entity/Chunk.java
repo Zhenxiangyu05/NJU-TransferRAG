@@ -38,6 +38,8 @@ public class Chunk {
 
     private String major;
 
+    private String section;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -108,6 +110,14 @@ public class Chunk {
 
     public void setMajor(String major) {
         this.major = major;
+    }
+
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
     }
 
     public LocalDateTime getCreatedAt() {
