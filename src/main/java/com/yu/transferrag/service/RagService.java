@@ -10,6 +10,8 @@ import com.yu.transferrag.entity.EvidenceRef;
 import com.yu.transferrag.repository.DocumentRepository;
 import com.yu.transferrag.repository.EvidenceRefRepository;
 import com.yu.transferrag.util.SourceAuthority;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 @Service
 public class RagService {
 
+    private static final Logger logger = LoggerFactory.getLogger(RagService.class);
     private static final double MIN_SIMILARITY_SCORE = 0.55;
     private static final Pattern FACT_MARKER = Pattern.compile("(?m)^\\[F(\\d+)]\\s+");
     private static final String INSUFFICIENT_KNOWLEDGE_ANSWER = "根据当前知识库资料无法确定。";
@@ -82,7 +85,9 @@ public class RagService {
             throw new IllegalArgumentException("question 不能为空");
         }
         if (!canonicalFirstEnabled) {
-            return answerFromEvidence(question, retrievalService.search(question, 3));
+            List<SearchResultResponse> evidenceResults = retrievalService.search(question, 3);
+            logRetrieval("EVIDENCE", 0, evidenceResults.size(), false, null);
+            return answerFromEvidence(question, evidenceResults);
         }
         return askCanonicalFirst(question);
     }
@@ -90,19 +95,22 @@ public class RagService {
     private RagResponse askCanonicalFirst(String question) {
         RetrievalService.PreparedQuery preparedQuery = retrievalService.prepareCanonicalFirst(question);
         List<SearchResultResponse> canonicalResults = retrievalService.searchCanonical(preparedQuery, 3);
+        if (canonicalResults.isEmpty()) {
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_CANONICAL_RESULT");
+        }
         if (!passesRelevanceGate(canonicalResults)) {
-            return answerFromEvidence(question, retrievalService.searchEvidence(preparedQuery, 3));
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "LOW_RELEVANCE");
         }
 
         CanonicalEvidenceBundle bundle = buildCanonicalEvidence(canonicalResults);
         if (!bundle.complete()) {
-            return answerFromEvidence(question, retrievalService.searchEvidence(preparedQuery, 3));
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "INCOMPLETE_PROVENANCE");
         }
 
         AnswerabilityResult answerability = answerabilityService.check(
                 question, bundle.answerabilityContext(), bundle.sources());
         if (!answerability.answerable()) {
-            return answerFromEvidence(question, retrievalService.searchEvidence(preparedQuery, 3));
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NOT_ANSWERABLE");
         }
 
         Set<String> approvedIds = new LinkedHashSet<>(answerability.evidenceCitationIds());
@@ -110,7 +118,7 @@ public class RagService {
                 .filter(citation -> approvedIds.contains(citation.source().getCitationId()))
                 .toList();
         if (selected.isEmpty()) {
-            return answerFromEvidence(question, retrievalService.searchEvidence(preparedQuery, 3));
+            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
         }
 
         String userPrompt = """
@@ -124,8 +132,29 @@ public class RagService {
                 %s
                 """.formatted(question, canonicalKnowledge(canonicalResults),
                 canonicalCitationContext(selected));
+        logRetrieval("CANONICAL", canonicalResults.size(), 0, false, null);
         return generatedResponse(question, userPrompt,
                 selected.stream().map(CanonicalCitation::source).toList(), true);
+    }
+
+    private RagResponse fallbackToEvidence(String question,
+                                           RetrievalService.PreparedQuery preparedQuery,
+                                           int canonicalCandidateCount,
+                                           String reason) {
+        List<SearchResultResponse> evidenceResults = retrievalService.searchEvidence(preparedQuery, 3);
+        logRetrieval("EVIDENCE", canonicalCandidateCount, evidenceResults.size(), true, reason);
+        return answerFromEvidence(question, evidenceResults);
+    }
+
+    private void logRetrieval(String retrievalLayer,
+                              int canonicalCandidateCount,
+                              int evidenceCandidateCount,
+                              boolean fallbackTriggered,
+                              String fallbackReason) {
+        logger.info("RAG retrieval: retrievalLayer={}, canonicalCandidateCount={}, "
+                        + "evidenceCandidateCount={}, fallbackTriggered={}, fallbackReason={}",
+                retrievalLayer, canonicalCandidateCount, evidenceCandidateCount,
+                fallbackTriggered, fallbackReason == null ? "NONE" : fallbackReason);
     }
 
     private RagResponse answerFromEvidence(String question, List<SearchResultResponse> searchResults) {

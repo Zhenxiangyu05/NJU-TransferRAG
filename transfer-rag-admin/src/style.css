@@ -351,6 +351,18 @@ h1 {
   border-top: 1px solid #ede9ef;
 }
 .action-row > p { margin: 0; color: #8b8490; font-size: 11px; }
+.canonical-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e5e0e8;
+  border-radius: 12px;
+  background: #fbfafc;
+}
+.canonical-picker p { margin: 0; color: #716c77; font-size: 12px; line-height: 1.6; }
+.canonical-action-row code { font-size: 11px; }
 .action-buttons { display: flex; gap: 10px; margin-left: auto; }
 
 .primary-button, .secondary-button {
@@ -401,6 +413,7 @@ h1 {
   .process-list { grid-template-columns: 1fr 1fr; gap: 13px 8px; }
   .process-list li::after { display: none; }
   .action-row { align-items: stretch; flex-direction: column; }
+  .canonical-picker { align-items: stretch; flex-direction: column; }
   .action-buttons { width: 100%; margin: 0; }
   .action-buttons button { flex: 1; }
 }

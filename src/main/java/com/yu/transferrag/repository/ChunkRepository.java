@@ -2,6 +2,7 @@ package com.yu.transferrag.repository;
 
 import com.yu.transferrag.entity.Chunk;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,6 +10,9 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ChunkRepository extends JpaRepository<Chunk, Long> {
+
+    @EntityGraph(attributePaths = "document")
+    List<Chunk> findAllByIdIn(Collection<Long> ids);
 
     void deleteByDocument_Id(Long documentId);
 

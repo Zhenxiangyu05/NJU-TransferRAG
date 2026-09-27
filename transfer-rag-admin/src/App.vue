@@ -94,13 +94,19 @@ const metadata = reactive({
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
+const canonicalFileInput = ref(null)
+const selectedCanonicalFile = ref(null)
 const dragActive = ref(false)
 const status = ref('IDLE')
 const result = ref(null)
 const pageError = ref('')
 const errorDetail = ref('')
+const canonicalStatus = ref('IDLE')
+const canonicalResult = ref(null)
+const canonicalError = ref('')
 
 const importing = computed(() => status.value === 'IMPORTING')
+const canonicalImporting = computed(() => canonicalStatus.value === 'IMPORTING')
 const isOfficial = computed(() => (
   metadata.sourceType === 'OFFICIAL' || metadata.sourceType === 'OFFICIAL_PDF'
 ))
@@ -115,6 +121,84 @@ const canImport = computed(() => (
 
 function openFilePicker() {
   if (!importing.value) fileInput.value?.click()
+}
+
+function openCanonicalFilePicker() {
+  if (!canonicalImporting.value) canonicalFileInput.value?.click()
+}
+
+function onCanonicalFileChange(event) {
+  const [file] = Array.from(event.target.files || [])
+  event.target.value = ''
+  canonicalError.value = ''
+  canonicalResult.value = null
+  if (!file) return
+  if (getExtension(file.name) !== 'json') {
+    canonicalError.value = '请选择 .json 格式的知识卡文件。'
+    return
+  }
+  if (file.size === 0) {
+    canonicalError.value = '不能导入空 JSON 文件。'
+    return
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    canonicalError.value = 'JSON 文件超过 20 MB。'
+    return
+  }
+  selectedCanonicalFile.value = file
+  canonicalStatus.value = 'READY'
+}
+
+function removeCanonicalFile() {
+  if (canonicalImporting.value) return
+  selectedCanonicalFile.value = null
+  canonicalResult.value = null
+  canonicalError.value = ''
+  canonicalStatus.value = 'IDLE'
+}
+
+async function startCanonicalImport() {
+  if (!selectedCanonicalFile.value || canonicalImporting.value) return
+  canonicalStatus.value = 'IMPORTING'
+  canonicalResult.value = null
+  canonicalError.value = ''
+
+  try {
+    const rawJson = await selectedCanonicalFile.value.text()
+    let payload
+    try {
+      payload = JSON.parse(rawJson)
+    } catch {
+      throw new UserFacingError('JSON 格式无效，请检查文件内容。')
+    }
+    if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
+      throw new UserFacingError('知识卡 JSON 必须是一个对象。')
+    }
+    const response = await fetch('api/documents/canonical', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const responseBody = await readJsonResponse(response)
+    if (!response.ok) {
+      throw new UserFacingError(safeServerMessage(responseBody, response.status))
+    }
+    if (!responseBody || responseBody.documentId == null
+      || responseBody.chunkCount == null || responseBody.evidenceRefCount == null) {
+      throw new UserFacingError('后端返回的知识卡导入结果格式不正确。')
+    }
+    canonicalResult.value = responseBody
+    canonicalStatus.value = 'SUCCESS'
+  } catch (error) {
+    canonicalStatus.value = 'FAILED'
+    if (error instanceof UserFacingError) {
+      canonicalError.value = error.message
+    } else if (error instanceof TypeError) {
+      canonicalError.value = '无法连接后端服务，请确认管理端代理和 Spring Boot 服务可用。'
+    } else {
+      canonicalError.value = '知识卡导入未能完成，请稍后重试。'
+    }
+  }
 }
 
 function onFileChange(event) {
@@ -462,6 +546,67 @@ class UserFacingError extends Error {}
           <button v-else class="primary-button" type="button" :disabled="!canImport" @click="startImport">
             <span v-if="importing" class="spinner spinner-light" aria-hidden="true"></span>
             {{ importing ? '正在导入…' : (status === 'FAILED' ? '重新导入' : '导入知识库') }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace-card" aria-labelledby="canonical-heading">
+      <div class="section-heading">
+        <div>
+          <span class="step-number">04</span>
+          <div>
+            <h2 id="canonical-heading">导入知识卡</h2>
+            <p>仅支持已审核、带 EvidenceRef 的 Canonical JSON</p>
+          </div>
+        </div>
+      </div>
+
+      <input
+        ref="canonicalFileInput"
+        class="visually-hidden"
+        type="file"
+        accept=".json,application/json"
+        :disabled="canonicalImporting"
+        @change="onCanonicalFileChange"
+      />
+      <div v-if="!selectedCanonicalFile" class="canonical-picker">
+        <p>选择一份 Canonical JSON 文件，后端会校验证据文档并建立语义 Chunk 与向量索引。</p>
+        <button class="secondary-button" type="button" :disabled="canonicalImporting" @click="openCanonicalFilePicker">
+          选择 JSON 文件
+        </button>
+      </div>
+      <div v-else class="selected-file">
+        <div class="file-type">JSON</div>
+        <div class="file-copy">
+          <strong>{{ selectedCanonicalFile.name }}</strong>
+          <span>{{ formatFileSize(selectedCanonicalFile.size) }} · 已准备导入</span>
+        </div>
+        <button class="quiet-button" type="button" :disabled="canonicalImporting" @click="removeCanonicalFile">移除</button>
+      </div>
+
+      <div v-if="canonicalError" class="message message-error" role="alert">
+        <strong>知识卡导入失败</strong>
+        <span>{{ canonicalError }}</span>
+      </div>
+      <div v-if="canonicalStatus === 'SUCCESS' && canonicalResult" class="success-panel" role="status">
+        <div class="success-mark" aria-hidden="true">✓</div>
+        <div class="success-copy">
+          <p class="success-label">知识卡导入成功</p>
+          <h3>Canonical 知识卡已建立并完成索引。</h3>
+          <dl>
+            <div><dt>Canonical Document ID</dt><dd>{{ canonicalResult.documentId }}</dd></div>
+            <div><dt>Chunks</dt><dd>{{ canonicalResult.chunkCount }}</dd></div>
+            <div><dt>EvidenceRefs</dt><dd>{{ canonicalResult.evidenceRefCount }}</dd></div>
+          </dl>
+        </div>
+      </div>
+      <div v-if="selectedCanonicalFile" class="action-row canonical-action-row">
+        <p>该操作仅通过受 Basic Auth 保护的 <code>/admin/api/</code> 代理发起。</p>
+        <div class="action-buttons">
+          <button class="primary-button" type="button" :disabled="canonicalImporting" @click="startCanonicalImport">
+            <span v-if="canonicalImporting" class="spinner spinner-light" aria-hidden="true"></span>
+            {{ canonicalImporting ? '正在导入…' : (canonicalStatus === 'FAILED' ? '重新导入知识卡' : '导入知识卡') }}
           </button>
         </div>
       </div>
