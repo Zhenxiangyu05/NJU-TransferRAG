@@ -8,6 +8,7 @@ import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
     <h1 id="privacy-title">隐私说明</h1>
     <p>公开问答无需注册，也无需提供姓名或联系方式。公开用户端未发现用于识别用户的 Cookie、localStorage、第三方统计 SDK 或广告追踪代码。</p>
     <p class="privacy-warning">请勿在问题中输入姓名、学号、身份证号、手机号、住址、账号密码等不必要的个人信息。</p>
+    <p>当前公开入口使用 HTTP，尚未配置 HTTPS；浏览器与本站之间的传输不具备 HTTPS 加密保护。请勿通过问答或公开反馈入口提交敏感信息。</p>
     <p>
       用户提交的问题会发送到本站后端，并交由已配置的远程 AI 服务进行向量化、证据判断及回答生成。本站未在 MySQL 中建立用户问题或问答历史表，也不主动建立用户问答历史档案；远程 AI 服务如何处理所接收内容，不能仅凭本站代码判断。
     </p>
