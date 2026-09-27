@@ -39,7 +39,23 @@ dist/
 ### Local secrets / environment ###
 .env
 .env.*
+*.env
 !.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+.htpasswd
+*admin-password*
+
+### Production data / backups ###
+uploads/
+backups/
+snapshots/
+*.sql.gz
+*.snapshot
+*.pdf
+*.docx
 
 ### Spring local configuration ###
 src/main/resources/application-local.properties

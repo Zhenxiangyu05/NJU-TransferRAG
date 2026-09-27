@@ -1,206 +1,95 @@
-# NJU Compass
+# NJU Compass / 南京大学校园知识助手
 
-> 基于 Spring Boot + RAG 的校园知识检索与可信问答平台
+面向南京大学校园资料的可信知识检索与问答系统。用户可以查询转专业、培养方案等已收录资料，获得带来源的回答；资料不足时，系统拒绝猜测。本项目并非南京大学官方服务，重要事项请以学校及院系最新通知为准。
 
-**南大校园知识助手**最初从南京大学转专业资料问答场景出发，随后扩展到培养方案、转专业政策、专业分流、学院指南、课程信息、学习经验、面试与机试经验，以及其他校园学习资料。
+## Online Demo
 
-NJU Compass 是一个 RAG（Retrieval-Augmented Generation）项目，而不是 Agent。系统先检索已收录资料，再基于证据生成带来源的回答。
+[南京大学校园知识助手](http://124.220.159.31/)
 
-> 本项目是非官方校园知识检索工具，不能替代南京大学或相关院系发布的最新官方通知。
+知识库管理端采用独立鉴权，不公开凭据。
 
-## 核心能力
+## V2: Canonical Knowledge + Evidence
 
-- 导入 PDF、DOCX、Markdown、TXT 文档。
-- 使用 PDFBox、Apache Tika 解析文档，并提供 Tesseract OCR fallback。
-- 通过 SHA-256 实现文件级幂等导入，避免重复创建文档。
-- 在 MySQL 中保存 Document、Chunk 及结构化元数据。
-- 使用 Ollama 与 `bge-m3` 生成 Embedding，在 Qdrant 中执行向量检索。
-- 通过 Entity Resolution 解析学院、专业、大类、方向与简称，并形成 canonical department/major。
-- 使用 `TARGET`、`EXCLUDED` 等实体角色区分查询目标和排除项。
-- 区分 `policyYear`、`cohortYear` 与 `effectiveYear`，处理政策发布周期和适用年级。
-- 使用 `StructuredPolicyChunker` 和 `CohortAwareTextChunker` 降低跨行、跨 cohort 的 Chunk 混合。
-- 结合实体、年份、资料范围和来源类型执行 Metadata Filtering。
-- 通过 Answerability Gate 进行 fail-closed 证据充分性判断。
-- 在回答中保留 Citation，并通过 Source Card 展示官方/经验资料、元数据和原始资料入口。
-- 提供 MySQL、Chunk 与 Qdrant payload 的 metadata consistency check。
-- 使用固定 Ground Truth、Regression 与 Failure Attribution 进行离线评测。
+```text
+User Query
+    ↓
+Query Rewrite / Entity Resolution / Metadata Filter
+    ↓
+Canonical Retrieval → Relevance Gate → Answerability
+    ├─ 依据充分 → Answer → Evidence Citation
+    └─ 依据不足 → Evidence Retrieval → Answerability
+                                  ├─ 依据充分 → Answer → Evidence Citation
+                                  └─ 依据不足 → 拒答
+```
 
-## 技术栈
+`CANONICAL` 是经人工或 AI 整理并审核的高密度知识单元，优先用于检索；`EVIDENCE` 是原始 PDF、DOCX、Markdown、TXT 资料。Canonical 的每条 fact 通过 `EvidenceRef` 关联原始 Evidence Document，因此最终 Citation 指向证据，而不是把整理知识卡当作官方原文。旧版缺少 `documentRole` 的向量仍按 Evidence 兼容。
 
-| 层次 | 技术 |
+文档链路：导入 → 解析 / OCR → Chunk（Canonical 按 section 和 fact 构建）→ 远程 `bge-m3` Embedding → Qdrant；MySQL 保存文档、Chunk、EvidenceRef 与元数据。问答链路结合 `department`、`major`、`policyYear`、`cohortYear` 等过滤条件，通过 Relevance Gate 和 Answerability 检查后生成回答。Canonical 不足时回退到原始 Evidence；同一查询的 Embedding 在两阶段复用，重复的 Evidence Citation 会去重。
+
+### Safety and reliability
+
+- 没有充分证据时 fail-closed，不用模型常识补全校园政策。
+- Canonical 的 `sourceType=CURATED`，不冒充 `OFFICIAL`；引用追溯到真实 Evidence。
+- `policyYear`（政策年份）、`cohortYear`（适用年级）与 `effectiveYear`（检索年份）保持不同语义。
+- `app.rag.canonical-first-enabled` 可关闭 Canonical-first，恢复 V1 Evidence-only 检索路径。
+- 真实资料可能过时或不完整；Citation 方便核验，但不替代官方通知。
+
+## Technology and production architecture
+
+| Layer | Stack |
 |---|---|
-| 后端 | Java 21、Spring Boot、Spring AI |
-| 数据与检索 | MySQL、Qdrant |
-| AI | Ollama、`bge-m3`、DeepSeek-compatible Chat API |
-| 用户端 | Vue、Vite |
-| 管理端 | Vue、Vite |
-| 评测 | 固定 Ground Truth、Regression、Failure Attribution |
-
-## 系统架构
-
-```mermaid
-flowchart LR
-    subgraph Import[文档导入链路]
-        D[Document] --> H[SHA-256]
-        H --> P[Parse / OCR]
-        P --> C[Chunk]
-        C --> M[Metadata]
-        M --> E[bge-m3 Embedding]
-        E --> Q[(Qdrant)]
-        M --> DB[(MySQL)]
-    end
-
-    subgraph Query[问答链路]
-        U[Question] --> R[Entity / Temporal Resolution]
-        R --> F[Metadata Filter]
-        F --> V[Vector Retrieval]
-        V --> G[Relevance Gate]
-        G --> A[Answerability]
-        A --> L[LLM Generation]
-        L --> S[Citation / Source Card]
-    end
-
-    F -. filter .-> Q
-    S -. metadata .-> DB
-```
-
-## 关键工程设计
-
-### MySQL 与 Qdrant 的职责分离
-
-MySQL 保存可管理、可审计的文档与 Chunk 记录；Qdrant 保存向量和检索 payload。两者分别承担业务事实源与高效语义检索职责。
-
-### Metadata consistency
-
-同一 Chunk 在 MySQL 和 Qdrant 中需要具有一致的 department、major、year、scope 等字段。一致性检查用于定位缺失字段、旧索引 payload 和一对多 Point 等问题，避免正确资料因过滤条件不一致而不可见。
-
-### policyYear 与 cohortYear
-
-`policyYear` 表示政策或 transfer cycle，`cohortYear` 表示规则适用的学生年级；两者不能互相替代。`effectiveYear` 用于形成检索侧统一的时间语义。拆分这些字段可以避免同一政策表中不同 cohort 规则相互污染。
-
-### Entity Resolution
-
-简称、专业、大类和学院不是简单的一对一字符串替换。系统通过 canonical entity、实体角色、major-to-department 映射和最长匹配等机制生成稳定的查询目标，再用于 metadata filter。
-
-### Fail-closed Answerability
-
-当检索证据不足、引用无效或 checker 无法可靠判断时，系统选择拒答，而不是用模型常识补全事实。最终冻结版本使用经过完整回归的 Answerability V1；4B/4C 的实验架构未进入生产版本。
-
-### 固定回归集
-
-固定 Ground Truth 能把 Retrieval、Metadata、Year/Cohort、Answerability 与 Generation 的问题分开归因，也能在每轮改动后检查历史 PASS 是否回归。
-
-## Evaluation
-
-| 版本 | PASS | Pass Rate | 相对 Baseline |
-|---|---:|---:|---:|
-| Baseline | 36 / 82 | 43.90% | — |
-| Internship Freeze | 51 / 82 | 62.20% | +15 PASS / +18.30 percentage points |
-
-最终固定 82 题回归中：
-
-- `WRONG = 0`
-- `YEAR_MISMATCH = 0`
-- `HALLUCINATION = 0`
-- `SYSTEM_ERROR = 0`
-
-一次 Full Regression 中，`TRAG-066` 曾出现 `WRONG_SOURCE`：相邻的二次拔尖场景被混入转专业面试回答。随后三次独立复核均未再次出现 `WRONG_SOURCE`，该案例被记录为 nondeterministic source-selection outlier，而不是声明系统永远不会发生来源选择错误。
-
-详细报告见 [`evaluation/`](evaluation/README.md)。
-
-## Evaluation-driven Iteration
+| Backend | Java 21、Spring Boot、Spring AI |
+| Data / retrieval | MySQL 8、Qdrant |
+| AI | 远程 `bge-m3` Embedding、OpenAI-compatible Chat API |
+| Frontend | Vue、Vite（用户端与独立管理端） |
+| Deployment | Docker Compose、Nginx、systemd、腾讯云 |
 
 ```text
-Baseline 36/82
-  → Metadata Consistency 2A
-  → Entity Resolution 2B
-  → Policy Year / Cohort 3A
-  → Historical Cohort 3B
-  → Full Regression 51/82
-  → INTERNSHIP_FREEZE
+Internet
+   ↓
+Nginx :80 ── Vue static / protected admin
+   └── /api/ → Spring Boot 127.0.0.1:8080
+                    ├── MySQL 127.0.0.1:3306
+                    ├── Qdrant 127.0.0.1:6333/6334
+                    └── Remote AI APIs
 ```
 
-Answerability 相关工作遵循“诊断—实验—回归—恢复”的流程：
+MySQL、Qdrant 和 Spring Boot 不直接暴露公网。管理端由 Nginx Basic Auth 保护。Spring Boot 由 systemd 托管，MySQL / Qdrant 由 Docker Compose 托管并配置自动恢复。当前部署运行在约 2C4G 云服务器上；本地 Ollama 曾导致内存压力，生产 Embedding 已迁至远程 API。上线过程包含 MySQL 备份、Qdrant snapshot、幂等 schema migration 与旧向量 payload backfill；这些操作不是日常发布步骤。
 
-- 4A：只读诊断与稳定性分析。
-- 4B：确定性聚合实验，未通过最终验收。
-- 4C：语义边界实验，未通过最终验收。
-- 最终生产版本：恢复并保留经过完整回归的 Answerability V1。
+## Version evolution
 
-4B/4C 的失败结果作为工程决策依据保留，但没有进入最终生产实现。
+- **v1.0.0**：Raw Evidence RAG。原始资料 → Chunk → 向量检索 → 回答 → Citation。
+- **v2.0.0**：Canonical-first Retrieval + Evidence fallback。fact-level provenance 与 Evidence Citation 减少重复资料和原始 Chunk 噪声，同时保留旧资料覆盖能力。
 
-## Known Limitations
-
-- Answerability 在固定证据下仍可能发生 false refusal。
-- Evidence Window / TopK 可能遗漏同文档其他 Chunk 的关键事实。
-- Generation 可能遗漏列表项或组合问题中的部分事实。
-- Source Authority 和相邻 scenario boundary 仍存在长尾问题。
-- 未显式给出 cohort 时，部分规则可能需要用户补充年级。
-- Entity Resolution 对少见简称、多学院大类和历史名称仍需维护。
-- 知识库未收录的资料无法由系统可靠回答。
-- LLM 具有非确定性，单次运行不能代表稳定语义结果。
-
-当前系统适合作为带引用的校园知识检索与问答作品展示，不应被描述为生产级、完全准确、权威问答或官方助手。
-
-## Repository Structure
+## Repository layout
 
 ```text
-src/main/            Spring Boot 生产代码
-src/test/            后端测试
-transfer-rag-web/    NJU Compass 用户端
-transfer-rag-admin/  知识库管理端
-evaluation/          固定评测集、实验记录与冻结报告
+src/main/            Spring Boot、SQL migration
+src/test/            自动化测试
+transfer-rag-web/    用户端
+transfer-rag-admin/  受保护的知识库管理端
+scripts/             部署与维护脚本
+evaluation/          离线评测与回归记录
 ```
 
-## Local Development
+## Local development
 
-### 1. 环境准备
-
-- Java 21
-- MySQL
-- Qdrant
-- Ollama，并准备 `bge-m3`
-- Node.js 与 npm
-- 可选：Tesseract OCR
-
-### 2. 本地配置
-
-敏感配置应写入被 Git 忽略的本地配置文件或环境变量，不要提交真实凭据。配置时使用安全占位符，例如：
-
-```text
-API key: YOUR_API_KEY
-Database URL: YOUR_DATABASE_URL
-Qdrant URL: YOUR_QDRANT_URL
-Database password: YOUR_DATABASE_PASSWORD
-```
-
-### 3. 启动后端
-
-```bash
-./mvnw spring-boot:run
-```
-
-Windows 可使用：
+需要 Java 21、Node.js / npm、MySQL 和 Qdrant，以及可用的 OpenAI-compatible Chat / `bge-m3` Embedding 服务。复制根目录 [`.env.example`](.env.example) 中的变量名到本地私有环境配置，填入自己的值；不要提交真实凭据。`application.properties` 默认使用 localhost MySQL / Qdrant，但上传路径为 Linux 生产路径，本地运行时应覆盖 `APP_UPLOAD_DIR` 或相应配置。仓库中的 Docker Compose 引用服务器 `/etc/` 环境文件，不能直接当作无配置的本地启动命令。
 
 ```powershell
+.\mvnw.cmd test
 .\mvnw.cmd spring-boot:run
 ```
 
-### 4. 启动用户端或管理端
+用户端或管理端分别进入 `transfer-rag-web/`、`transfer-rag-admin/`，执行 `npm ci`、`npm run dev`。生产构建使用 `npm run build`。
 
-进入对应前端目录后执行：
+## Deployment
 
-```bash
-npm install
-npm run dev
-```
-
-生产构建使用：
+通过 Git 发布，经测试并推送后，在已配置好服务环境文件的生产服务器执行：
 
 ```bash
-npm run build
+git pull --ff-only origin main
+./scripts/deploy.sh
 ```
 
-## Disclaimer
-
-本平台为非官方校园知识检索工具，回答基于已收录资料生成。涉及培养方案、转专业、课程安排等重要事项，请以南京大学及相关院系最新官方通知为准。
+部署脚本构建后端及两套前端、检查 Nginx、重启后端并运行 HTTP smoke test。数据库 migration、Qdrant backfill 和 Canonical 导入均需单独审查，不属于日常 `deploy.sh`。不要将 API Key、数据库密码、Basic Auth 密码、上传资料或备份提交到 Git。
