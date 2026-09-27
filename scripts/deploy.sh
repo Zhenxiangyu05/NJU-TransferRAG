@@ -41,7 +41,7 @@ echo "[4/9] Building protected admin frontend"
 )
 
 echo "[5/9] Validating Nginx configuration"
-sudo nginx -t
+bash ./scripts/apply-nginx-security.sh
 
 echo "[6/9] Publishing static assets"
 sudo install -d -o root -g root -m 755 /var/www/nju-transfer-rag /var/www/admin

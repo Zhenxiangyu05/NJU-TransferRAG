@@ -72,17 +72,15 @@ public class AnswerabilityService {
             AnswerabilityResult parsed = outputConverter.convert(output);
             AnswerabilityResult validated = validate(parsed, sources);
             logger.info(
-                    "Evidence check result: answerable={}, evidenceCitationIds={}, reason={}",
+                    "Evidence check result: answerable={}, evidenceCitationCount={}",
                     validated.answerable(),
-                    validated.evidenceCitationIds(),
-                    validated.reason()
+                    validated.evidenceCitationIds().size()
             );
             return validated;
         } catch (Exception exception) {
             logger.warn(
-                    "Evidence check failed closed: exceptionType={}, message={}",
-                    exception.getClass().getName(),
-                    exception.getMessage()
+                    "Evidence check failed closed: exceptionType={}",
+                    exception.getClass().getName()
             );
             return AnswerabilityResult.notAnswerable("证据充分性检查失败");
         }

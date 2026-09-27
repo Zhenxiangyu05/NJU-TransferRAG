@@ -25,14 +25,6 @@ const sourceTypeText = computed(() => ({
   GITHUB: 'GitHub 资料',
 }[props.source.sourceType] || props.source.sourceType || '类型未标注'))
 
-const localFileUrl = computed(() => {
-  if (!props.source.fileAvailable || props.source.documentId == null) return null
-  const documentId = String(props.source.documentId)
-  return /^\d+$/.test(documentId)
-    ? `/api/documents/${encodeURIComponent(documentId)}/file`
-    : null
-})
-
 const sourcePageUrl = computed(() => {
   if (typeof props.source.sourceUrl !== 'string' || !props.source.sourceUrl.trim()) return null
   try {
@@ -59,16 +51,7 @@ const sourcePageUrl = computed(() => {
       <div v-if="source.policyYear != null"><dt>政策年份</dt><dd>{{ source.policyYear }}</dd></div>
       <div><dt>检索年份</dt><dd>{{ source.effectiveYear || '未标注' }}</dd></div>
     </dl>
-    <div v-if="localFileUrl || sourcePageUrl" class="source-actions">
-      <a
-        v-if="localFileUrl"
-        class="source-link"
-        :href="localFileUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span aria-hidden="true">▤</span>查看原始资料
-      </a>
+    <div v-if="sourcePageUrl" class="source-actions">
       <a
         v-if="sourcePageUrl"
         class="source-link source-link-muted"

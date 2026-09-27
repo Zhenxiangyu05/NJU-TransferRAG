@@ -19,6 +19,11 @@ import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
       用户不应依据本站 AI 回答作出具有重大影响的决定，也不应将本站生成内容视为南京大学官方意见、承诺或证明。
     </p>
 
+    <section aria-labelledby="ai-label-title">
+      <h2 id="ai-label-title">AI 内容标识说明</h2>
+      <p>本站生成式回答会在回答区域显著标记“AI 生成，仅供参考”，以帮助用户区分 AI 回答与原始资料。</p>
+    </section>
+
     <section id="feedback" class="legal-feedback" aria-labelledby="feedback-title">
       <h2 id="feedback-title">纠错、资料更新与侵权反馈</h2>
       <p>请说明相关页面、资料标题或引用位置，以及需要更正、更新或处理的内容。</p>
@@ -28,7 +33,7 @@ import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
       <p v-else>
         项目专用邮箱尚未配置。可先通过
         <a :href="feedbackIssuesUrl" target="_blank" rel="noopener noreferrer">项目 GitHub Issues</a>
-        提交不含敏感信息的反馈；该入口需要 GitHub 账号，内容可能公开。侵权投诉如涉及身份证明或其他私密材料，请勿在公开 Issue 中上传，先简述问题并等待私下联系。
+        提交不含敏感信息的反馈；该入口需要 GitHub 账号，内容可能公开。请勿在公开 Issue 中提交身份证号、学号、手机号、住址、私人文件或其他敏感个人信息。涉及需要私密发送的侵权材料，请通过项目专用邮箱联系；邮箱配置后显示。在此之前不要上传私密材料。
       </p>
     </section>
   </article>
