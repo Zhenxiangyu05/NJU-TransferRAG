@@ -6,6 +6,8 @@ const props = defineProps({
 })
 
 const sourceLabel = computed(() => {
+  if (props.source.sourceType === 'PERSONAL') return '个人经验'
+  if (props.source.sourceType === 'CURATED') return '整理知识'
   if (props.source.official) return '官方'
   return {
     PERSONAL: '个人经验',
@@ -18,6 +20,7 @@ const sourceTypeText = computed(() => ({
   OFFICIAL: '官方资料',
   OFFICIAL_PDF: '官方 PDF',
   PERSONAL: '个人整理',
+  CURATED: '整理知识（非官方）',
   COMMUNITY: '社区资料',
   GITHUB: 'GitHub 资料',
 }[props.source.sourceType] || props.source.sourceType || '类型未标注'))

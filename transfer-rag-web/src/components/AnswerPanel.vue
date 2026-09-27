@@ -45,6 +45,10 @@ const isRefusal = computed(() => props.answer.trim() === REFUSAL_ANSWER)
           <h2>根据当前知识库</h2>
         </div>
       </div>
+      <div class="ai-answer-notice">
+        <strong>AI 生成，仅供参考</strong>
+        <p>本回答由人工智能基于已收录资料生成，可能存在遗漏、过时或理解偏差。涉及转专业、培养方案、课程、考试、学籍等事项，请以南京大学及相关院系最新官方通知为准。</p>
+      </div>
       <div class="markdown-body" v-html="renderedAnswer"></div>
       <p v-if="isRefusal" class="refusal-note">
         当前知识库可能尚未收录相关资料，请以学校或学院最新官方通知为准。
