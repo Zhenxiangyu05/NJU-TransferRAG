@@ -162,6 +162,68 @@ class CanonicalFirstRagServiceTest {
     }
 
     @Test
+    void shouldAnswerFromEvidenceAfterCanonicalAnswerabilityFails() {
+        String question = "转软件工程机考怎么准备？";
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 申请课程要求", 0.80);
+        SearchResultResponse evidenceResult = new SearchResultResponse();
+        evidenceResult.setDocumentId(12L);
+        evidenceResult.setChunkId(120L);
+        evidenceResult.setChunkIndex(0);
+        evidenceResult.setContent("机考准备经验");
+        evidenceResult.setScore(0.75);
+        Document evidence = evidenceDocument(12L, "机考经验");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1L, 900L, 0, evidence, null, "课程依据")));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(AnswerabilityResult.notAnswerable("机考问题与课程事实不符"))
+                .thenReturn(new AnswerabilityResult(true, List.of("S1"), "机考证据充分"));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of(evidenceResult));
+        when(documentRepository.findAllById(java.util.Set.of(12L))).thenReturn(List.of(evidence));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("依据经验准备机考。[S1]"));
+
+        RagResponse response = ragService.ask(question);
+
+        assertEquals("依据经验准备机考。[S1]", response.getAnswer());
+        assertEquals(12L, response.getSources().getFirst().getDocumentId());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+        verify(answerabilityService, times(2)).check(anyString(), anyString(), anyList());
+    }
+
+    @Test
+    void shouldFailClosedAfterBothCanonicalAndEvidenceAreInsufficient() {
+        String question = "转入后保证国家奖学金吗？";
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 申请课程要求", 0.80);
+        SearchResultResponse evidenceResult = new SearchResultResponse();
+        evidenceResult.setDocumentId(12L);
+        evidenceResult.setChunkId(120L);
+        evidenceResult.setChunkIndex(0);
+        evidenceResult.setContent("申请课程资料");
+        evidenceResult.setScore(0.75);
+        Document evidence = evidenceDocument(12L, "申请资料");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1L, 900L, 0, evidence, null, "课程依据")));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(AnswerabilityResult.notAnswerable("Canonical 不足"))
+                .thenReturn(AnswerabilityResult.notAnswerable("Evidence 不足"));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of(evidenceResult));
+        when(documentRepository.findAllById(java.util.Set.of(12L))).thenReturn(List.of(evidence));
+
+        RagResponse response = ragService.ask(question);
+
+        assertEquals("根据当前知识库资料无法确定。", response.getAnswer());
+        assertTrue(response.getSources().isEmpty());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+        verify(answerabilityService, times(2)).check(anyString(), anyString(), anyList());
+        verify(chatModel, never()).call(any(Prompt.class));
+    }
+
+    @Test
     void shouldFallbackWhenAnyCanonicalFactHasNoExactEvidenceRef() {
         String question = "问题";
         SearchResultResponse canonical = canonicalResult(900L, "[F0] 事实一\n[F1] 事实二", 0.80);

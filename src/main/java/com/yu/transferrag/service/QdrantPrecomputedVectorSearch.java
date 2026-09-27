@@ -72,7 +72,7 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
         }
     }
 
-    private Filter toQdrantFilter(org.springframework.ai.vectorstore.filter.Filter.Operand operand) {
+    Filter toQdrantFilter(org.springframework.ai.vectorstore.filter.Filter.Operand operand) {
         Filter.Builder result = Filter.newBuilder();
         if (!(operand instanceof org.springframework.ai.vectorstore.filter.Filter.Expression expression)) {
             throw new IllegalArgumentException("不支持的 Qdrant filter operand");
@@ -87,6 +87,7 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
                     .addShould(ConditionFactory.filter(toQdrantFilter(expression.right())))
                     .build();
             case EQ -> result.addMust(equalityCondition(expression)).build();
+            case NE -> result.addMustNot(equalityCondition(expression)).build();
             default -> throw new IllegalArgumentException(
                     "当前预计算向量搜索不支持 filter: " + expression.type()
             );
@@ -96,7 +97,7 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
     private Condition equalityCondition(org.springframework.ai.vectorstore.filter.Filter.Expression expression) {
         if (!(expression.left() instanceof org.springframework.ai.vectorstore.filter.Filter.Key key)
                 || !(expression.right() instanceof org.springframework.ai.vectorstore.filter.Filter.Value value)) {
-            throw new IllegalArgumentException("EQ filter 格式无效");
+            throw new IllegalArgumentException("EQ/NE filter 格式无效");
         }
         Object rawValue = value.value();
         if (rawValue instanceof String stringValue) {
@@ -105,7 +106,7 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
         if (rawValue instanceof Number numberValue) {
             return ConditionFactory.match(key.key(), numberValue.longValue());
         }
-        throw new IllegalArgumentException("EQ filter 仅支持字符串或数字");
+        throw new IllegalArgumentException("EQ/NE filter 仅支持字符串或数字");
     }
 
     private VectorMatch toMatch(ScoredPoint point) {
