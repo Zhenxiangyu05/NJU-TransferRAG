@@ -133,6 +133,8 @@ class CanonicalFirstRagServiceTest {
         assertEquals("机试准备建议。[S2]", response.getAnswer());
         assertEquals(1, response.getSources().size());
         assertEquals(2L, response.getSources().getFirst().getDocumentId());
+        // documentId identifies the cited Evidence; chunkId retains the retrieved Canonical chunk.
+        assertEquals(456L, response.getSources().getFirst().getChunkId());
         assertEquals("PERSONAL", response.getSources().getFirst().getSourceType());
         assertEquals("S2", response.getSources().getFirst().getCitationId());
         verify(retrievalService, never()).searchEvidence(any(), any(Integer.class));
@@ -143,6 +145,13 @@ class CanonicalFirstRagServiceTest {
         assertFalse(generationContext.contains("微积分 I"));
         assertTrue(generationContext.contains("SEECODER"));
         assertTrue(generationContext.contains("基础数据结构与算法"));
+        assertTrue(generationContext.contains("documentId: 2\nsourceType: PERSONAL\nofficial: false"));
+        assertFalse(generationContext.contains("documentId: 4\n"));
+        assertFalse(generationContext.contains("[S1]"));
+        assertEquals(3, generationContext.split("supportedBy: \\[S2]", -1).length - 1);
+
+        assertTrue(generationPrompt.getValue().getSystemMessage().getText()
+                .contains("不得将 PERSONAL 信息表述为官方规定"));
 
         ArgumentCaptor<String> context = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<List<SourceResponse>> sources = ArgumentCaptor.forClass(List.class);
@@ -469,6 +478,141 @@ class CanonicalFirstRagServiceTest {
 
         verify(answerabilityService, never()).check(anyString(), anyString(), anyList());
         verify(retrievalService).searchEvidence(preparedQuery, 3);
+    }
+
+    @Test
+    void shouldPreservePersonalAuthorityWithoutInventingPolicyYear() {
+        SearchResultResponse canonical = canonicalResult(456L, "[F0] 资料作者建议练习数组与链表。", 0.80);
+        canonical.setDocumentId(22L);
+        canonical.setPolicyYear(null);
+        Document evidence = evidenceDocument(2L, "2026转软件工程机考准备");
+        evidence.setSourceType("PERSONAL");
+
+        Prompt prompt = generateCanonicalPrompt(List.of(canonical),
+                List.of(evidenceRef(1L, 456L, 0, evidence, null, "作者建议练习数组与链表")),
+                List.of("S1"));
+
+        String context = prompt.getUserMessage().getText();
+        assertTrue(context.contains("[S1]\ndocumentId: 2\nsourceType: PERSONAL\nofficial: false"));
+        assertTrue(context.contains("title: 2026转软件工程机考准备"));
+        assertTrue(context.contains("documentYear: 2026\npolicyYear: 未知\ncohortYear: 未知"));
+        assertTrue(context.contains("supportedBy: [S1]\n资料作者建议练习数组与链表。"));
+        assertFalse(context.contains("sourceType: OFFICIAL_PDF"));
+        String rules = prompt.getSystemMessage().getText();
+        assertTrue(rules.contains("不得将 PERSONAL 信息表述为官方规定"));
+        assertTrue(rules.contains("根据个人整理资料"));
+        assertTrue(rules.contains("不得将 documentYear 当作 policyYear 或 cohortYear"));
+    }
+
+    @Test
+    void shouldPreserveOfficialAuthorityAndYearConstraints() {
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 复试包括机试和面试。", 0.80);
+        canonical.setCohortYear(2024);
+        Document evidence = evidenceDocument(20L, "南京大学2026年转专业准入计划表");
+
+        Prompt prompt = generateCanonicalPrompt(List.of(canonical),
+                List.of(evidenceRef(1L, 900L, 0, evidence, 3, "复试包括机试和面试")),
+                List.of("S1"));
+
+        String context = prompt.getUserMessage().getText();
+        assertTrue(context.contains("documentId: 20\nsourceType: OFFICIAL_PDF\nofficial: true"));
+        assertTrue(context.contains("title: 南京大学2026年转专业准入计划表"));
+        assertTrue(context.contains("policyYear: 2026\ncohortYear: 2024"));
+        assertFalse(context.contains("sourceType: PERSONAL"));
+        assertTrue(prompt.getSystemMessage().getText().contains("除非 Evidence 明确支持"));
+    }
+
+    @Test
+    void shouldKeepMixedSourceAuthorityLinkedToEachApprovedFact() {
+        SearchResultResponse official = canonicalResult(900L, "[F0] 复试包括机试和面试。", 0.80);
+        official.setCohortYear(2024);
+        SearchResultResponse personal = canonicalResult(901L, "[F0] 作者建议练习数组与链表。", 0.79);
+        personal.setPolicyYear(null);
+        Document officialEvidence = evidenceDocument(20L, "2026年官方准入计划表");
+        Document personalEvidence = evidenceDocument(2L, "2026转软件工程机考准备");
+        personalEvidence.setSourceType("PERSONAL");
+
+        Prompt prompt = generateCanonicalPrompt(List.of(official, personal), List.of(
+                evidenceRef(1L, 900L, 0, officialEvidence, 3, "复试包括机试和面试"),
+                evidenceRef(2L, 901L, 0, personalEvidence, null, "作者建议练习数组与链表")),
+                List.of("S1", "S2"));
+
+        String context = prompt.getUserMessage().getText();
+        assertTrue(context.contains("supportedBy: [S1]\n复试包括机试和面试。"));
+        assertTrue(context.contains("supportedBy: [S2]\n作者建议练习数组与链表。"));
+        String sourceContext = context.substring(context.indexOf("已通过证据充分性检查的 Sources："));
+        String officialBlock = sourceContext.substring(sourceContext.indexOf("[S1]"),
+                sourceContext.indexOf("[S2]"));
+        String personalBlock = sourceContext.substring(sourceContext.indexOf("[S2]"));
+        assertTrue(officialBlock.contains("documentId: 20\nsourceType: OFFICIAL_PDF\nofficial: true"));
+        assertTrue(officialBlock.contains("policyYear: 2026\ncohortYear: 2024"));
+        assertFalse(officialBlock.contains("sourceType: PERSONAL"));
+        assertTrue(personalBlock.contains("documentId: 2\nsourceType: PERSONAL\nofficial: false"));
+        assertTrue(personalBlock.contains("policyYear: 未知\ncohortYear: 未知"));
+        assertFalse(personalBlock.contains("official: true"));
+        assertTrue(prompt.getSystemMessage().getText()
+                .contains("存在官方资料不能让 PERSONAL facts 一并成为官方信息"));
+    }
+
+    @Test
+    void shouldOmitUnapprovedAuthorityLinkFromPartiallyApprovedFact() {
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 作者建议练习数组。", 0.80);
+        Document official = evidenceDocument(20L, "官方资料");
+        Document personal = evidenceDocument(2L, "经验资料");
+        personal.setSourceType("PERSONAL");
+
+        Prompt prompt = generateCanonicalPrompt(List.of(canonical), List.of(
+                evidenceRef(1L, 900L, 0, official, null, "证据 A"),
+                evidenceRef(2L, 900L, 0, personal, null, "证据 B")), List.of("S2"));
+
+        String context = prompt.getUserMessage().getText();
+        assertTrue(context.contains("supportedBy: [S2]\n作者建议练习数组。"));
+        assertTrue(context.contains("documentId: 2\nsourceType: PERSONAL\nofficial: false"));
+        assertFalse(context.contains("[S1]"));
+        assertFalse(context.contains("documentId: 20\n"));
+        assertFalse(context.contains("证据 A"));
+    }
+
+    @Test
+    void shouldPreserveFactSpecificYearsWhenEvidenceCitationIsDeduplicated() {
+        SearchResultResponse historical = canonicalResult(900L, "[F0] 历史要求。", 0.80);
+        historical.setSection("历史要求");
+        historical.setPolicyYear(2025);
+        historical.setCohortYear(2023);
+        SearchResultResponse current = canonicalResult(901L, "[F0] 当前要求。", 0.79);
+        current.setSection("当前要求");
+        current.setCohortYear(2024);
+        Document evidence = evidenceDocument(20L, "历年计划汇总");
+
+        Prompt prompt = generateCanonicalPrompt(List.of(historical, current), List.of(
+                evidenceRef(1L, 900L, 0, evidence, null, "2025年适用于2023级的要求"),
+                evidenceRef(2L, 901L, 0, evidence, null, "2026年适用于2024级的要求")), List.of("S1"));
+
+        String context = prompt.getUserMessage().getText();
+        assertTrue(context.contains("section: 历史要求\npolicyYear: 2025\ncohortYear: 2023\nsupportedBy: [S1]"));
+        assertTrue(context.contains("section: 当前要求\npolicyYear: 2026\ncohortYear: 2024\nsupportedBy: [S1]"));
+        assertEquals(1, context.split("documentId: 20\\n", -1).length - 1);
+        assertTrue(prompt.getSystemMessage().getText().contains("按每条 fact 自身的年份限定表述"));
+    }
+
+    private Prompt generateCanonicalPrompt(List<SearchResultResponse> candidates,
+                                           List<EvidenceRef> refs, List<String> approvedIds) {
+        String question = "来源权威性测试";
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(candidates);
+        when(evidenceRefRepository.findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(
+                candidates.stream().map(SearchResultResponse::getChunkId).toList())).thenReturn(refs);
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(new AnswerabilityResult(true, approvedIds, "充分"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("模型原始回答"));
+
+        RagResponse response = ragService.ask(question);
+
+        assertEquals("模型原始回答", response.getAnswer());
+        verify(retrievalService, never()).searchEvidence(any(), any(Integer.class));
+        ArgumentCaptor<Prompt> prompt = ArgumentCaptor.forClass(Prompt.class);
+        verify(chatModel).call(prompt.capture());
+        return prompt.getValue();
     }
 
     private SearchResultResponse productionLikeCanonical() {
