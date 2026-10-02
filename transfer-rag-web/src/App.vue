@@ -9,12 +9,12 @@ import { icpNumber, policeRecordNumber } from './complianceConfig.js'
 const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
 
 const recommendedQuestions = [
-  '2026级智能科学与技术专业总学分是多少？',
-  '软件工程转专业有哪些准入要求？',
-  '电子专业导学课有什么修读要求？',
-  '2025级数理大类包含哪些学院方向？',
-  '地学大类选课时数学层次怎么选？',
-  '计算机学院转专业综合考核有哪些环节？',
+  '转软件工程机考要做什么准备？',
+  '转计算机专业的难处？',
+  '数理大类包含哪些学院方向？',
+  '如何分流进入汉语言文学？',
+  '法学院转专业考核方式？',
+  '软件学院转专业面试真题',
 ]
 
 const question = ref('')
