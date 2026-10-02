@@ -114,10 +114,6 @@ public class RagService {
         }
 
         Set<String> approvedIds = new LinkedHashSet<>(answerability.evidenceCitationIds());
-        if (bundle.facts().stream().anyMatch(fact -> fact.evidence().stream()
-                .noneMatch(evidence -> approvedIds.contains(evidence.citationId())))) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
-        }
         List<CanonicalCitation> selected = bundle.citations().stream()
                 .filter(citation -> approvedIds.contains(citation.source().getCitationId()))
                 .toList();

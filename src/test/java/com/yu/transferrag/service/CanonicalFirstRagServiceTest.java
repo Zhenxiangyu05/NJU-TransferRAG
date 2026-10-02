@@ -89,6 +89,89 @@ class CanonicalFirstRagServiceTest {
     }
 
     @Test
+    void shouldApproveRelevantEvidenceAcrossMultipleCanonicalCandidates() {
+        String question = "转软件工程机考要做什么准备？";
+        SearchResultResponse requirements = canonicalResult(21L,
+                "[F0] 申请软件工程专业转专业，需要完成微积分 I 和微积分 II。", 0.82);
+        requirements.setDocumentId(6L);
+        requirements.setSection("申请要求");
+        SearchResultResponse examPrep = canonicalResult(456L,
+                "[F0] 机试满分100分，达到60分及以上方可进入面试。\n"
+                        + "[F1] 机试使用SEECODER，编程语言为Java，时长120分钟，共5道题。\n"
+                        + "[F2] 作者建议练习基础数据结构与算法，并同步学习Java与算法。", 0.81);
+        examPrep.setDocumentId(22L);
+        examPrep.setSection("机试考核与准备");
+
+        Document requirementsEvidence = evidenceDocument(4L, "2026转软件工程申请要求");
+        requirementsEvidence.setSourceType("PERSONAL");
+        Document examEvidence = evidenceDocument(2L, "2026转软件工程机考准备");
+        examEvidence.setSourceType("PERSONAL");
+
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3))
+                .thenReturn(List.of(requirements, examPrep));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(
+                        List.of(21L, 456L)))
+                .thenReturn(List.of(
+                        evidenceRef(601L, 21L, 0, requirementsEvidence, null,
+                                "需要完成微积分 I 和微积分 II"),
+                        evidenceRef(602L, 456L, 0, examEvidence, null,
+                                "机试满分100分，达到60分及以上方可进入面试"),
+                        evidenceRef(603L, 456L, 1, examEvidence, null,
+                                "SEECODER；Java；120分钟；5道题"),
+                        evidenceRef(604L, 456L, 2, examEvidence, null,
+                                "作者建议练习基础数据结构与算法，并同步学习Java与算法")
+                ));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(new AnswerabilityResult(true, List.of("S2"), "机考证据充分"));
+        when(chatModel.call(any(Prompt.class)))
+                .thenReturn(chatResponse("机试准备建议。[S2]"));
+
+        RagResponse response = ragService.ask(question);
+
+        assertEquals("机试准备建议。[S2]", response.getAnswer());
+        assertEquals(1, response.getSources().size());
+        assertEquals(2L, response.getSources().getFirst().getDocumentId());
+        assertEquals("PERSONAL", response.getSources().getFirst().getSourceType());
+        assertEquals("S2", response.getSources().getFirst().getCitationId());
+        verify(retrievalService, never()).searchEvidence(any(), any(Integer.class));
+
+        ArgumentCaptor<String> context = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<List<SourceResponse>> sources = ArgumentCaptor.forClass(List.class);
+        verify(answerabilityService).check(anyString(), context.capture(), sources.capture());
+        assertTrue(context.getValue().contains("[F0] 申请软件工程专业"));
+        assertTrue(context.getValue().contains("[F2] 作者建议"));
+        assertEquals(List.of("S1", "S2"), sources.getValue().stream()
+                .map(SourceResponse::getCitationId).toList());
+        assertEquals(List.of(4L, 2L), sources.getValue().stream()
+                .map(SourceResponse::getDocumentId).toList());
+        assertEquals(3, context.getValue().split("Evidence: \\[S2]", -1).length - 1);
+    }
+
+    @Test
+    void shouldFallbackWhenCanonicalAnswerabilityProvidesNoApprovedEvidenceIds() {
+        String question = "问题";
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 事实", 0.80);
+        Document evidence = evidenceDocument(12L, "通知");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1L, 900L, 0, evidence, null, "直接证据")));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(new AnswerabilityResult(true, List.of(), "缺少引用"));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
+
+        RagResponse response = ragService.ask(question);
+
+        assertEquals("根据当前知识库资料无法确定。", response.getAnswer());
+        assertTrue(response.getSources().isEmpty());
+        verify(retrievalService).searchEvidence(preparedQuery, 3);
+        verify(chatModel, never()).call(any(Prompt.class));
+    }
+
+    @Test
     void shouldFallbackWithoutCanonicalAnswerabilityWhenCanonicalIsEmptyOrBelowGate() {
         String question = "问题";
         when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
