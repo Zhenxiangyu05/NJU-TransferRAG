@@ -137,6 +137,13 @@ class CanonicalFirstRagServiceTest {
         assertEquals("S2", response.getSources().getFirst().getCitationId());
         verify(retrievalService, never()).searchEvidence(any(), any(Integer.class));
 
+        ArgumentCaptor<Prompt> generationPrompt = ArgumentCaptor.forClass(Prompt.class);
+        verify(chatModel).call(generationPrompt.capture());
+        String generationContext = generationPrompt.getValue().getUserMessage().getText();
+        assertFalse(generationContext.contains("微积分 I"));
+        assertTrue(generationContext.contains("SEECODER"));
+        assertTrue(generationContext.contains("基础数据结构与算法"));
+
         ArgumentCaptor<String> context = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<List<SourceResponse>> sources = ArgumentCaptor.forClass(List.class);
         verify(answerabilityService).check(anyString(), context.capture(), sources.capture());

@@ -114,10 +114,14 @@ public class RagService {
         }
 
         Set<String> approvedIds = new LinkedHashSet<>(answerability.evidenceCitationIds());
+        List<CanonicalFactContext> approvedFacts = bundle.facts().stream()
+                .filter(fact -> fact.evidence().stream()
+                        .anyMatch(evidence -> approvedIds.contains(evidence.citationId())))
+                .toList();
         List<CanonicalCitation> selected = bundle.citations().stream()
                 .filter(citation -> approvedIds.contains(citation.source().getCitationId()))
                 .toList();
-        if (selected.isEmpty()) {
+        if (selected.isEmpty() || approvedFacts.isEmpty()) {
             return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
         }
 
@@ -130,7 +134,7 @@ public class RagService {
 
                 已通过证据充分性检查的 Sources：
                 %s
-                """.formatted(question, canonicalKnowledge(canonicalResults),
+                """.formatted(question, canonicalKnowledge(approvedFacts),
                 canonicalCitationContext(selected));
         logRetrieval("CANONICAL", canonicalResults.size(), 0, false, null);
         return generatedResponse(question, userPrompt,
@@ -318,9 +322,9 @@ public class RagService {
         }).collect(Collectors.joining("\n\n"));
     }
 
-    private String canonicalKnowledge(List<SearchResultResponse> results) {
-        return results.stream().map(result -> "section: " + valueOrUnknown(result.getSection())
-                        + "\n" + hideFactMarkers(result.getContent()))
+    private String canonicalKnowledge(List<CanonicalFactContext> facts) {
+        return facts.stream().map(fact -> "section: " + valueOrUnknown(fact.section())
+                        + "\n" + fact.text())
                 .collect(Collectors.joining("\n\n"));
     }
 
