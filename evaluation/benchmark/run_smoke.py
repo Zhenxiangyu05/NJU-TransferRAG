@@ -16,6 +16,10 @@ from typing import Any
 
 from metrics import (citation_accuracy, hit_at_k, paired_classification,
                      reciprocal_rank, refusal_accuracy, render_summary_markdown, summarize)
+try:
+    from .gold_resolver import resolve_expected_facts
+except ImportError:  # Support direct script execution.
+    from gold_resolver import resolve_expected_facts
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -95,8 +99,10 @@ def main() -> int:
     selected = []
     for metadata in gold["cases"]:
         case_id = metadata["caseId"]
-        row = dict(dataset.get(case_id) or smoke_assets.get(case_id) or {})
+        test_case = dataset.get(case_id) or smoke_assets.get(case_id) or {}
+        row = dict(test_case)
         row.update(metadata)
+        row["expectedFacts"] = resolve_expected_facts(case_id, test_case, metadata)
         if not row.get("question"):
             raise SystemExit(f"No question found for {case_id}")
         selected.append(row)

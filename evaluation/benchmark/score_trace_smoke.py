@@ -8,8 +8,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from metrics import (citation_accuracy, expected_fact_recall, hit_at_k,
+from metrics import (citation_accuracy, gold_expected_fact_recall, hit_at_k,
                      reciprocal_rank, refusal_accuracy)
+try:
+    from .gold_resolver import is_context_recall_scorable, is_confirmed
+except ImportError:  # Support direct script execution.
+    from gold_resolver import is_context_recall_scorable, is_confirmed
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -51,7 +55,7 @@ def main() -> int:
             "expectedFactRecall", "citationAccuracy", "refusalAccuracy")}
         for row in rows:
             label = gold[row["caseId"]]
-            confirmed = not label.get("manualReviewRequired", True)
+            confirmed = is_confirmed(label)
             expected = label.get("expectedDocumentIds") if confirmed else None
             ranking = selected_ids(row)
             per_metric["hitAt3"].append(hit_at_k(ranking, expected))
@@ -60,12 +64,15 @@ def main() -> int:
             per_metric["refusalAccuracy"].append(refusal_accuracy(
                 label.get("answerable") if confirmed else None, row.get("answer"),
                 row.get("finalCitationDocumentIds")))
-            per_metric["expectedFactRecall"].append(expected_fact_recall(
-                row.get("expectedFacts") or dataset.get(row["caseId"], {}).get("expectedFacts"),
-                row.get("retrievedContexts")))
+            test_case = dataset.get(row["caseId"], {"expectedFacts": row.get("expectedFacts", [])})
+            per_metric["expectedFactRecall"].append(gold_expected_fact_recall(
+                row["caseId"], test_case, label, row.get("retrievedContexts")))
             judged = ragas_by_key.get((row["caseId"], version), {})
             for metric in ("faithfulness", "answerRelevancy", "contextRecall"):
-                per_metric[metric].append(judged.get(metric))
+                if metric == "contextRecall" and not is_context_recall_scorable(label):
+                    per_metric[metric].append(None)
+                else:
+                    per_metric[metric].append(judged.get(metric))
         summaries[version] = {key: rate(values) for key, values in per_metric.items()}
         summaries[version]["cases"] = len(rows)
         summaries[version]["canonicalPathN"] = sum(row.get("retrievalLayer") == "CANONICAL" for row in rows)
@@ -73,7 +80,7 @@ def main() -> int:
     output = {
         "source": "evaluation-only in-process RagService traces",
         "metrics": summaries,
-        "goldPolicy": "Only smoke labels with manualReviewRequired=false are scored for document/citation/refusal accuracy.",
+        "goldPolicy": "Gold-derived metrics require reviewStatus=CONFIRMED; Expected Fact Recall uses resolved complete overrides when present.",
         "expectedFactRecallDefinition": "strict whitespace-normalized expected-fact literal coverage in actual retrievedContext; custom proxy, not RAGAS Context Recall.",
         "ragasVersion": ragas.get("ragasVersion"),
         "limitations": [

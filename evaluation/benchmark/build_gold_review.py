@@ -9,6 +9,13 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+try:
+    from .gold_resolver import resolve_expected_facts
+    from .metrics import gold_coverage
+except ImportError:  # Support direct execution from this directory.
+    from gold_resolver import resolve_expected_facts
+    from metrics import gold_coverage
+
 ROOT = Path(__file__).resolve().parents[2]
 BENCHMARK = Path(__file__).resolve().parent
 DATASET = ROOT / "evaluation" / "test-cases.json"
@@ -158,35 +165,20 @@ def _reference_recommendations(cases: list[dict[str, Any]], history: dict[str, d
 
 def compute_coverage(cases: list[dict[str, Any]], labels: list[dict[str, Any]],
                     reference_ids: set[str]) -> dict[str, Any]:
-    by_id = {row["caseId"]: row for row in labels}
-    confirmed = [by_id[case["caseId"]] for case in cases
-                 if case["caseId"] in by_id and by_id[case["caseId"]].get("reviewStatus") == "CONFIRMED"]
-    facts_confirmed = sum(row.get("expectedFactsStatus") == "SUPPORTED" for row in confirmed)
-    answerable_docs = sum(row.get("answerable") is True and isinstance(row.get("expectedDocumentIds"), list)
-                          and len(row["expectedDocumentIds"]) > 0 for row in confirmed)
-    unanswerable = sum(row.get("answerable") is False for row in confirmed)
-    ref_confirmed = sum(bool(row.get("referenceAnswer")) and row.get("caseId") in reference_ids
-                        for row in confirmed)
-    context_recall_scorable = sum(bool(row.get("referenceAnswer")) and row.get("caseId") in reference_ids
-                                  and row.get("expectedFactsStatus") == "SUPPORTED" for row in confirmed)
-    return {
+    coverage = gold_coverage(labels, {case["caseId"]: case for case in cases})
+    coverage.update({
         "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
         "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
         "totalCases": len(cases),
-        "answerableConfirmed": sum(row.get("answerable") is True for row in confirmed),
-        "unanswerableConfirmed": unanswerable,
-        "expectedDocumentIdsConfirmed": sum(row.get("expectedDocumentIds") is not None for row in confirmed),
-        "expectedFactsConfirmed": facts_confirmed,
-        "referenceAnswersConfirmed": ref_confirmed,
-        "scorable": {
-            "hitAt3": answerable_docs,
-            "mrr": answerable_docs,
-            "citationAccuracy": answerable_docs,
-            "refusalAccuracy": unanswerable,
-            "contextRecall": context_recall_scorable,
-        },
+        "referenceAnswersConfirmed": sum(
+            row.get("caseId") in reference_ids
+            and isinstance(row.get("referenceAnswer"), str)
+            and bool(row["referenceAnswer"].strip())
+            for row in labels if row.get("reviewStatus") == "CONFIRMED"
+        ),
         "targets": {"answerableAndExpectedDocumentIds": len(cases), "referenceAnswers": "20-30"},
-    }
+    })
+    return coverage
 
 
 def _human_decisions(markdown: str) -> dict[str, dict[str, str]]:
@@ -259,6 +251,10 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
             "historicalOutcome": history.get(case["caseId"]),
             "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
         }
+        if manually_confirmed:
+            for field in ("expectedFactsOverride", "reviewerNotes", "reviewSource", "reviewedAt"):
+                if field in previous:
+                    label[field] = previous[field]
         labels.append(label)
 
     coverage = compute_coverage(cases, labels, set(reference))
@@ -267,13 +263,14 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
         "Production Logic Version: `8c34ccdf16d283231ff972ca8860fff3baaa28a4`",
         "Benchmark Tooling Version: `ae69fae6958fdfc5041677ea4f073d55fce45241` (evaluation-only tracing; not a new RAG version).", "",
         "`evaluation/test-cases.json` remains frozen. Candidate labels are suggestions only. Verify each candidate against the current MySQL Document metadata and original Evidence; never use a Canonical Document as a final source ID.",
+        "Gold `expectedFactsOverride` is optional and, when present, completely replaces the frozen test case's `expectedFacts` array; it is never an index patch.",
         "Edit only the `Human Decision` fields in this file, then run `python evaluation/benchmark/sync_gold_review.py` to validate and apply human decisions to `gold-labels.json`. Generated suggestions are never confirmed.", "",
         "## Coverage", "",
         f"- Total: {coverage['totalCases']}",
-        f"- Confirmed answerable / unanswerable: {coverage['answerableConfirmed']} / {coverage['unanswerableConfirmed']}",
+        f"- Confirmed total / answerable / unanswerable: {coverage['confirmedTotal']} / {coverage['confirmedAnswerable']} / {coverage['confirmedUnanswerable']}",
         f"- Confirmed expectedDocumentIds / expectedFacts: {coverage['expectedDocumentIdsConfirmed']} / {coverage['expectedFactsConfirmed']}",
         f"- Confirmed reference answers: {coverage['referenceAnswersConfirmed']} (target 20–30)",
-        f"- Scorable n — Hit@3 {coverage['scorable']['hitAt3']}, MRR {coverage['scorable']['mrr']}, Citation {coverage['scorable']['citationAccuracy']}, Refusal {coverage['scorable']['refusalAccuracy']}, Context Recall {coverage['scorable']['contextRecall']}",
+        f"- Scorable n — Hit@3 {coverage['scorable']['hitAt3']}, MRR {coverage['scorable']['mrr']}, Citation {coverage['scorable']['citationAccuracy']}, Refusal {coverage['scorable']['refusalAccuracy']}, Context Recall {coverage['scorable']['contextRecall']}, Expected Fact Recall {coverage['scorable']['expectedFactRecall']}",
         "- Coverage target before full bench: answerable + expectedDocumentIds should reach 82/82; reference answers need only the selected 20–30.", "",
         "## Reference-answer shortlist", "",
         "Write concise, evidence-bounded answers only after verifying the original Evidence. The list intentionally includes historical PASS and failure classes to reduce cherry-picking. Historical outcomes are context, not current results.", "",
@@ -283,7 +280,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
     for case_id, categories in reference.items():
         outcomes = ", ".join(history.get(case_id, {}).get("classifications", [])) or "not found"
         lines.append(f"| {case_id} | {', '.join(categories)} | {outcomes} |")
-    lines += ["", "UNANSWERABLE coverage: the frozen 82 cases contain no independently verified unanswerable Gold candidate in the current metadata. Do not relabel a positive case as unanswerable. The separate `SMOKE-NEG-001` remains the refusal control and is outside this 82-case reference count.", ""]
+    lines += ["", "UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. Batch 1 currently includes two manually confirmed UNANSWERABLE cases. The separate `SMOKE-NEG-001` remains outside this 82-case set.", ""]
 
     for batch_name, batch_cases in batches.items():
         lines += [f"# {batch_name} — {len(batch_cases)} cases", ""]
@@ -294,7 +291,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
                       f"Source file: {case.get('sourceFile', '')}",
                       f"Category: {case.get('category', '')}",
                       "Existing Expected Facts:"]
-            facts = case.get("expectedFacts") or []
+            facts = resolve_expected_facts(case_id, case, label)
             lines.extend(f"- {fact}" for fact in facts) if facts else lines.append("- (none; human review required)")
             lines += ["", "Candidate Evidence Documents:"]
             if label["candidateEvidenceDocuments"]:
@@ -316,6 +313,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
     review = preserve_human_decisions("\n".join(lines), existing_review)
     return {"dataset": "evaluation/test-cases.json", "generatedBy": "build_gold_review.py",
             "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+            "expectedFactsOverrideSemantics": "complete_replacement",
             "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
             "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
             "referenceAnswerRecommendedCaseIds": list(reference), "cases": labels}, review, coverage

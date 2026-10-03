@@ -5,6 +5,23 @@ from __future__ import annotations
 import math
 from typing import Any, Iterable
 
+try:
+    from .gold_resolver import (
+        is_answerable_retrieval_scorable,
+        is_context_recall_scorable,
+        is_expected_fact_recall_scorable,
+        is_refusal_scorable,
+        resolve_expected_facts,
+    )
+except ImportError:  # Support direct execution of benchmark scripts.
+    from gold_resolver import (
+        is_answerable_retrieval_scorable,
+        is_context_recall_scorable,
+        is_expected_fact_recall_scorable,
+        is_refusal_scorable,
+        resolve_expected_facts,
+    )
+
 
 def hit_at_k(retrieved_ids: Iterable[int] | None,
              expected_ids: Iterable[int] | None,
@@ -87,26 +104,63 @@ def expected_fact_recall(expected_facts: Iterable[str] | None,
     return sum(fact in normalized_context for fact in facts) / len(facts)
 
 
-def gold_coverage(gold_rows: Iterable[dict[str, Any]]) -> dict[str, int]:
+def gold_expected_fact_recall(case_id: str, test_case: dict[str, Any],
+                              gold_label: dict[str, Any],
+                              retrieved_contexts: Iterable[str] | None) -> float | None:
+    """Score Expected Fact Recall using the canonical resolver and Gold eligibility."""
+    facts = resolve_expected_facts(case_id, test_case, gold_label)
+    if not is_expected_fact_recall_scorable(gold_label, facts):
+        return None
+    return expected_fact_recall(facts, retrieved_contexts)
+
+
+def gold_coverage(gold_rows: Iterable[dict[str, Any]],
+                  test_cases_by_id: dict[str, dict[str, Any]]) -> dict[str, Any]:
     rows = list(gold_rows)
     confirmed = [row for row in rows if row.get("reviewStatus") == "CONFIRMED"]
-    answerable_with_docs = [row for row in confirmed if row.get("answerable") is True
-                            and isinstance(row.get("expectedDocumentIds"), list)
-                            and bool(row["expectedDocumentIds"])]
-    reference_confirmed = [row for row in confirmed if bool(row.get("referenceAnswer"))]
+    answerable_with_docs = [row for row in confirmed if is_answerable_retrieval_scorable(row)]
+    refusal_scorable = [row for row in confirmed if is_refusal_scorable(row)]
+    resolved_facts = {
+        row["caseId"]: resolve_expected_facts(
+            row["caseId"], test_cases_by_id.get(row["caseId"], {}), row
+        )
+        for row in confirmed
+    }
+    expected_facts_scorable = [
+        row for row in confirmed
+        if is_expected_fact_recall_scorable(row, resolved_facts[row["caseId"]])
+    ]
+    context_recall_scorable = [row for row in confirmed if is_context_recall_scorable(row)]
+    answerable_confirmed = sum(row.get("answerable") is True for row in confirmed)
+    unanswerable_confirmed = len(refusal_scorable)
+    reference_confirmed = sum(isinstance(row.get("referenceAnswer"), str)
+                              and bool(row["referenceAnswer"].strip()) for row in confirmed)
+    scorable = {
+        "hitAt3": len(answerable_with_docs),
+        "mrr": len(answerable_with_docs),
+        "citationAccuracy": len(answerable_with_docs),
+        "refusalAccuracy": len(refusal_scorable),
+        "contextRecall": len(context_recall_scorable),
+        "expectedFactRecall": len(expected_facts_scorable),
+    }
     return {
         "cases": len(rows),
-        "answerableConfirmed": sum(row.get("answerable") is True for row in confirmed),
-        "unanswerableConfirmed": sum(row.get("answerable") is False for row in confirmed),
+        "confirmedTotal": len(confirmed),
+        "confirmedAnswerable": answerable_confirmed,
+        "confirmedUnanswerable": unanswerable_confirmed,
+        # Backward-compatible aliases used by earlier coverage summaries.
+        "answerableConfirmed": answerable_confirmed,
+        "unanswerableConfirmed": unanswerable_confirmed,
         "expectedDocumentIdsConfirmed": sum(row.get("expectedDocumentIds") is not None for row in confirmed),
         "expectedFactsConfirmed": sum(row.get("expectedFactsStatus") == "SUPPORTED" for row in confirmed),
-        "referenceAnswerConfirmed": len(reference_confirmed),
-        "hitAt3Scorable": len(answerable_with_docs),
-        "mrrScorable": len(answerable_with_docs),
-        "citationAccuracyScorable": len(answerable_with_docs),
-        "refusalAccuracyScorable": sum(row.get("answerable") is False for row in confirmed),
-        "contextRecallScorable": sum(row.get("expectedFactsStatus") == "SUPPORTED"
-                                     for row in reference_confirmed),
+        "referenceAnswerConfirmed": reference_confirmed,
+        "scorable": scorable,
+        "hitAt3Scorable": scorable["hitAt3"],
+        "mrrScorable": scorable["mrr"],
+        "citationAccuracyScorable": scorable["citationAccuracy"],
+        "refusalAccuracyScorable": scorable["refusalAccuracy"],
+        "contextRecallScorable": scorable["contextRecall"],
+        "expectedFactRecallScorable": scorable["expectedFactRecall"],
         "expectedFactsAvailable": sum(bool(row.get("expectedFactsAvailable")) for row in rows),
         "notScorable": sum(row.get("reviewStatus") == "NOT_SCORABLE" for row in rows),
     }

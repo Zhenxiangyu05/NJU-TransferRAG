@@ -2,6 +2,7 @@
   "dataset": "evaluation/test-cases.json",
   "generatedBy": "build_gold_review.py",
   "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+  "expectedFactsOverrideSemantics": "complete_replacement",
   "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
   "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
   "referenceAnswerRecommendedCaseIds": [
@@ -72,11 +73,13 @@
     },
     {
       "caseId": "TRAG-002",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        7
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "《2026级智能科学与技术主修培养方案》列出总学分144，其中通识通修必修59学分、学科专业必修49学分、多元发展选修30学分，毕业论文/设计必修6学分。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -107,15 +110,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前EVIDENCE Document 7为官方2026级培养方案；reference answer保留届别和官方来源范围。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-003",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        7
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -142,15 +150,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：Document 7官方课程表支持2026级大一上课程事实。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-004",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        7
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -177,15 +190,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：Document 7官方课程表支持2026级二年级下核心课程事实。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-005",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        7
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -212,7 +230,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：Document 7第7、11页课程表区分学分与学时；毕业设计为6学分、144学时、四下。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-006",
@@ -256,11 +277,13 @@
     },
     {
       "caseId": "TRAG-007",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        10
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -287,7 +310,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前PERSONAL Evidence Document 10直接支持两门跨选课程，答案须保留个人经验属性。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-008",
@@ -1138,11 +1164,11 @@
     },
     {
       "caseId": "TRAG-032",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1159,7 +1185,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前冻结知识库没有足够Evidence支持原有四条核心事实；按拒答 Gold 评分。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-033",
@@ -1188,11 +1217,13 @@
     },
     {
       "caseId": "TRAG-034",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        17
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1220,7 +1251,16 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "expectedFactsOverride": [
+        "智能科学与技术",
+        "自动化（机器人方向）",
+        "集成电路设计与集成系统",
+        "数字经济"
+      ],
+      "reviewerNotes": "人工确认完整expectedFactsOverride：保留其余KEEP事实，将方向名改为原文全名；Evidence Document 17为PERSONAL。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-035",
@@ -1294,11 +1334,13 @@
     },
     {
       "caseId": "TRAG-037",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        17
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1325,15 +1367,24 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "expectedFactsOverride": [
+        "该指南所列2025级自动化（机器人方向）大一下准入课包括数据结构与算法设计。",
+        "该指南所列2025级自动化（机器人方向）大一下准入课包括机器人与自动化导论。"
+      ],
+      "reviewerNotes": "人工确认完整expectedFactsOverride；两条课程事实均限定为Document 17所述2025级PERSONAL指南。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-038",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        17
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1360,15 +1411,24 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "expectedFactsOverride": [
+        "该指南所列2025级集成电路设计与集成系统方向大一下准入课包括信息科学中的物理学（下）。",
+        "该指南所列2025级集成电路设计与集成系统方向大一下准入课包括电路分析。"
+      ],
+      "reviewerNotes": "人工确认完整expectedFactsOverride；两条课程事实均限定为Document 17所述2025级PERSONAL指南。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-039",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        12
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1385,7 +1445,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前PERSONAL Evidence Document 12直接列出四个地学大类分流院系。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-040",
@@ -1571,11 +1634,11 @@
     },
     {
       "caseId": "TRAG-047",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1592,15 +1655,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：Document 15仅部分相关，不能支持为了保研额外修课及原因；按拒答 Gold 评分。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-048",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        19
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2025级《数理大类生存指北》（个人整理）称，数理大类包含数学学院、物理学院、大气科学学院、天文与空间科学学院。该信息来自个人资料，具体院系安排以最新官方文件为准。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1629,15 +1697,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前PERSONAL Evidence Document 19正文明确为2025级；reference answer保留年份和个人来源属性。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-049",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        19
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "该数理大类个人指南所列的2024级分流计划为：数学类28%（97人）、物理类46%（159人）、大气科学类14%（48人）、天文学类12%（41人）。这是计划分配数据，不代表最终分流结果。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1666,7 +1739,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：PERSONAL Document 19直接列出2024级计划表；reference answer区分计划与最终结果。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-050",
@@ -2082,11 +2158,13 @@
     },
     {
       "caseId": "TRAG-065",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        15
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2113,7 +2191,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：当前PERSONAL Evidence Document 15明确以个人建议语气列出课程规划。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-066",
@@ -2217,11 +2298,13 @@
     },
     {
       "caseId": "TRAG-069",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2238,7 +2321,14 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "expectedFactsOverride": [
+        "2024年37报名30录取约81%",
+        "2025年38报名、24接收，表列报录比63%。"
+      ],
+      "reviewerNotes": "人工确认完整expectedFactsOverride；2025采用表列63%，未按比例另行计算；Evidence Document 14为PERSONAL。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-070",
@@ -2411,11 +2501,13 @@
     },
     {
       "caseId": "TRAG-075",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2443,7 +2535,10 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "reviewerNotes": "人工确认：PERSONAL Evidence Document 14支持2026版课程变化；保留‘可能受限’限定。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     },
     {
       "caseId": "TRAG-076",
@@ -2628,11 +2723,13 @@
     },
     {
       "caseId": "TRAG-082",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        13
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2650,7 +2747,15 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
+      "expectedFactsOverride": [
+        "大气动力学以Navier-Stokes方程为核心",
+        "大气物理缺少兼顾可靠和实用的第一性原理",
+        "大气物理研究Navier-Stokes方程中的非绝热加热项和湍流混合项。"
+      ],
+      "reviewerNotes": "人工确认完整expectedFactsOverride；移除Evidence未支持的‘参数化问题’表述；Evidence Document 13为PERSONAL。",
+      "reviewSource": "manual_review_batch_1",
+      "reviewedAt": "2026-10-03T18:09:49Z"
     }
   ]
 }

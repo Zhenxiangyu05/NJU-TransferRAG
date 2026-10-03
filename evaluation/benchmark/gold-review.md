@@ -4,15 +4,16 @@ Production Logic Version: `8c34ccdf16d283231ff972ca8860fff3baaa28a4`
 Benchmark Tooling Version: `ae69fae6958fdfc5041677ea4f073d55fce45241` (evaluation-only tracing; not a new RAG version).
 
 `evaluation/test-cases.json` remains frozen. Candidate labels are suggestions only. Verify each candidate against the current MySQL Document metadata and original Evidence; never use a Canonical Document as a final source ID.
+Gold `expectedFactsOverride` is optional and, when present, completely replaces the frozen test case's `expectedFacts` array; it is never an index patch.
 Edit only the `Human Decision` fields in this file, then run `python evaluation/benchmark/sync_gold_review.py` to validate and apply human decisions to `gold-labels.json`. Generated suggestions are never confirmed.
 
 ## Coverage
 
 - Total: 82
-- Confirmed answerable / unanswerable: 0 / 0
-- Confirmed expectedDocumentIds / expectedFacts: 0 / 0
-- Confirmed reference answers: 0 (target 20–30)
-- Scorable n — Hit@3 0, MRR 0, Citation 0, Refusal 0, Context Recall 0
+- Confirmed total / answerable / unanswerable: 17 / 15 / 2
+- Confirmed expectedDocumentIds / expectedFacts: 17 / 15
+- Confirmed reference answers: 3 (target 20–30)
+- Scorable n — Hit@3 15, MRR 15, Citation 15, Refusal 2, Context Recall 3, Expected Fact Recall 15
 - Coverage target before full bench: answerable + expectedDocumentIds should reach 82/82; reference answers need only the selected 20–30.
 
 ## Reference-answer shortlist
@@ -46,7 +47,7 @@ Write concise, evidence-bounded answers only after verifying the original Eviden
 | TRAG-077 | COMPOUND, POLICY, EXPERIENCE | REFUSAL_FALSE_NEGATIVE |
 | TRAG-080 | EXPERIENCE, DEPARTMENT_SCOPED | REFUSAL_FALSE_NEGATIVE |
 
-UNANSWERABLE coverage: the frozen 82 cases contain no independently verified unanswerable Gold candidate in the current metadata. Do not relabel a positive case as unanswerable. The separate `SMOKE-NEG-001` remains the refusal control and is outside this 82-case reference count.
+UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. Batch 1 currently includes two manually confirmed UNANSWERABLE cases. The separate `SMOKE-NEG-001` remains outside this 82-case set.
 
 # Batch 1 — 20 cases
 
@@ -67,7 +68,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [18] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -92,7 +93,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [18] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -117,7 +118,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [18] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -142,7 +143,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [18] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -166,7 +167,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [20] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -241,7 +242,7 @@ Historical outcome (not current benchmark result): PARTIAL
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -257,7 +258,7 @@ Source file: 南京大学技术科学试验班新生生存指南.pdf
 Category: 明确事实
 Existing Expected Facts:
 - 智能科学与技术
-- 自动化机器人方向
+- 自动化（机器人方向）
 - 集成电路设计与集成系统
 - 数字经济
 
@@ -267,7 +268,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [19] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -282,8 +283,8 @@ Query: 技科自动化机器人方向大一下有哪些准入课？
 Source file: 南京大学技术科学试验班新生生存指南.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 数据结构与算法设计
-- 机器人与自动化导论
+- 该指南所列2025级自动化（机器人方向）大一下准入课包括数据结构与算法设计。
+- 该指南所列2025级自动化（机器人方向）大一下准入课包括机器人与自动化导论。
 
 Candidate Evidence Documents:
 - Document ID: 19; Title: 南京大学技术科学试验班新生生存指南; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -291,7 +292,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [19] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -306,8 +307,8 @@ Query: 技科集成电路设计与集成系统方向大一下有哪些准入课�
 Source file: 南京大学技术科学试验班新生生存指南.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 信息科学中的物理学下
-- 电路分析
+- 该指南所列2025级集成电路设计与集成系统方向大一下准入课包括信息科学中的物理学（下）。
+- 该指南所列2025级集成电路设计与集成系统方向大一下准入课包括电路分析。
 
 Candidate Evidence Documents:
 - Document ID: 19; Title: 南京大学技术科学试验班新生生存指南; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -315,7 +316,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [19] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -341,7 +342,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -366,7 +367,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -392,7 +393,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -418,7 +419,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, YEAR_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -443,7 +444,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [13] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -459,7 +460,7 @@ Source file: 转电子指北.pdf
 Category: 时间敏感
 Existing Expected Facts:
 - 2024年37报名30录取约81%
-- 2025年38报名24录取约63.15%
+- 2025年38报名、24接收，表列报录比63%。
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -467,7 +468,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -493,7 +494,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -536,7 +537,7 @@ Category: 明确事实
 Existing Expected Facts:
 - 大气动力学以Navier-Stokes方程为核心
 - 大气物理缺少兼顾可靠和实用的第一性原理
-- 大气物理关注非绝热加热和湍流混合等参数化问题
+- 大气物理研究Navier-Stokes方程中的非绝热加热项和湍流混合项。
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -544,7 +545,7 @@ Historical outcome (not current benchmark result): PARTIAL, PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:

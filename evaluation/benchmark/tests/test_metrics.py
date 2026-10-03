@@ -87,13 +87,17 @@ class BenchmarkMetricsTest(unittest.TestCase):
 
     def test_gold_coverage_counts_only_confirmed_labels(self):
         result = gold_coverage([
-            {"reviewStatus": "CONFIRMED", "answerable": True,
+            {"caseId": "A", "reviewStatus": "CONFIRMED", "answerable": True,
              "expectedDocumentIds": [2], "expectedFactsStatus": "SUPPORTED",
              "referenceAnswer": "x", "expectedFactsAvailable": True},
-            {"reviewStatus": "NEEDS_REVIEW", "answerable": False,
+            {"caseId": "B", "reviewStatus": "NEEDS_REVIEW", "answerable": False,
              "expectedDocumentIds": [3], "referenceAnswer": "y", "expectedFactsAvailable": True},
-            {"reviewStatus": "NOT_SCORABLE", "expectedFactsAvailable": False},
-        ])
+            {"caseId": "C", "reviewStatus": "NOT_SCORABLE", "expectedFactsAvailable": False},
+        ], {
+            "A": {"expectedFacts": ["fact"]},
+            "B": {"expectedFacts": ["fact"]},
+            "C": {"expectedFacts": []},
+        })
         self.assertEqual(result["answerableConfirmed"], 1)
         self.assertEqual(result["unanswerableConfirmed"], 0)
         self.assertEqual(result["expectedDocumentIdsConfirmed"], 1)
@@ -103,15 +107,63 @@ class BenchmarkMetricsTest(unittest.TestCase):
         self.assertEqual(result["contextRecallScorable"], 1)
         self.assertEqual(result["notScorable"], 1)
 
-    def test_gold_sidecar_covers_frozen_82_without_auto_confirmation(self):
+    def test_gold_sidecar_covers_frozen_82_with_only_approved_batch_one_cases_confirmed(self):
         root = Path(__file__).resolve().parents[3]
         cases = json.loads((root / "evaluation/test-cases.json").read_text(encoding="utf-8"))
         sidecar = json.loads((root / "evaluation/benchmark/gold-labels.json").read_text(encoding="utf-8"))
         self.assertEqual(82, len(cases))
         self.assertEqual([row["caseId"] for row in cases], [row["caseId"] for row in sidecar["cases"]])
-        self.assertTrue(all(row["reviewStatus"] != "CONFIRMED" for row in sidecar["cases"]))
+        confirmed = [row for row in sidecar["cases"] if row["reviewStatus"] == "CONFIRMED"]
+        confirmed_ids = {row["caseId"] for row in confirmed}
+        self.assertEqual(17, len(confirmed))
+        self.assertEqual(15, sum(row["answerable"] is True for row in confirmed))
+        self.assertEqual(2, sum(row["answerable"] is False for row in confirmed))
+        self.assertEqual({"TRAG-002", "TRAG-003", "TRAG-004", "TRAG-005", "TRAG-007",
+                          "TRAG-032", "TRAG-034", "TRAG-037", "TRAG-038", "TRAG-039",
+                          "TRAG-047", "TRAG-048", "TRAG-049", "TRAG-065", "TRAG-069",
+                          "TRAG-075", "TRAG-082"}, confirmed_ids)
+        self.assertEqual(65, sum(row["reviewStatus"] == "NEEDS_REVIEW" for row in sidecar["cases"]))
+        confirmed_reference_ids = {row["caseId"] for row in confirmed if row.get("referenceAnswer")}
+        self.assertEqual({"TRAG-002", "TRAG-048", "TRAG-049"}, confirmed_reference_ids)
+        self.assertTrue(all(row.get("reviewSource") == "manual_review_batch_1" for row in confirmed))
+        self.assertTrue(all(row.get("reviewStatus") == "NEEDS_REVIEW"
+                            for row in sidecar["cases"]
+                            if row["caseId"] in {"TRAG-011", "TRAG-012", "TRAG-076"}))
+        by_gold_id = {row["caseId"]: row for row in sidecar["cases"]}
+        self.assertEqual(by_gold_id["TRAG-034"]["expectedFactsOverride"], [
+            "智能科学与技术", "自动化（机器人方向）", "集成电路设计与集成系统", "数字经济",
+        ])
+        self.assertEqual(by_gold_id["TRAG-037"]["expectedFactsOverride"], [
+            "该指南所列2025级自动化（机器人方向）大一下准入课包括数据结构与算法设计。",
+            "该指南所列2025级自动化（机器人方向）大一下准入课包括机器人与自动化导论。",
+        ])
+        self.assertEqual(by_gold_id["TRAG-038"]["expectedFactsOverride"], [
+            "该指南所列2025级集成电路设计与集成系统方向大一下准入课包括信息科学中的物理学（下）。",
+            "该指南所列2025级集成电路设计与集成系统方向大一下准入课包括电路分析。",
+        ])
+        self.assertEqual(by_gold_id["TRAG-069"]["expectedFactsOverride"], [
+            "2024年37报名30录取约81%", "2025年38报名、24接收，表列报录比63%。",
+        ])
+        self.assertEqual(by_gold_id["TRAG-082"]["expectedFactsOverride"], [
+            "大气动力学以Navier-Stokes方程为核心",
+            "大气物理缺少兼顾可靠和实用的第一性原理",
+            "大气物理研究Navier-Stokes方程中的非绝热加热项和湍流混合项。",
+        ])
+        for case_id in ("TRAG-032", "TRAG-047"):
+            self.assertIs(by_gold_id[case_id]["answerable"], False)
+            self.assertEqual(by_gold_id[case_id]["expectedDocumentIds"], [])
+            self.assertNotIn("expectedFactsOverride", by_gold_id[case_id])
         self.assertTrue(all({"caseId", "answerable", "expectedDocumentIds", "referenceAnswer",
                              "reviewStatus", "notes"}.issubset(row) for row in sidecar["cases"]))
+
+        test_cases_by_id = {row["caseId"]: row for row in cases}
+        coverage = gold_coverage(sidecar["cases"], test_cases_by_id)
+        self.assertEqual({"hitAt3": 15, "mrr": 15, "citationAccuracy": 15,
+                          "refusalAccuracy": 2, "contextRecall": 3,
+                          "expectedFactRecall": 15}, coverage["scorable"])
+        saved_coverage = json.loads((root / "evaluation/benchmark/gold-coverage.json").read_text(encoding="utf-8"))
+        self.assertEqual(coverage["scorable"], saved_coverage["scorable"])
+        self.assertEqual(coverage["confirmedTotal"], saved_coverage["confirmedTotal"])
 
     def test_render_includes_p95_and_n_a(self):
         result = summarize([{"latencyMs": 20, "hitAt3": None, "reciprocalRank": None}])
