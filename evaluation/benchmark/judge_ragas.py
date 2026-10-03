@@ -89,8 +89,19 @@ def main() -> int:
     path = args.result_dir / "ragas-smoke.json"
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     summary_path = args.result_dir / "summary.json"
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
     generation_path = args.result_dir / "generation-summary.json"
+    if not summary_path.exists() or not generation_path.exists():
+        print(json.dumps({"output": str(path), "ragasVersion": result["ragasVersion"],
+                          "scored": len(result["scores"]),
+                          "answerRelevancyScored": sum(x.get("answerRelevancy") is not None
+                                                        for x in result["scores"]),
+                          "faithfulnessScored": sum(x.get("faithfulness") is not None
+                                                     for x in result["scores"]),
+                          "contextRecallScored": sum(x.get("contextRecall") is not None
+                                                      for x in result["scores"]),
+                          "legacySummaryUpdated": False}, ensure_ascii=False))
+        return 0
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
     generation = json.loads(generation_path.read_text(encoding="utf-8"))
     grouped = {version: [row for row in result["scores"] if row["version"] == version]
                for version in ("V1", "V2")}
