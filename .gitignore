@@ -67,6 +67,9 @@ logs/
 
 ### Evaluation local checkpoints / debug artifacts ###
 evaluation/**/*-results.json
+evaluation/results/**
+evaluation/benchmark/**/__pycache__/
+evaluation/benchmark/**/*.py[cod]
 evaluation/**/query-resolution-after.json
 evaluation/**/semantic-review.json
 evaluation/**/answerability-trace.md

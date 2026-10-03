@@ -1,0 +1,83 @@
+{
+  "dataset": "evaluation/test-cases.json",
+  "note": "This sidecar does not modify the frozen dataset. Expected document IDs are only populated where the current production mapping is verified; null means not scorable without manual confirmation.",
+  "cases": [
+    {
+      "caseId": "TRAG-001",
+      "categories": ["FACT", "YEAR_SCOPED", "DEPARTMENT_SCOPED"],
+      "answerable": true,
+      "expectedDocumentIds": [7],
+      "referenceAnswer": null,
+      "expectedDepartment": "智能科学与技术学院",
+      "expectedPolicyYear": null,
+      "expectedCohortYear": 2026,
+      "knownLimitation": null,
+      "manualReviewRequired": true
+    },
+    {
+      "caseId": "TRAG-009",
+      "categories": ["EXPERIENCE", "DEPARTMENT_SCOPED"],
+      "answerable": true,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "expectedDepartment": "文学院",
+      "expectedPolicyYear": null,
+      "expectedCohortYear": null,
+      "knownLimitation": null,
+      "manualReviewRequired": true
+    },
+    {
+      "caseId": "TRAG-017",
+      "categories": ["POLICY", "YEAR_SCOPED", "DEPARTMENT_SCOPED"],
+      "answerable": true,
+      "expectedDocumentIds": [20],
+      "referenceAnswer": null,
+      "expectedDepartment": "法学院",
+      "expectedPolicyYear": 2026,
+      "expectedCohortYear": 2025,
+      "knownLimitation": null,
+      "manualReviewRequired": true
+    },
+    {
+      "caseId": "TRAG-024",
+      "categories": ["POLICY", "YEAR_SCOPED", "DEPARTMENT_SCOPED", "COLLOQUIAL"],
+      "answerable": true,
+      "expectedDocumentIds": [20],
+      "referenceAnswer": null,
+      "expectedDepartment": "软件学院",
+      "expectedPolicyYear": 2026,
+      "expectedCohortYear": null,
+      "knownLimitation": null,
+      "manualReviewRequired": true
+    },
+    {
+      "caseId": "SMOKE-NEG-001",
+      "categories": ["UNANSWERABLE"],
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "referenceAnswer": null,
+      "expectedDepartment": "软件学院",
+      "expectedPolicyYear": null,
+      "expectedCohortYear": null,
+      "knownLimitation": null,
+      "manualReviewRequired": false
+    },
+    {
+      "caseId": "MIXED-SE-2026-001",
+      "question": "2026年软件工程转专业怎么考，面试有哪些回忆题？",
+      "expectedFacts": [
+        "官方资料记载复试包括机试和面试，按复试成绩确定名单，机试或面试任一项不及格不予录取。",
+        "个人整理的2026年面试回忆题包括设计学生成绩管理系统、设计登录系统测试场景，以及阅读一个5000行代码项目的方法；该部分属于个人回忆，仅供参考。"
+      ],
+      "categories": ["COMPOUND", "POLICY", "EXPERIENCE", "YEAR_SCOPED", "DEPARTMENT_SCOPED"],
+      "answerable": true,
+      "expectedDocumentIds": [20, 3],
+      "referenceAnswer": null,
+      "expectedDepartment": "软件学院",
+      "expectedPolicyYear": 2026,
+      "expectedCohortYear": null,
+      "knownLimitation": "COMPOUND_QUERY_RETRIEVAL_LIMITATION",
+      "manualReviewRequired": true
+    }
+  ]
+}
