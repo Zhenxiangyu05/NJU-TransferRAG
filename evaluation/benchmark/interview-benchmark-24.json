@@ -1,0 +1,31 @@
+{
+  "subsetVersion": "interview-benchmark-24-v1",
+  "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
+  "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
+  "cases": [
+    { "caseId": "TRAG-001" },
+    { "caseId": "TRAG-002" },
+    { "caseId": "TRAG-003" },
+    { "caseId": "TRAG-004" },
+    { "caseId": "TRAG-005" },
+    { "caseId": "TRAG-006" },
+    { "caseId": "TRAG-007" },
+    { "caseId": "TRAG-009" },
+    { "caseId": "TRAG-015" },
+    { "caseId": "TRAG-021" },
+    { "caseId": "TRAG-024" },
+    { "caseId": "TRAG-032" },
+    { "caseId": "TRAG-034" },
+    { "caseId": "TRAG-037" },
+    { "caseId": "TRAG-038" },
+    { "caseId": "TRAG-039" },
+    { "caseId": "TRAG-047" },
+    { "caseId": "TRAG-048" },
+    { "caseId": "TRAG-049" },
+    { "caseId": "TRAG-065" },
+    { "caseId": "TRAG-069" },
+    { "caseId": "TRAG-074" },
+    { "caseId": "TRAG-075" },
+    { "caseId": "TRAG-082" }
+  ]
+}

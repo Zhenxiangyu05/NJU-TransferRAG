@@ -231,15 +231,22 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
     labels: list[dict[str, Any]] = []
     for case in cases:
         previous = old_rows.get(case["caseId"], {})
-        # Preserve only already-human-confirmed values; generated suggestions never promote status.
-        manually_confirmed = previous.get("reviewStatus") == "CONFIRMED"
+        # Preserve explicit, provenance-backed confirmations only; generated suggestions never promote status.
+        review_source = previous.get("reviewSource")
+        manually_confirmed = (previous.get("reviewStatus") == "CONFIRMED"
+                              and review_source == "manual_review_batch_1")
+        evidence_verified = (previous.get("reviewStatus") == "CONFIRMED"
+                             and review_source == "evidence_verified_accelerated_review"
+                             and isinstance(previous.get("verifiedEvidence"), list)
+                             and bool(previous["verifiedEvidence"]))
+        confirmed = manually_confirmed or evidence_verified
         label = {
             "caseId": case["caseId"],
-            "answerable": previous.get("answerable") if manually_confirmed else None,
-            "expectedDocumentIds": previous.get("expectedDocumentIds") if manually_confirmed else None,
-            "expectedFactsStatus": previous.get("expectedFactsStatus") if manually_confirmed else None,
-            "referenceAnswer": previous.get("referenceAnswer") if manually_confirmed else None,
-            "reviewStatus": "CONFIRMED" if manually_confirmed else "NEEDS_REVIEW",
+            "answerable": previous.get("answerable") if confirmed else None,
+            "expectedDocumentIds": previous.get("expectedDocumentIds") if confirmed else None,
+            "expectedFactsStatus": previous.get("expectedFactsStatus") if confirmed else None,
+            "referenceAnswer": previous.get("referenceAnswer") if confirmed else None,
+            "reviewStatus": "CONFIRMED" if confirmed else "NEEDS_REVIEW",
             "expectedFactsAvailable": bool(case.get("expectedFacts")),
             "suggestedAnswerable": "true (review required)" if case.get("expectedFacts") and case.get("evidenceText") else "uncertain",
             "suggestedExpectedDocumentIds": sorted({doc["documentId"] for doc in candidate_by_case[case["caseId"]]
@@ -251,8 +258,9 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
             "historicalOutcome": history.get(case["caseId"]),
             "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。",
         }
-        if manually_confirmed:
-            for field in ("expectedFactsOverride", "reviewerNotes", "reviewSource", "reviewedAt"):
+        if confirmed:
+            for field in ("expectedFactsOverride", "reviewerNotes", "reviewSource", "reviewedAt",
+                          "verifiedEvidence", "notes"):
                 if field in previous:
                     label[field] = previous[field]
         labels.append(label)
@@ -312,7 +320,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
                       "referenceAnswer:", "reviewStatus: NEEDS_REVIEW", ""]
     review = preserve_human_decisions("\n".join(lines), existing_review)
     return {"dataset": "evaluation/test-cases.json", "generatedBy": "build_gold_review.py",
-            "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+            "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or an explicit evidence_verified_accelerated_review with verified Evidence metadata.",
             "expectedFactsOverrideSemantics": "complete_replacement",
             "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
             "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",

@@ -29,6 +29,23 @@ class GoldReviewWorkflowTest(unittest.TestCase):
         self.assertIn("Human Decision:", review)
         self.assertEqual(coverage["scorable"]["hitAt3"], 0)
 
+    def test_regeneration_preserves_evidence_verified_confirmation(self):
+        cases = [{"caseId": "TRAG-001", "question": "2026级甲专业学制几年？",
+                  "sourceFile": "甲培养方案.pdf", "department": "甲学院", "sourceYear": 2026,
+                  "category": "培养方案", "expectedFacts": ["学制四年"], "evidenceText": "学制四年"}]
+        verified = {"caseId": "TRAG-001", "answerable": True, "expectedDocumentIds": [7],
+                    "expectedFactsStatus": "SUPPORTED", "reviewStatus": "CONFIRMED",
+                    "reviewSource": "evidence_verified_accelerated_review",
+                    "verifiedEvidence": [{"documentId": 7, "documentRole": "EVIDENCE",
+                                          "sourceType": "OFFICIAL_PDF"}],
+                    "reviewerNotes": "direct source verification"}
+        gold, _, _ = build_artifacts(cases, {"cases": [verified]}, {}, {})
+        row = gold["cases"][0]
+        self.assertEqual(row["reviewStatus"], "CONFIRMED")
+        self.assertEqual(row["expectedDocumentIds"], [7])
+        self.assertEqual(row["reviewSource"], "evidence_verified_accelerated_review")
+        self.assertEqual(row["verifiedEvidence"], verified["verifiedEvidence"])
+
     def test_review_document_partitions_cases_and_has_reference_categories(self):
         cases = [
             {"caseId": "TRAG-001", "question": "学制几年？", "sourceFile": "甲.pdf",

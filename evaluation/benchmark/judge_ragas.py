@@ -52,10 +52,10 @@ async def score_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
                     scored["faithfulness"] = getattr(value, "value", value)
                 except Exception as exc:
                     scored["faithfulnessError"] = type(exc).__name__
-            facts = row.get("expectedFacts") or []
-            if facts and retrieved_contexts:
+            reference_answer = row.get("referenceAnswer")
+            if reference_answer and retrieved_contexts:
                 try:
-                    value = await context_recall.ascore(user_input=row["query"], reference="；".join(facts),
+                    value = await context_recall.ascore(user_input=row["query"], reference=reference_answer,
                                                         retrieved_contexts=retrieved_contexts)
                     scored["contextRecall"] = getattr(value, "value", value)
                 except Exception as exc:

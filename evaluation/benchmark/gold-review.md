@@ -3,17 +3,17 @@
 Production Logic Version: `8c34ccdf16d283231ff972ca8860fff3baaa28a4`
 Benchmark Tooling Version: `ae69fae6958fdfc5041677ea4f073d55fce45241` (evaluation-only tracing; not a new RAG version).
 
-`evaluation/test-cases.json` remains frozen. Candidate labels are suggestions only. Verify each candidate against the current MySQL Document metadata and original Evidence; never use a Canonical Document as a final source ID.
+`evaluation/test-cases.json` remains frozen. Generated candidate labels remain suggestions only. A row becomes `CONFIRMED` only through an explicit manual decision or an `evidence_verified_accelerated_review` carrying verified Evidence metadata. Verify each candidate against the current Document metadata and original Evidence; never use a Canonical Document as a final source ID.
 Gold `expectedFactsOverride` is optional and, when present, completely replaces the frozen test case's `expectedFacts` array; it is never an index patch.
 Edit only the `Human Decision` fields in this file, then run `python evaluation/benchmark/sync_gold_review.py` to validate and apply human decisions to `gold-labels.json`. Generated suggestions are never confirmed.
 
 ## Coverage
 
 - Total: 82
-- Confirmed total / answerable / unanswerable: 17 / 15 / 2
-- Confirmed expectedDocumentIds / expectedFacts: 17 / 15
+- Confirmed total / answerable / unanswerable: 24 / 22 / 2
+- Confirmed expectedDocumentIds / expectedFacts: 24 / 22
 - Confirmed reference answers: 3 (target 20–30)
-- Scorable n — Hit@3 15, MRR 15, Citation 15, Refusal 2, Context Recall 3, Expected Fact Recall 15
+- Scorable n — Hit@3 22, MRR 22, Citation 22, Refusal 2, Context Recall 3, Expected Fact Recall 22
 - Coverage target before full bench: answerable + expectedDocumentIds should reach 82/82; reference answers need only the selected 20–30.
 
 ## Reference-answer shortlist
@@ -572,7 +572,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE, PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [20] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -623,7 +623,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [20] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -673,7 +673,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -827,7 +827,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1465,7 +1465,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1704,7 +1704,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [18] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1728,7 +1728,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, DEPARTMENT_SCOPED, COLLOQUIAL
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:

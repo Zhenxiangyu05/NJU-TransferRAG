@@ -1,7 +1,7 @@
 {
   "dataset": "evaluation/test-cases.json",
   "generatedBy": "build_gold_review.py",
-  "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+  "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or an explicit evidence_verified_accelerated_review with verified Evidence metadata.",
   "expectedFactsOverrideSemantics": "complete_replacement",
   "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
   "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
@@ -34,11 +34,13 @@
   "cases": [
     {
       "caseId": "TRAG-001",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        7
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -69,7 +71,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 18 已核正为当前 Evidence Document 7；使用当前原文与元数据。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 7，EVIDENCE / OFFICIAL_PDF / 2026 / 智能科学与技术学院。原文明确列出学制4年、总学分144。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 7,
+          "title": "2026智能科学与技术培养方案",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "智能科学与技术学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-002",
@@ -237,11 +252,13 @@
     },
     {
       "caseId": "TRAG-006",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        10
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -273,7 +290,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 20 已核正为当前 Evidence Document 10；该来源是个人指南，不代表官方发布。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 10，EVIDENCE / PERSONAL / 2026 / 人文科学试验班。指南明确写出当年分流10个、外专业转入11个且名额不互通；回答须归因于个人指南。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 10,
+          "title": "人文大类汉语言文学分流指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*人文科学试验班"
+        }
+      ]
     },
     {
       "caseId": "TRAG-007",
@@ -353,11 +383,13 @@
     },
     {
       "caseId": "TRAG-009",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        10
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -387,7 +419,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 20 已核正为当前 Evidence Document 10；经验建议属于个人整理。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 10，EVIDENCE / PERSONAL / 2026 / 人文科学试验班。原文直接建议重新熟悉提交材料、准备针对性/拓展提问，并保持表达简明务实；应以个人经验建议呈现。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 10,
+          "title": "人文大类汉语言文学分流指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*人文科学试验班"
+        }
+      ]
     },
     {
       "caseId": "TRAG-010",
@@ -559,11 +604,13 @@
     },
     {
       "caseId": "TRAG-015",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -595,7 +642,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 20 与当前 Evidence Document 20 相同，但仍以当前数据库角色和原文核验为准。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 20，EVIDENCE / OFFICIAL_PDF / 2026 / 本科生院。2026计划表的文学院汉语言文学准入行直接列出四门课程中至少三门、取得9学分；回答按该表所列适用年级范围表述，不泛化到其他届。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-016",
@@ -781,11 +841,13 @@
     },
     {
       "caseId": "TRAG-021",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -812,7 +874,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "按2026计划表中明确列出的2025级人工智能行核验；答案需保留该行届别范围，不得概括为所有年级规则。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 20，EVIDENCE / OFFICIAL_PDF / 2026 / 本科生院。原文2026准入计划表列明2025级人工智能6门课程及均须80分以上（含80分）；回答必须明确是计划表对应年级行。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-022",
@@ -886,11 +961,13 @@
     },
     {
       "caseId": "TRAG-024",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -923,7 +1000,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 6 是 Canonical Document；Citation Gold 应为支持结论的 Evidence Document 20。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 20，EVIDENCE / OFFICIAL_PDF / 2026 / 本科生院。软件学院行明确写明复试含机试、面试，任一不及格不予录取；使用来源中的‘软工’别名不改变题意。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-025",
@@ -2465,11 +2555,13 @@
     },
     {
       "caseId": "TRAG-074",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2497,7 +2589,20 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "历史候选 ID 14 已核正为当前 Evidence Document 14；来源为个人学习经验。",
+      "reviewerNotes": "确定性 Evidence 核验：Document 14，EVIDENCE / PERSONAL / 2026 / 电子科学与工程学院。原文对电路分析、模拟电路的知识量、课后自学、理解记忆、视频和做题建议均有直接表述；不得包装成学院要求。",
+      "reviewSource": "evidence_verified_accelerated_review",
+      "reviewedAt": "2026-10-03T18:48:01Z",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-075",
