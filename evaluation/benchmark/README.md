@@ -57,7 +57,11 @@ Each run writes `raw-v1.jsonl`, `raw-v2.jsonl`, `comparison.csv`, retrieval/gene
 
 The public RAG response still provides no true retrieval TopK or internal contexts. Final citation IDs must not be treated as ranked retrieval results. Use the in-process runner for trace metrics; the HTTP runner's Hit@3/MRR and context metrics remain N/A. No evaluation trace endpoint or production INFO logging is added. Citation Accuracy is computed only when an expected Evidence Document ID is verified; refusal accuracy is deterministic for the negative control. HTTP latency is end-to-end API latency, not a production SLA.
 
-The frozen dataset has expected facts but no complete reference answers or expected-document-ID labels. Run `python evaluation/benchmark/build_gold_review.py` to regenerate the 82-case review sidecar and checklist. Generated answerability, Evidence Document IDs, and reference answers stay unconfirmed until a human checks source files and records evidence in `gold-review.md`.
+The frozen dataset has expected facts but no complete reference answers or expected-document-ID labels. `python evaluation/benchmark/build_gold_review.py` generates a four-batch human review pack, candidate Evidence metadata derived only from historical citation metadata, and a dynamic `gold-coverage.json`. Historical Document IDs above the original 1–20 Evidence ID range are withheld because they may overlap Canonical IDs; candidate title/sourceType still need current DocumentRole and source verification. Generated suggestions never enter scorable Gold fields.
+
+Review `gold-review.md` in batches. Fill only its `Human Decision` fields; use `expectedFactsStatus` = `SUPPORTED`, `NEEDS_FIX`, or `AMBIGUOUS`. Confirmed `answerable=true` requires at least one verified Evidence Document ID; `answerable=false` requires `expectedDocumentIds: []`. Then run `python evaluation/benchmark/sync_gold_review.py`. It makes no provider calls and only applies sections explicitly marked `reviewStatus: CONFIRMED`. Re-run `build_gold_review.py` to refresh coverage after edits; it preserves existing human-confirmed values. Do not add or rewrite `evaluation/test-cases.json` as part of this review workflow.
+
+The reports distinguish the evaluated Production Logic Version (`8c34ccdf16d283231ff972ca8860fff3baaa28a4`) from the Benchmark Tooling Version (`ae69fae6958fdfc5041677ea4f073d55fce45241`). The latter adds evaluation-only tracing and is not a new RAG logic version.
 
 ## Phase B — judge saved answers only
 

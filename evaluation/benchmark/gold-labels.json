@@ -2,744 +2,2655 @@
   "dataset": "evaluation/test-cases.json",
   "generatedBy": "build_gold_review.py",
   "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+  "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
+  "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
+  "referenceAnswerRecommendedCaseIds": [
+    "TRAG-001",
+    "TRAG-002",
+    "TRAG-006",
+    "TRAG-009",
+    "TRAG-015",
+    "TRAG-017",
+    "TRAG-024",
+    "TRAG-027",
+    "TRAG-028",
+    "TRAG-031",
+    "TRAG-043",
+    "TRAG-045",
+    "TRAG-048",
+    "TRAG-049",
+    "TRAG-056",
+    "TRAG-061",
+    "TRAG-062",
+    "TRAG-067",
+    "TRAG-070",
+    "TRAG-072",
+    "TRAG-073",
+    "TRAG-076",
+    "TRAG-077",
+    "TRAG-080"
+  ],
   "cases": [
     {
       "caseId": "TRAG-001",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        18
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 18,
+          "title": "2026级智能科学与技术主修培养方案_28b996c9",
+          "sourceType": "OFFICIAL_PDF",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-002",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        18
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 18,
+          "title": "2026级智能科学与技术主修培养方案_28b996c9",
+          "sourceType": "OFFICIAL_PDF",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-003",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        18
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 18,
+          "title": "2026级智能科学与技术主修培养方案_28b996c9",
+          "sourceType": "OFFICIAL_PDF",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-004",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        18
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 18,
+          "title": "2026级智能科学与技术主修培养方案_28b996c9",
+          "sourceType": "OFFICIAL_PDF",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-005",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        18
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 18,
+          "title": "2026级智能科学与技术主修培养方案_28b996c9",
+          "sourceType": "OFFICIAL_PDF",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-006",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        20
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 20,
+          "title": "26分流转汉文指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE",
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-007",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        20
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 20,
+          "title": "26分流转汉文指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-008",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        20
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 20,
+          "title": "26分流转汉文指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE",
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-009",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        20
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 20,
+          "title": "26分流转汉文指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-010",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        20
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 20,
+          "title": "26分流转汉文指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-011",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "化生大类生存指南",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-012",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "化生大类生存指南",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-013",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "化生大类生存指南",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-014",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "化生大类生存指南",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "PARTIAL"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-015",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-016",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-017",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-018",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-019",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-020",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-021",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-022",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-023",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-024",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED",
+        "COLLOQUIAL"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-025",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-026",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-027",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "COMPOUND",
+        "POLICY"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE",
+          "WRONG_SOURCE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-028",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "YEAR_MISMATCH"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-029",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        6
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 6,
+          "title": "南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表",
+          "sourceType": "OFFICIAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-030",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-031",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "YEAR_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-032",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-033",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-034",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        19
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 19,
+          "title": "南京大学技术科学试验班新生生存指南",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-035",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        19
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 19,
+          "title": "南京大学技术科学试验班新生生存指南",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-036",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        19
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 19,
+          "title": "南京大学技术科学试验班新生生存指南",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-037",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        19
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 19,
+          "title": "南京大学技术科学试验班新生生存指南",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-038",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        19
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 19,
+          "title": "南京大学技术科学试验班新生生存指南",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-039",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-040",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-041",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-042",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-043",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-044",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-045",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 2",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "COLLOQUIAL"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-046",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-047",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-048",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "数理大类生存指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-049",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "数理大类生存指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "YEAR_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-050",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "数理大类生存指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-051",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": null,
+          "title": "数理大类生存指北",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-not-carried-forward"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-052",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-053",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-054",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-055",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-056",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL",
+          "WRONG"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-057",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-058",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-059",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-060",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-061",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "FALLBACK"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-062",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "COLLOQUIAL"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-063",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-064",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        13
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 13,
+          "title": "转光电概述（新）",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-065",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        13
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 13,
+          "title": "转光电概述（新）",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-066",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        13
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 13,
+          "title": "转光电概述（新）",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-067",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        13
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 13,
+          "title": "转光电概述（新）",
+          "sourceType": "COMMUNITY",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "YEAR_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-068",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-069",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-070",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "FALLBACK"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-071",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-072",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "YEAR_MISMATCH"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-073",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "POLICY",
+        "YEAR_SCOPED",
+        "FALLBACK"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-074",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-075",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-076",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "FACT",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL",
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-077",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [
+        14
+      ],
+      "candidateEvidenceDocuments": [
+        {
+          "documentId": 14,
+          "title": "转电子指北2026版",
+          "sourceType": "PERSONAL",
+          "whyRelevant": "历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。",
+          "idStatus": "historical-id-candidate-needs-current-verification"
+        }
+      ],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "COMPOUND",
+        "POLICY",
+        "EXPERIENCE"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-078",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-079",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-080",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 4",
+      "referenceAnswerRecommended": true,
+      "referenceAnswerCategories": [
+        "EXPERIENCE",
+        "DEPARTMENT_SCOPED"
+      ],
+      "historicalOutcome": {
+        "classifications": [
+          "REFUSAL_FALSE_NEGATIVE"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-081",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 3",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     },
     {
       "caseId": "TRAG-082",
       "answerable": null,
       "expectedDocumentIds": null,
+      "expectedFactsStatus": null,
       "referenceAnswer": null,
       "reviewStatus": "NEEDS_REVIEW",
       "expectedFactsAvailable": true,
-      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+      "suggestedAnswerable": "true (review required)",
+      "suggestedExpectedDocumentIds": [],
+      "candidateEvidenceDocuments": [],
+      "reviewBatch": "Batch 1",
+      "referenceAnswerRecommended": false,
+      "referenceAnswerCategories": [],
+      "historicalOutcome": {
+        "classifications": [
+          "PARTIAL",
+          "PASS"
+        ],
+        "reports": [
+          "evaluation/full-regression-after-metadata-year/evaluation-results.json",
+          "evaluation/evaluation-results.json"
+        ]
+      },
+      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
     }
   ]
 }

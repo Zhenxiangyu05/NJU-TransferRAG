@@ -88,7 +88,8 @@ class BenchmarkMetricsTest(unittest.TestCase):
     def test_gold_coverage_counts_only_confirmed_labels(self):
         result = gold_coverage([
             {"reviewStatus": "CONFIRMED", "answerable": True,
-             "expectedDocumentIds": [2], "referenceAnswer": "x", "expectedFactsAvailable": True},
+             "expectedDocumentIds": [2], "expectedFactsStatus": "SUPPORTED",
+             "referenceAnswer": "x", "expectedFactsAvailable": True},
             {"reviewStatus": "NEEDS_REVIEW", "answerable": False,
              "expectedDocumentIds": [3], "referenceAnswer": "y", "expectedFactsAvailable": True},
             {"reviewStatus": "NOT_SCORABLE", "expectedFactsAvailable": False},
@@ -97,6 +98,9 @@ class BenchmarkMetricsTest(unittest.TestCase):
         self.assertEqual(result["unanswerableConfirmed"], 0)
         self.assertEqual(result["expectedDocumentIdsConfirmed"], 1)
         self.assertEqual(result["referenceAnswerConfirmed"], 1)
+        self.assertEqual(result["expectedFactsConfirmed"], 1)
+        self.assertEqual(result["hitAt3Scorable"], 1)
+        self.assertEqual(result["contextRecallScorable"], 1)
         self.assertEqual(result["notScorable"], 1)
 
     def test_gold_sidecar_covers_frozen_82_without_auto_confirmation(self):

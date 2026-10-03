@@ -90,12 +90,23 @@ def expected_fact_recall(expected_facts: Iterable[str] | None,
 def gold_coverage(gold_rows: Iterable[dict[str, Any]]) -> dict[str, int]:
     rows = list(gold_rows)
     confirmed = [row for row in rows if row.get("reviewStatus") == "CONFIRMED"]
+    answerable_with_docs = [row for row in confirmed if row.get("answerable") is True
+                            and isinstance(row.get("expectedDocumentIds"), list)
+                            and bool(row["expectedDocumentIds"])]
+    reference_confirmed = [row for row in confirmed if bool(row.get("referenceAnswer"))]
     return {
         "cases": len(rows),
         "answerableConfirmed": sum(row.get("answerable") is True for row in confirmed),
         "unanswerableConfirmed": sum(row.get("answerable") is False for row in confirmed),
-        "expectedDocumentIdsConfirmed": sum(bool(row.get("expectedDocumentIds")) for row in confirmed),
-        "referenceAnswerConfirmed": sum(bool(row.get("referenceAnswer")) for row in confirmed),
+        "expectedDocumentIdsConfirmed": sum(row.get("expectedDocumentIds") is not None for row in confirmed),
+        "expectedFactsConfirmed": sum(row.get("expectedFactsStatus") == "SUPPORTED" for row in confirmed),
+        "referenceAnswerConfirmed": len(reference_confirmed),
+        "hitAt3Scorable": len(answerable_with_docs),
+        "mrrScorable": len(answerable_with_docs),
+        "citationAccuracyScorable": len(answerable_with_docs),
+        "refusalAccuracyScorable": sum(row.get("answerable") is False for row in confirmed),
+        "contextRecallScorable": sum(row.get("expectedFactsStatus") == "SUPPORTED"
+                                     for row in reference_confirmed),
         "expectedFactsAvailable": sum(bool(row.get("expectedFactsAvailable")) for row in rows),
         "notScorable": sum(row.get("reviewStatus") == "NOT_SCORABLE" for row in rows),
     }

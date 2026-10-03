@@ -1,0 +1,21 @@
+{
+  "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
+  "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
+  "totalCases": 82,
+  "answerableConfirmed": 0,
+  "unanswerableConfirmed": 0,
+  "expectedDocumentIdsConfirmed": 0,
+  "expectedFactsConfirmed": 0,
+  "referenceAnswersConfirmed": 0,
+  "scorable": {
+    "hitAt3": 0,
+    "mrr": 0,
+    "citationAccuracy": 0,
+    "refusalAccuracy": 0,
+    "contextRecall": 0
+  },
+  "targets": {
+    "answerableAndExpectedDocumentIds": 82,
+    "referenceAnswers": "20-30"
+  }
+}
