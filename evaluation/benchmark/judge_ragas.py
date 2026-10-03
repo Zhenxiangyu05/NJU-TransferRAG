@@ -34,29 +34,34 @@ async def score_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     for row in rows:
         scored: dict[str, Any] = {"caseId": row["caseId"], "version": row["version"],
                                   "answerRelevancy": None, "faithfulness": None, "contextRecall": None}
-        if row.get("httpStatus") == 200 and row.get("answer"):
+        if (row.get("httpStatus") == 200 or row.get("executionStatus") == "COMPLETED") and row.get("answer"):
             try:
                 value = await relevance.ascore(user_input=row["query"], response=row["answer"])
                 scored["answerRelevancy"] = getattr(value, "value", value)
             except Exception as exc:  # Preserve Phase A and report judge/provider incompatibility safely.
                 scored["answerRelevancyError"] = type(exc).__name__
-        contexts = row.get("retrievedContexts")
-        if contexts:
+        retrieved_contexts = row.get("retrievedContexts")
+        approved_contexts = row.get("approvedContexts")
+        if retrieved_contexts or approved_contexts:
             if row.get("answer"):
                 try:
-                    value = await faithfulness.ascore(user_input=row["query"], response=row["answer"], retrieved_contexts=contexts)
+                    if not approved_contexts:
+                        raise ValueError("approvedContext unavailable; faithfulness is not scoreable")
+                    value = await faithfulness.ascore(user_input=row["query"], response=row["answer"],
+                                                      retrieved_contexts=approved_contexts)
                     scored["faithfulness"] = getattr(value, "value", value)
                 except Exception as exc:
                     scored["faithfulnessError"] = type(exc).__name__
             facts = row.get("expectedFacts") or []
-            if facts:
+            if facts and retrieved_contexts:
                 try:
-                    value = await context_recall.ascore(user_input=row["query"], reference="；".join(facts), retrieved_contexts=contexts)
+                    value = await context_recall.ascore(user_input=row["query"], reference="；".join(facts),
+                                                        retrieved_contexts=retrieved_contexts)
                     scored["contextRecall"] = getattr(value, "value", value)
                 except Exception as exc:
                     scored["contextRecallError"] = type(exc).__name__
         else:
-            scored["faithfulnessNAReason"] = "actual retrieved/approved context unavailable"
+            scored["faithfulnessNAReason"] = "actual approved context unavailable"
             scored["contextRecallNAReason"] = "actual retrieved context unavailable"
         results.append(scored)
     return {

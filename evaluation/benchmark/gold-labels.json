@@ -1,0 +1,745 @@
+{
+  "dataset": "evaluation/test-cases.json",
+  "generatedBy": "build_gold_review.py",
+  "policy": "Generated labels are never CONFIRMED; only human review may confirm them.",
+  "cases": [
+    {
+      "caseId": "TRAG-001",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-002",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-003",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-004",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-005",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-006",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-007",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-008",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-009",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-010",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-011",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-012",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-013",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-014",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-015",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-016",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-017",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-018",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-019",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-020",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-021",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-022",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-023",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-024",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-025",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-026",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-027",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-028",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-029",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-030",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-031",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-032",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-033",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-034",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-035",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-036",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-037",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-038",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-039",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-040",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-041",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-042",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-043",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-044",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-045",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-046",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-047",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-048",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-049",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-050",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-051",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-052",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-053",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-054",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-055",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-056",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-057",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-058",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-059",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-060",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-061",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-062",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-063",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-064",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-065",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-066",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-067",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-068",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-069",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-070",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-071",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-072",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-073",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-074",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-075",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-076",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-077",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-078",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-079",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-080",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-081",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    },
+    {
+      "caseId": "TRAG-082",
+      "answerable": null,
+      "expectedDocumentIds": null,
+      "referenceAnswer": null,
+      "reviewStatus": "NEEDS_REVIEW",
+      "expectedFactsAvailable": true,
+      "notes": "未从 sourceFile 自动映射生产 Document ID；answerability 与参考答案待人工对照原文审核。"
+    }
+  ]
+}

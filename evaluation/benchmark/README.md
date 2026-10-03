@@ -1,6 +1,6 @@
 # NJU Compass V1 vs V2 benchmark
 
-This is evaluation-only tooling. It does not change application code, prompts, retrieval settings, data, or production configuration. The frozen 82-case `evaluation/test-cases.json` and existing `evaluation/smoke-cases.json` are inputs and are never rewritten. `smoke-gold.json` is a small, separately reviewable metadata sidecar; absent or uncertain gold values remain null.
+This is evaluation-only tooling. The frozen 82-case `evaluation/test-cases.json` and existing `evaluation/smoke-cases.json` are inputs and are never rewritten. It does not change prompts, retrieval settings, data, production configuration, or the public API. `gold-labels.json` is a separate review sidecar; every generated label starts `NEEDS_REVIEW` (or `NOT_SCORABLE`) and none are auto-confirmed.
 
 ## Frozen comparison
 
@@ -11,6 +11,33 @@ This is evaluation-only tooling. It does not change application code, prompts, r
 - The smoke sidecar selects five fixed cases plus the known mixed-query limitation (six total). Do not use this command as the full 82-case run.
 
 ## Phase A — save raw RAG results
+
+For real in-process rankings and contexts, use the opt-in test runner below. It invokes the same `RagService`/`RetrievalService` code, does not start an HTTP server, and writes traces only under ignored `evaluation/results/`. It runs the six existing smoke cases sequentially once under V1 routing and once under V2 routing. Keep heap bounded and run it only on a trusted evaluation host with the intended database, Qdrant, and provider environment available:
+
+```powershell
+$env:MAVEN_OPTS = "-Xmx512m"
+./mvnw -Dtest=BenchmarkTraceSmokeTest `
+  -Dbenchmark.trace.enabled=true `
+  -Dbenchmark.trace.output=evaluation/results/<unique-run-id> `
+  -Dspring.jpa.hibernate.ddl-auto=validate `
+  -Dapp.qdrant-backfill.enabled=false `
+  -Dspring.sql.init.mode=never test
+```
+
+The opt-in runner aborts unless Hibernate is in `validate` mode and the Qdrant payload backfill is disabled. This prevents startup schema DDL and maintenance-runner writes during the trace run.
+
+The internal package-private `askForEvaluation` entrypoint accepts a per-call V1/V2 selector; the configured feature flag is never changed. Normal `ask()` always follows the configured flag. The trace includes candidate content and actual retrieved/approved contexts, so keep the output private and never commit it.
+
+After the test, score saved traces (no new RAG calls):
+
+```powershell
+python evaluation/benchmark/judge_ragas.py evaluation/results/<unique-run-id>
+python evaluation/benchmark/score_trace_smoke.py evaluation/results/<unique-run-id>
+```
+
+`Expected Fact Recall` is a conservative, whitespace-normalized literal coverage proxy. It is custom and is not RAGAS Context Recall. RAGAS Faithfulness receives `approvedContexts`; RAGAS Context Recall receives actual `retrievedContexts` plus the existing frozen `expectedFacts` reference.
+
+The old HTTP runner below remains useful for endpoint-level latency/citation smoke, but cannot produce true ranking/context metrics by itself.
 
 Run `run_smoke.py` against two already-running, isolated base URLs:
 
@@ -26,11 +53,11 @@ The V1 listener should be a temporary loopback-only process of the exact frozen 
 
 Each run writes `raw-v1.jsonl`, `raw-v2.jsonl`, `comparison.csv`, retrieval/generation summaries, `summary.json`, `summary.md`, and `failures.md` beneath `evaluation/results/<UTC timestamp>/`. Raw results are ignored by Git because answers may include full source text.
 
-## Observation limits
+## HTTP smoke observation limits
 
-The public RAG response provides final answers and approved Evidence citation metadata, but not the true retrieval TopK, canonical candidate IDs, fallback diagnostics, or exact generation/Answerability context. Final citation IDs must not be treated as ranked retrieval results. Consequently Hit@3, MRR, Faithfulness, and Context Recall are N/A in the real smoke output until the application has a non-invasive evaluation observation channel. The code does not add such an endpoint or alter production behavior. Citation Accuracy is computed only when an expected Evidence Document ID is verified; refusal accuracy is deterministic for the negative control. Latency is end-to-end API latency, not a production SLA.
+The public RAG response still provides no true retrieval TopK or internal contexts. Final citation IDs must not be treated as ranked retrieval results. Use the in-process runner for trace metrics; the HTTP runner's Hit@3/MRR and context metrics remain N/A. No evaluation trace endpoint or production INFO logging is added. Citation Accuracy is computed only when an expected Evidence Document ID is verified; refusal accuracy is deterministic for the negative control. HTTP latency is end-to-end API latency, not a production SLA.
 
-The current frozen dataset has expected facts but no complete reference answers or expected-document-ID labels. Sidecar IDs are populated only where the production mapping is known; `manualReviewRequired` remains true for incomplete/unverified gold.
+The frozen dataset has expected facts but no complete reference answers or expected-document-ID labels. Run `python evaluation/benchmark/build_gold_review.py` to regenerate the 82-case review sidecar and checklist. Generated answerability, Evidence Document IDs, and reference answers stay unconfirmed until a human checks source files and records evidence in `gold-review.md`.
 
 ## Phase B — judge saved answers only
 

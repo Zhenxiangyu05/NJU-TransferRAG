@@ -77,6 +77,7 @@ public class RagService {
     private final DocumentRepository documentRepository;
     private final EvidenceRefRepository evidenceRefRepository;
     private final boolean canonicalFirstEnabled;
+    private final ThreadLocal<EvaluationTrace.Builder> evaluationTrace = new ThreadLocal<>();
 
     public RagService(RetrievalService retrievalService,
                       AnswerabilityService answerabilityService,
@@ -93,11 +94,33 @@ public class RagService {
     }
 
     public RagResponse ask(String question) {
+        return ask(question, canonicalFirstEnabled);
+    }
+
+    EvaluationTraceResult askForEvaluation(String question, boolean useCanonicalFirst) {
+        if (evaluationTrace.get() != null) {
+            throw new IllegalStateException("Nested evaluation traces are not supported");
+        }
+        EvaluationTrace.Builder trace = new EvaluationTrace.Builder(question);
+        evaluationTrace.set(trace);
+        long started = System.nanoTime();
+        try {
+            RagResponse response = ask(question, useCanonicalFirst);
+            return new EvaluationTraceResult(response,
+                    trace.finish(response, (System.nanoTime() - started) / 1_000_000));
+        } finally {
+            evaluationTrace.remove();
+        }
+    }
+
+    private RagResponse ask(String question, boolean useCanonicalFirst) {
         if (question == null || question.isBlank()) {
             throw new IllegalArgumentException("question 不能为空");
         }
-        if (!canonicalFirstEnabled) {
+        if (!useCanonicalFirst) {
             List<SearchResultResponse> evidenceResults = retrievalService.search(question, 3);
+            EvaluationTrace.Builder trace = evaluationTrace.get();
+            if (trace != null) trace.evidenceRanking(evidenceResults, false);
             logRetrieval("EVIDENCE", 0, evidenceResults.size(), false, null);
             return answerFromEvidence(question, evidenceResults);
         }
@@ -107,6 +130,8 @@ public class RagService {
     private RagResponse askCanonicalFirst(String question) {
         RetrievalService.PreparedQuery preparedQuery = retrievalService.prepareCanonicalFirst(question);
         List<SearchResultResponse> canonicalResults = retrievalService.searchCanonical(preparedQuery, 3);
+        EvaluationTrace.Builder trace = evaluationTrace.get();
+        if (trace != null) trace.canonicalRanking(canonicalResults);
         if (canonicalResults.isEmpty()) {
             return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_CANONICAL_RESULT");
         }
@@ -121,6 +146,7 @@ public class RagService {
 
         AnswerabilityResult answerability = answerabilityService.check(
                 question, bundle.answerabilityContext(), bundle.sources());
+        if (trace != null) trace.retrievedContext(bundle.answerabilityContext());
         if (!answerability.answerable()) {
             return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NOT_ANSWERABLE");
         }
@@ -148,6 +174,8 @@ public class RagService {
                 %s
                 """.formatted(question, canonicalKnowledge(approvedFacts, approvedIds),
                 canonicalCitationContext(selected));
+        if (trace != null) trace.approvedContext(canonicalKnowledge(approvedFacts, approvedIds)
+                + "\n\n" + canonicalCitationContext(selected));
         logRetrieval("CANONICAL", canonicalResults.size(), 0, false, null);
         return generatedResponse(question, userPrompt,
                 selected.stream().map(CanonicalCitation::source).toList(), true);
@@ -157,7 +185,10 @@ public class RagService {
                                            RetrievalService.PreparedQuery preparedQuery,
                                            int canonicalCandidateCount,
                                            String reason) {
+        EvaluationTrace.Builder trace = evaluationTrace.get();
+        if (trace != null) trace.fallback(reason);
         List<SearchResultResponse> evidenceResults = retrievalService.searchEvidence(preparedQuery, 3);
+        if (trace != null) trace.evidenceRanking(evidenceResults, true);
         logRetrieval("EVIDENCE", canonicalCandidateCount, evidenceResults.size(), true, reason);
         return answerFromEvidence(question, evidenceResults);
     }
@@ -179,6 +210,8 @@ public class RagService {
         }
         List<SourceResponse> sources = toSources(searchResults);
         String context = buildContext(searchResults, sources);
+        EvaluationTrace.Builder trace = evaluationTrace.get();
+        if (trace != null) trace.retrievedContext(context);
         AnswerabilityResult answerability = answerabilityService.check(question, context, sources);
         if (!answerability.answerable()) {
             return insufficientKnowledgeResponse(question);
@@ -195,6 +228,7 @@ public class RagService {
                 已通过证据充分性检查的 Sources：
                 %s
                 """.formatted(question, buildContext(evidence.searchResults(), evidence.sources()));
+        if (trace != null) trace.approvedContext(buildContext(evidence.searchResults(), evidence.sources()));
         return generatedResponse(question, userPrompt, evidence.sources(), false);
     }
 
@@ -229,6 +263,9 @@ public class RagService {
         }
         List<EvidenceRef> refs = evidenceRefRepository
                 .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(chunkIds);
+        EvaluationTrace.Builder trace = evaluationTrace.get();
+        if (trace != null) trace.evidenceEquivalentRanking(
+                EvaluationTrace.Builder.projectEvidence(canonicalResults, refs));
         Map<FactKey, List<EvidenceRef>> refsByFact = refs.stream().collect(Collectors.groupingBy(
                 ref -> new FactKey(ref.getCanonicalChunk().getId(), ref.getFactIndex()),
                 LinkedHashMap::new, Collectors.toList()));
@@ -560,4 +597,6 @@ public class RagService {
     }
     private record EvidenceSelection(List<SearchResultResponse> searchResults,
                                      List<SourceResponse> sources) { }
+
+    record EvaluationTraceResult(RagResponse response, EvaluationTrace trace) { }
 }

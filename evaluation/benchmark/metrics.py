@@ -47,6 +47,60 @@ def refusal_accuracy(answerable_gold: bool | None,
     return refusal and not list(citation_ids or [])
 
 
+def evidence_equivalent_ranking(canonical_rankings: Iterable[dict[str, Any]],
+                               evidence_refs: Iterable[dict[str, Any]]) -> list[int]:
+    """Project canonical candidates through their EvidenceRefs, preserving first rank."""
+    refs_by_chunk: dict[int, list[int]] = {}
+    for ref in evidence_refs:
+        chunk_id, document_id = ref.get("canonicalChunkId"), ref.get("evidenceDocumentId")
+        if chunk_id is not None and document_id is not None:
+            refs_by_chunk.setdefault(int(chunk_id), []).append(int(document_id))
+    projected: list[int] = []
+    seen: set[int] = set()
+    for candidate in canonical_rankings:
+        for document_id in refs_by_chunk.get(int(candidate["chunkId"]), []):
+            if document_id not in seen:
+                seen.add(document_id)
+                projected.append(document_id)
+    return projected
+
+
+def selected_ranking(retrieval_layer: str | None,
+                     fallback: bool | None,
+                     canonical_evidence_ranking: Iterable[int] | None,
+                     evidence_ranking: Iterable[int] | None) -> list[int] | None:
+    if retrieval_layer == "CANONICAL" and fallback is False:
+        return list(canonical_evidence_ranking or [])
+    if retrieval_layer == "EVIDENCE":
+        return list(evidence_ranking or [])
+    return None
+
+
+def expected_fact_recall(expected_facts: Iterable[str] | None,
+                         retrieved_contexts: Iterable[str] | None) -> float | None:
+    """Strict deterministic literal coverage; deliberately not a semantic support judge."""
+    facts = [" ".join(str(fact).split()) for fact in expected_facts or [] if str(fact).strip()]
+    contexts = "\n".join(str(context) for context in retrieved_contexts or [])
+    normalized_context = " ".join(contexts.split())
+    if not facts or not contexts.strip():
+        return None
+    return sum(fact in normalized_context for fact in facts) / len(facts)
+
+
+def gold_coverage(gold_rows: Iterable[dict[str, Any]]) -> dict[str, int]:
+    rows = list(gold_rows)
+    confirmed = [row for row in rows if row.get("reviewStatus") == "CONFIRMED"]
+    return {
+        "cases": len(rows),
+        "answerableConfirmed": sum(row.get("answerable") is True for row in confirmed),
+        "unanswerableConfirmed": sum(row.get("answerable") is False for row in confirmed),
+        "expectedDocumentIdsConfirmed": sum(bool(row.get("expectedDocumentIds")) for row in confirmed),
+        "referenceAnswerConfirmed": sum(bool(row.get("referenceAnswer")) for row in confirmed),
+        "expectedFactsAvailable": sum(bool(row.get("expectedFactsAvailable")) for row in rows),
+        "notScorable": sum(row.get("reviewStatus") == "NOT_SCORABLE" for row in rows),
+    }
+
+
 def percentile(values: Iterable[float | int | None], percentile_value: float) -> float | None:
     ordered = sorted(float(value) for value in values if value is not None)
     if not ordered:

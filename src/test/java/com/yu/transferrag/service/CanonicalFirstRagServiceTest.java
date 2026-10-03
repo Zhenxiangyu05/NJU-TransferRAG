@@ -89,6 +89,53 @@ class CanonicalFirstRagServiceTest {
     }
 
     @Test
+    void evaluationTraceCapturesActualCanonicalAndEvidenceContextsWithoutChangingResponse() {
+        String question = "软件学院转专业需要面试吗？";
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] 需要参加面试", 0.80);
+        canonical.setDocumentId(99L);
+        canonical.setSection("考核方式");
+        Document evidence = evidenceDocument(12L, "2026 转专业通知");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository
+                .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1L, 900L, 0, evidence, 3, "通知要求参加面试")));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(new AnswerabilityResult(true, List.of("S1"), "证据充分"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("需要参加面试。[S1]"));
+
+        RagService.EvaluationTraceResult result = ragService.askForEvaluation(question, true);
+
+        assertEquals("需要参加面试。[S1]", result.response().getAnswer());
+        assertEquals("CANONICAL", result.trace().retrievalLayer());
+        assertFalse(result.trace().fallback());
+        assertEquals(1, result.trace().canonicalRanking().size());
+        assertEquals(12L, result.trace().evidenceEquivalentRanking().getFirst().documentId());
+        assertEquals(List.of(12L), result.trace().finalCitationDocumentIds());
+        assertEquals(1, result.trace().retrievedContexts().size());
+        assertEquals(1, result.trace().approvedContexts().size());
+        assertTrue(result.trace().retrievedContexts().getFirst().contains("[F0] 需要参加面试"));
+        assertTrue(result.trace().approvedContexts().getFirst().contains("通知要求参加面试"));
+    }
+
+    @Test
+    void evidenceEquivalentRankingDeduplicatesEvidenceDocumentsAtFirstCanonicalRank() {
+        SearchResultResponse first = canonicalResult(901L, "[F0] A", 0.91);
+        SearchResultResponse second = canonicalResult(902L, "[F0] B", 0.89);
+        SearchResultResponse third = canonicalResult(903L, "[F0] C", 0.87);
+        Document evidenceA = evidenceDocument(12L, "Evidence A");
+        Document evidenceB = evidenceDocument(14L, "Evidence B");
+        List<EvaluationTrace.Candidate> ranking = EvaluationTrace.Builder.projectEvidence(
+                List.of(first, second, third), List.of(
+                        evidenceRef(1L, 901L, 0, evidenceA, null, "A"),
+                        evidenceRef(2L, 902L, 0, evidenceA, null, "A again"),
+                        evidenceRef(3L, 903L, 0, evidenceB, null, "B")));
+
+        assertEquals(List.of(12L, 14L), ranking.stream().map(EvaluationTrace.Candidate::documentId).toList());
+        assertEquals(List.of(1, 2), ranking.stream().map(EvaluationTrace.Candidate::rank).toList());
+    }
+
+    @Test
     void shouldApproveRelevantEvidenceAcrossMultipleCanonicalCandidates() {
         String question = "转软件工程机考要做什么准备？";
         SearchResultResponse requirements = canonicalResult(21L,
@@ -128,7 +175,8 @@ class CanonicalFirstRagServiceTest {
         when(chatModel.call(any(Prompt.class)))
                 .thenReturn(chatResponse("机试准备建议。[S2]"));
 
-        RagResponse response = ragService.ask(question);
+        RagService.EvaluationTraceResult traced = ragService.askForEvaluation(question, true);
+        RagResponse response = traced.response();
 
         assertEquals("机试准备建议。[S2]", response.getAnswer());
         assertEquals(1, response.getSources().size());
@@ -163,6 +211,11 @@ class CanonicalFirstRagServiceTest {
         assertEquals(List.of(4L, 2L), sources.getValue().stream()
                 .map(SourceResponse::getDocumentId).toList());
         assertEquals(3, context.getValue().split("Evidence: \\[S2]", -1).length - 1);
+        assertEquals(2, traced.trace().canonicalRanking().size());
+        assertTrue(traced.trace().retrievedContexts().getFirst().contains("[F0] 申请软件工程专业"));
+        assertTrue(traced.trace().retrievedContexts().getFirst().contains("[F2] 作者建议"));
+        assertFalse(traced.trace().approvedContexts().getFirst().contains("[F0] 申请软件工程专业"));
+        assertTrue(traced.trace().approvedContexts().getFirst().contains("作者建议练习基础数据结构与算法"));
     }
 
     @Test
@@ -233,10 +286,18 @@ class CanonicalFirstRagServiceTest {
                 .thenReturn(new AnswerabilityResult(true, List.of("S1"), "充分"));
         when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("答案。[S1]"));
 
-        RagResponse response = ragService.ask(question);
+        RagService.EvaluationTraceResult traced = ragService.askForEvaluation(question, true);
+        RagResponse response = traced.response();
 
         assertEquals("答案。[S1]", response.getAnswer());
         assertEquals(12L, response.getSources().getFirst().getDocumentId());
+        assertEquals("EVIDENCE", traced.trace().retrievalLayer());
+        assertTrue(traced.trace().fallback());
+        assertEquals("NO_CANONICAL_RESULT", traced.trace().fallbackReason());
+        assertEquals(List.of(120L), traced.trace().evidenceFallbackRanking().stream()
+                .map(EvaluationTrace.Candidate::chunkId).toList());
+        assertTrue(traced.trace().retrievedContexts().getFirst().contains("原始资料正文"));
+        assertTrue(traced.trace().approvedContexts().getFirst().contains("原始资料正文"));
         verify(answerabilityService).check(anyString(), anyString(), anyList());
     }
 

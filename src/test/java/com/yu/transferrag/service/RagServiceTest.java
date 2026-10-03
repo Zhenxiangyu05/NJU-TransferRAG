@@ -178,6 +178,33 @@ class RagServiceTest {
     }
 
     @Test
+    void evaluationTraceCapturesV1RankingAndSeparatesRetrievedFromApprovedContext() {
+        String question = "软件工程面试怎么准备？";
+        SearchResultResponse result = searchResult(2, 22, 0, 0.81,
+                "软件学院", "软件工程", 2026, 2026);
+        result.setContent("Evidence context includes a concrete preparation fact.");
+        Document source = document(2, "个人整理资料", "软件学院", 2026, "PERSONAL", "DEPARTMENT");
+        when(retrievalService.search(question, 3)).thenReturn(List.of(result));
+        when(documentRepository.findAllById(Set.of(2L))).thenReturn(List.of(source));
+        when(answerabilityService.check(anyString(), anyString(), anyList()))
+                .thenReturn(new AnswerabilityResult(true, List.of("S1"), "充分"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("经验建议。[S1]"));
+
+        RagService.EvaluationTraceResult traced = ragService.askForEvaluation(question, false);
+
+        assertEquals("EVIDENCE", traced.trace().retrievalLayer());
+        assertFalse(traced.trace().fallback());
+        assertEquals(List.of(2L), traced.trace().rawRetrievedCandidates().stream()
+                .map(EvaluationTrace.Candidate::documentId).toList());
+        assertEquals(List.of(22L), traced.trace().rawRetrievedCandidates().stream()
+                .map(EvaluationTrace.Candidate::chunkId).toList());
+        assertTrue(traced.trace().retrievedContexts().getFirst().contains("Evidence context"));
+        assertTrue(traced.trace().approvedContexts().getFirst().contains("Evidence context"));
+        assertEquals(List.of(2L), traced.trace().finalCitationDocumentIds());
+        assertEquals("经验建议。[S1]", traced.response().getAnswer());
+    }
+
+    @Test
     void shouldRejectLowSimilarityWithoutLoadingDocumentsOrCallingChatModel() {
         String question = "食堂今天有什么菜？";
         when(retrievalService.search(question, 3)).thenReturn(List.of(
