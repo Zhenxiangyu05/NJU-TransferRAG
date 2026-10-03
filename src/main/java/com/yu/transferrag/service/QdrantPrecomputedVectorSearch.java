@@ -1,5 +1,7 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.exception.AiServiceUnavailableException;
+
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.WithPayloadSelectorFactory;
@@ -42,7 +44,8 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
 
     @Override
     public float[] embed(String query) {
-        return embeddingModel.embed(query);
+        return AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
+                () -> embeddingModel.embed(query));
     }
 
     @Override

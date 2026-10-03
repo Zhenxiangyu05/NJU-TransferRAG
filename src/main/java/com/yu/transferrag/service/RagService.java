@@ -1,5 +1,7 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.exception.AiServiceUnavailableException;
+
 import com.yu.transferrag.dto.AnswerabilityResult;
 import com.yu.transferrag.dto.RagResponse;
 import com.yu.transferrag.dto.SearchResultResponse;
@@ -204,7 +206,8 @@ public class RagService {
                 : SYSTEM_INSTRUCTION;
         Prompt prompt = new Prompt(List.of(new SystemMessage(systemInstruction),
                 new UserMessage(userPrompt)));
-        String answer = extractAnswer(chatModel.call(prompt));
+        String answer = extractAnswer(AiServiceUnavailableException.call(
+                AiServiceUnavailableException.Stage.GENERATION, () -> chatModel.call(prompt)));
         RagResponse response = new RagResponse();
         response.setQuestion(question);
         response.setAnswer(answer);

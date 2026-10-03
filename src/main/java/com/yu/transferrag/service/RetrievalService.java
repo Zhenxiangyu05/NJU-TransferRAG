@@ -1,5 +1,7 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.exception.AiServiceUnavailableException;
+
 import com.yu.transferrag.dto.QueryRewriteResult;
 import com.yu.transferrag.dto.SearchResultResponse;
 import com.yu.transferrag.entity.DocumentRole;
@@ -327,7 +329,8 @@ public class RetrievalService {
             requestBuilder.filterExpression(metadataFilter);
         }
 
-        return vectorStore.similaritySearch(requestBuilder.build()).stream()
+        return AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
+                () -> vectorStore.similaritySearch(requestBuilder.build())).stream()
                 .map(this::toResponse)
                 .filter(result -> result.getDocumentRole() == DocumentRole.EVIDENCE)
                 .toList();

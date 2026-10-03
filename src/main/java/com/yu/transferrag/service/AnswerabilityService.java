@@ -1,5 +1,7 @@
 package com.yu.transferrag.service;
 
+import com.yu.transferrag.exception.AiServiceUnavailableException;
+
 import com.yu.transferrag.dto.AnswerabilityResult;
 import com.yu.transferrag.dto.SourceResponse;
 import org.slf4j.Logger;
@@ -64,10 +66,11 @@ public class AnswerabilityService {
                 """.formatted(question, sourcesContext, outputConverter.getFormat());
 
         try {
-            ChatResponse response = chatModel.call(new Prompt(List.of(
+            ChatResponse response = AiServiceUnavailableException.call(
+                    AiServiceUnavailableException.Stage.ANSWERABILITY, () -> chatModel.call(new Prompt(List.of(
                     new SystemMessage(SYSTEM_INSTRUCTION),
                     new UserMessage(userPrompt)
-            )));
+            ))));
             String output = extractOutput(response);
             AnswerabilityResult parsed = outputConverter.convert(output);
             AnswerabilityResult validated = validate(parsed, sources);
@@ -77,6 +80,8 @@ public class AnswerabilityService {
                     validated.evidenceCitationIds().size()
             );
             return validated;
+        } catch (AiServiceUnavailableException exception) {
+            throw exception;
         } catch (Exception exception) {
             logger.warn(
                     "Evidence check failed closed: exceptionType={}",
