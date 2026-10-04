@@ -211,11 +211,28 @@ def main() -> int:
         aggregates[version] = summary
     paired = {key: paired_metric(by_version["V1"], by_version["V2"], case_ids, key) for key in PAIRED}
     routing = dict(Counter(by_version["V2"][c]["route"] for c in case_ids))
+    raw_by_key = {(version, row["caseId"]): row for version, rows in raw.items() for row in rows}
+    def missing_reason(entry: dict[str, Any], metric: str) -> str | None:
+        error = entry.get(metric + "Error")
+        if (metric == "faithfulness" and error == "ValueError"
+                and not raw_by_key[(entry["version"], entry["caseId"])].get("approvedContexts")):
+            return "APPROVED_CONTEXT_UNAVAILABLE"
+        return error
+
+    judge_errors = {
+        version: {
+            metric: dict(Counter(missing_reason(entry, metric) for entry in ragas["scores"]
+                                 if entry["version"] == version and missing_reason(entry, metric)))
+            for metric in ("answerRelevancy", "faithfulness", "contextRecall")
+        }
+        for version in ("V1", "V2")
+    }
     freeze = load(FREEZE)
     summary = {"freeze": freeze, "benchmarkSize": len(case_ids), "executed": {"V1": len(raw["V1"]),
                "V2": len(raw["V2"])}, "metrics": aggregates, "paired": paired, "v2Routing": routing,
                "ragas": {"version": "0.4.3", "judgeModel": "deepseek-v4-flash",
-                         "embeddingModel": "bge-m3", "temperature": 0},
+                         "embeddingModel": "bge-m3", "temperature": 0,
+                         "missingReasons": judge_errors},
                "expectedFactRecallDefinition": "CUSTOM METRIC: literal coverage of resolvedExpectedFacts in actual retrievedContexts; not RAGAS Context Recall",
                "e2eDefinition": "Deterministic PASS requires evidence-relative refusal without citation; objective retrieval/citation failures are FAIL; remaining answerable cases require MANUAL_SEMANTIC_REVIEW.",
                "latencyDefinition": "In-process request wall clock in the isolated benchmark host; not a production SLA."}
@@ -247,7 +264,7 @@ def main() -> int:
         a, b = aggregates["V1"][key], aggregates["V2"][key]
         delta = paired.get(key)
         lines.append(f"| {key} | {fmt(a['score'])} ({a['n']}) | {fmt(b['score'])} ({b['n']}) | "
-                     f"{fmt(delta['delta'])} ({delta['pairedN']})" if delta else
+                     f"{fmt(delta['delta'])} ({delta['pairedN']}) |" if delta else
                      f"| {key} | {fmt(a['score'])} ({a['n']}) | {fmt(b['score'])} ({b['n']}) | N/A |")
     for key in ("mean", "p50", "p95"):
         a, b = aggregates["V1"]["latencyMs"], aggregates["V2"]["latencyMs"]
@@ -259,6 +276,12 @@ def main() -> int:
         e = aggregates[version]["e2e"]
         lines.append(f"- {version}: PASS={e.get('PASS',0)}, FAIL={e.get('FAIL',0)}, "
                      f"MANUAL_REVIEW={e.get('MANUAL_REVIEW',0)}; paired denominator={len(case_ids)}.")
+    lines += ["", "## Missing judge scores (not zero)", ""]
+    for version in ("V1", "V2"):
+        for metric in ("answerRelevancy", "faithfulness", "contextRecall"):
+            errors = judge_errors[version][metric]
+            lines.append(f"- {version} {metric}: {sum(errors.values())} "
+                         f"({', '.join(f'{name}={count}' for name, count in errors.items()) or 'none'}).")
     lines += ["", "## Limitations", "",
               "- Expected Fact Recall is a CUSTOM METRIC on resolvedExpectedFacts and actual retrieved context; it is not RAGAS Context Recall.",
               "- Judge parsing/provider failures are missing values, never zero. Faithfulness requires actual approvedContext; Context Recall requires a confirmed reference answer.",
