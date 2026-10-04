@@ -46,6 +46,21 @@ class GoldReviewWorkflowTest(unittest.TestCase):
         self.assertEqual(row["reviewSource"], "evidence_verified_accelerated_review")
         self.assertEqual(row["verifiedEvidence"], verified["verifiedEvidence"])
 
+    def test_regeneration_preserves_full_review_refusal_with_audited_scope(self):
+        cases = [{"caseId": "TRAG-008", "question": "2026年考试形式？",
+                  "sourceFile": "指南.pdf", "department": "甲学院", "sourceYear": 2026,
+                  "category": "面试/机试", "expectedFacts": ["形式"], "evidenceText": "历史资料"}]
+        reviewed = {"caseId": "TRAG-008", "answerable": False, "expectedDocumentIds": [],
+                    "expectedFactsStatus": "NEEDS_FIX", "reviewStatus": "CONFIRMED",
+                    "reviewSource": "evidence_verified_full_review", "verifiedEvidence": [],
+                    "reviewedEvidenceScope": {"documentRole": "EVIDENCE", "documentIds": [1, 2]},
+                    "reviewerNotes": "Only previous-year evidence exists."}
+        gold, _, coverage = build_artifacts(cases, {"cases": [reviewed]}, {}, {})
+        self.assertEqual(gold["cases"][0]["reviewStatus"], "CONFIRMED")
+        self.assertEqual(gold["cases"][0]["expectedDocumentIds"], [])
+        self.assertEqual(gold["cases"][0]["reviewedEvidenceScope"], reviewed["reviewedEvidenceScope"])
+        self.assertEqual(coverage["scorable"]["refusalAccuracy"], 1)
+
     def test_review_document_partitions_cases_and_has_reference_categories(self):
         cases = [
             {"caseId": "TRAG-001", "question": "学制几年？", "sourceFile": "甲.pdf",

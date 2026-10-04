@@ -1,7 +1,7 @@
 {
   "dataset": "evaluation/test-cases.json",
   "generatedBy": "build_gold_review.py",
-  "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or an explicit evidence_verified_accelerated_review with verified Evidence metadata.",
+  "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or explicit Evidence verification; refusals require an audited Evidence scope.",
   "expectedFactsOverrideSemantics": "complete_replacement",
   "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
   "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",
@@ -347,11 +347,11 @@
     },
     {
       "caseId": "TRAG-008",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -379,7 +379,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前库的汉文二次选拔资料只直接描述先前年份流程，不能把初复试时长外推为2026年安排。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-009",
@@ -436,11 +466,13 @@
     },
     {
       "caseId": "TRAG-010",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        10
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人汉文分流指南，文学院不接受大二学年的汉语言文学转专业申请；请以当年学院通知核实。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -467,15 +499,33 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人汉文分流指南，不接受大二学年转专业申请"
+      ],
+      "reviewerNotes": "指南明确写明文学院不接受大二学年的转专业申请。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 10,
+          "title": "人文大类汉语言文学分流指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*人文科学试验班"
+        }
+      ]
     },
     {
       "caseId": "TRAG-011",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        11
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据以2024级课程为参考的个人化生手册，大一上主要有微积分I（二层次）、大学化学实验基础、普通生物学（上）和大学化学A。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -500,15 +550,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2024级课程为参考的个人化生大类手册，微积分I二层次",
+        "据以2024级课程为参考的个人化生大类手册，大学化学实验基础",
+        "据以2024级课程为参考的个人化生大类手册，普通生物学上",
+        "据以2024级课程为参考的个人化生大类手册，大学化学A"
+      ],
+      "reviewerNotes": "课程介绍列出大一上微积分、化学实验基础、普通生物学上、大学化学A。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 11,
+          "title": "化学与生命科学类生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（化学与生命科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-012",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        11
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据该个人化生手册，分流生科方向的大一下编程课为Python程序设计和C语言程序设计二选一。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -533,15 +604,33 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2024级课程为参考的个人化生大类手册，Python程序设计与C语言程序设计二选一"
+      ],
+      "reviewerNotes": "大一下生科方向课程列表明确列出Python与C语言二选一。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 11,
+          "title": "化学与生命科学类生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（化学与生命科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-013",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        11
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -566,15 +655,38 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2024级课程为参考的个人化生大类手册，微积分II二层次",
+        "据以2024级课程为参考的个人化生大类手册，Python或C语言二选一",
+        "据以2024级课程为参考的个人化生大类手册，大学化学B",
+        "据以2024级课程为参考的个人化生大类手册，大学化学实验",
+        "据以2024级课程为参考的个人化生大类手册，普通物理",
+        "据以2024级课程为参考的个人化生大类手册，马克思主义原理"
+      ],
+      "reviewerNotes": "大一下化学方向课程列表逐项列出数学、编程、化学实验、普通物理和马原。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 11,
+          "title": "化学与生命科学类生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（化学与生命科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-014",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        11
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -600,7 +712,25 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2024级课程为参考的个人化生大类手册，基础劳育10小时",
+        "据以2024级课程为参考的个人化生大类手册，每学期志愿10小时",
+        "据以2024级课程为参考的个人化生大类手册，完成大学生劳育考试"
+      ],
+      "reviewerNotes": "补充章节直接列出十小时基础劳育、每学期十小时志愿与劳育考试。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 11,
+          "title": "化学与生命科学类生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（化学与生命科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-015",
@@ -659,11 +789,13 @@
     },
     {
       "caseId": "TRAG-016",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -691,15 +823,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级汉语言文学条目：第一学期全部课程平均学分绩须达4.0（含）以上",
+        "2026准入计划中2025级汉语言文学条目：课程无不及格记录"
+      ],
+      "reviewerNotes": "官方2025级汉文行载有平均学分绩4.0和无不及格记录。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-017",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2026准入计划的2025级法学条目要求已修或在修法理学导论、刑法学（总论一）、民法学（总则）、宪法学任一门，并于学期末取得学分。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -730,15 +881,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级法学条目：法理学导论、刑法学总论一、民法学总则、宪法学中任意1门",
+        "2026准入计划中2025级法学条目：学期结束取得学分"
+      ],
+      "reviewerNotes": "官方2025级法学行列出四选一准入课并要求取得学分。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-018",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -766,15 +936,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级数学类条目：数分I、II+高代I、II+解析几何",
+        "2026准入计划中2025级数学类条目：或微积分I、II第一层次+线性代数第一层次",
+        "2026准入计划中2025级数学类条目：两套满足一套即可"
+      ],
+      "reviewerNotes": "官方2025级数学类行给出数分/高代/解析几何与第一层次微积分/线代两套路径。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-019",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -802,15 +992,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级数学类条目：校内数学竞赛成绩可以计入准入考核附加分",
+        "2026准入计划中2025级数学类条目：修读数学分析、高等代数、解析几何路线，对应数学专业类竞赛附加分",
+        "2026准入计划中2025级数学类条目：修读第一层次微积分I/II、线性代数路线，对应非数学专业A类竞赛附加分"
+      ],
+      "reviewerNotes": "官方数学类行按两套修课路径分别对应数学专业类与非数学专业A类竞赛附加分。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-020",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -837,7 +1047,27 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级物理学类条目：微积分I第一层次",
+        "2026准入计划中2025级物理学类条目：微积分II第一层次",
+        "2026准入计划中2025级物理学类条目：线性代数第一层次",
+        "2026准入计划中2025级物理学类条目：力学",
+        "2026准入计划中2025级物理学类条目：热学"
+      ],
+      "reviewerNotes": "官方2025级物理学类行列出三门第一层次数学和力学、热学。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-021",
@@ -891,11 +1121,13 @@
     },
     {
       "caseId": "TRAG-022",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -922,15 +1154,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级人工智能条目：资格审核后组织综合考核面试",
+        "2026准入计划中2025级人工智能条目：按综合考核成绩确定名单"
+      ],
+      "reviewerNotes": "官方2025级人工智能行明确资格审核后的综合考核为面试。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-023",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2026准入计划中2024级软件工程条目列出计算系统基础、C语言程序设计基础、软件工程与计算I、离散数学，要求其中至少两门取得学分；2025级条目另有要求。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -957,7 +1208,23 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2024级软件工程条目：计算系统基础、C语言程序设计基础、软件工程与计算I、离散数学四门中至少修读两门并取得学分"
+      ],
+      "reviewerNotes": "四门中至少两门来自官方2024级软件工程行；2025级行另有不同条件。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-024",
@@ -1017,11 +1284,13 @@
     },
     {
       "caseId": "TRAG-025",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1048,15 +1317,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2024级计算机科学与技术条目：离散数学，以及程序设计基础或计算机程序的构造和解释",
+        "2026准入计划中2024级计算机科学与技术条目：两门准入课程本学期结束须取得学分且成绩均达80分（含）以上"
+      ],
+      "reviewerNotes": "离散数学加程序设计基础或SICP、80分门槛来自官方2024级计算机行。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-026",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2026准入计划的计算机学院准入方法包括资格审核后笔试、机试、面试；三项中任一不及格者不予录取。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1083,15 +1371,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中计算机学院综合考核条目：笔试",
+        "2026准入计划中计算机学院综合考核条目：机试",
+        "2026准入计划中计算机学院综合考核条目：面试",
+        "2026准入计划中计算机学院综合考核条目：任一项不及格不予录取"
+      ],
+      "reviewerNotes": "官方计算机学院准入方法列明笔试、机试、面试和任一项不及格不录取。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-027",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2026准入计划中2024级软件工程条目要求第一层次微积分I、微积分II和线性代数取得学分，并在四门软件工程学科基础课中至少两门取得学分。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1122,15 +1431,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2024级软件工程条目：微积分I、微积分II、线性代数须为第一层次并取得学分",
+        "2026准入计划中2024级软件工程条目：计算系统基础、C语言程序设计基础、软件工程与计算I、离散数学中至少两门取得学分"
+      ],
+      "reviewerNotes": "第一层次数学三门与四门专业课中至少两门来自官方2024级软件工程行。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-028",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "2026准入计划中2025级社会工作条目要求申请时已取得社会与心理科学导论学分，并在修社会学概论、社会工作概论、心理学概论（上）中的任一门。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1161,15 +1489,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级社会工作条目：已取得社会与心理科学导论学分",
+        "2026准入计划中2025级社会工作条目：社会学概论、社会工作概论、心理学概论上中在修任意1门"
+      ],
+      "reviewerNotes": "官方2025级社会工作行规定先取得导论学分，再在修三门选一。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-029",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        20
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1197,15 +1544,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "2026准入计划中2025级信息管理与信息系统条目：信息资源管理导论",
+        "2026准入计划中2025级信息管理与信息系统条目：信息组织",
+        "2026准入计划中2025级信息管理与信息系统条目：程序设计语言",
+        "2026准入计划中2025级信息管理与信息系统条目：数据思维",
+        "2026准入计划中2025级信息管理与信息系统条目：任意1门"
+      ],
+      "reviewerNotes": "官方2025级信息管理与信息系统行列出四门课任意一门；2024级第四门不同。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 20,
+          "title": "南京大学2026转专业准入计划表",
+          "documentRole": "EVIDENCE",
+          "sourceType": "OFFICIAL_PDF",
+          "year": 2026,
+          "department": "本科生院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-030",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        9
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1222,15 +1591,32 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2025年个人汉文转专业指南，人文大类分流方向包括历史、哲学、新闻传播、汉语国际教育",
+        "据2025年个人汉文转专业指南，2025年汉语言文学回到人文大类分流，指南估计约有五个名额"
+      ],
+      "reviewerNotes": "个人图像PDF列举人文分流方向，并说明2025年汉文回到人文大类分流。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 9,
+          "title": "文学院汉语言文学转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "文学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-031",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1250,7 +1636,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "现有入库 Evidence 没有2023级人文大类110人的五项分流人数；原题对应文件未入库。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-032",
@@ -1282,11 +1698,13 @@
     },
     {
       "caseId": "TRAG-033",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        9
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1303,7 +1721,24 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2025年个人汉文转专业指南，指南建议阅读两三本经典原著、四五本相关衍生著作，并参考学术论文或书籍",
+        "据2025年个人汉文转专业指南，指南强调耐心阅读、提炼自己的观点并培养文学思考与表达能力"
+      ],
+      "reviewerNotes": "个人图像PDF提出原著、衍生著作与论文阅读建议，强调形成自己的文学观点。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 9,
+          "title": "文学院汉语言文学转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "文学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-034",
@@ -1354,11 +1789,13 @@
     },
     {
       "caseId": "TRAG-035",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        17
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1385,15 +1822,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2025级经验为主的个人技科指南，大一鼓楼校区",
+        "据以2025级经验为主的个人技科指南，大二起苏州校区"
+      ],
+      "reviewerNotes": "技科个人指南写明通常大一鼓楼、大二起苏州。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 17,
+          "title": "技术科学试验班生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*技术科学试验班"
+        }
+      ]
     },
     {
       "caseId": "TRAG-036",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        17
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -1420,7 +1876,25 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2025级经验为主的个人技科指南，微积分",
+        "据以2025级经验为主的个人技科指南，线性代数",
+        "据以2025级经验为主的个人技科指南，信息科学中的物理学"
+      ],
+      "reviewerNotes": "指南明确以2025级经验为主，分流加权课程含微积分、线代和信息科学中的物理学。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 17,
+          "title": "技术科学试验班生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*技术科学试验班"
+        }
+      ]
     },
     {
       "caseId": "TRAG-037",
@@ -1542,11 +2016,13 @@
     },
     {
       "caseId": "TRAG-040",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        12
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1563,15 +2039,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人地学大类生存指南，英语",
+        "据个人地学大类生存指南，数学通修课",
+        "据个人地学大类生存指南，大学化学A",
+        "据个人地学大类生存指南，地球科学与资源环境导论"
+      ],
+      "reviewerNotes": "地学个人指南列出分流只看上学期英语、数学、大学化学A、地学导论四门。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 12,
+          "title": "地球科学与资源环境大类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（地球科学与资源环境类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-041",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        12
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1589,15 +2086,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人地学大类生存指南，大气17人",
+        "据个人地学大类生存指南，环境29人",
+        "据个人地学大类生存指南，地科13人",
+        "据个人地学大类生存指南，地海24人",
+        "据个人地学大类生存指南，转出39人"
+      ],
+      "reviewerNotes": "地学个人指南附有2023级五项分流/转出人数。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 12,
+          "title": "地球科学与资源环境大类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（地球科学与资源环境类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-042",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        12
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1614,15 +2133,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人地学大类生存指南，需要一层次数学",
+        "据个人地学大类生存指南，微积分I一层次",
+        "据个人地学大类生存指南，微积分II一层次",
+        "据个人地学大类生存指南，线性代数"
+      ],
+      "reviewerNotes": "指南写明地海拔尖需要第一层次数学，而大类分流只需第二层次。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 12,
+          "title": "地球科学与资源环境大类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（地球科学与资源环境类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-043",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        12
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据个人地学指南，转专业选课应对应目标专业要求的数学层次；若目标专业大一需要线代，宜提前安排上学期修读。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1642,15 +2182,32 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人地学大类生存指南，修读目标专业要求的数学层次",
+        "据个人地学大类生存指南，若目标线代大一修读建议上学期提前修"
+      ],
+      "reviewerNotes": "指南建议按目标专业要求选数学层次，并提前安排线代。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 12,
+          "title": "地球科学与资源环境大类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（地球科学与资源环境类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-044",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1667,15 +2224,45 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "工科试验班生存指南未作为当前 Evidence 导入；其他试验班资料不能替代其2026级方向清单。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-045",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1695,15 +2282,45 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前 Evidence 没有原工科试验班指南关于转专业优势的论证；不能用其他大类经验替代。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-046",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1720,7 +2337,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前 Evidence 没有2026级工试分流现工院的三选一课程要求。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-047",
@@ -1836,11 +2483,13 @@
     },
     {
       "caseId": "TRAG-050",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        19
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1865,15 +2514,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2025级个人数理大类指南，按指南往年经验，数学分流核心课平均学分绩约4.2可进入数学学院",
+        "据2025级个人数理大类指南，指南回顾2024级因考试较难约降到4.1；这不是固定准入线"
+      ],
+      "reviewerNotes": "个人数理指南以往年经验回顾4.2及2024级约4.1，均非官方固定线。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 19,
+          "title": "数理科学类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（数理科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-051",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        19
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1898,15 +2566,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2025级个人数理大类指南，解析几何课后题和考前突击可高分",
+        "据2025级个人数理大类指南，数学分析应最大投入并打牢课本例题作业",
+        "据2025级个人数理大类指南，高代重基础且赋分，若求后续学习也要打牢"
+      ],
+      "reviewerNotes": "个人指南分别讨论解析几何、数学分析、高等代数的复习投入。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 19,
+          "title": "数理科学类生存指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "*理科试验班（数理科学类）"
+        }
+      ]
     },
     {
       "caseId": "TRAG-052",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        8
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1923,15 +2611,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据更新至2025年的个人法学转专业指南，四门准入课中任意一门取得学分",
+        "据更新至2025年的个人法学转专业指南，参加笔试和面试",
+        "据更新至2025年的个人法学转专业指南，按综合成绩和计划人数择优录取"
+      ],
+      "reviewerNotes": "个人法学指南的前期流程列出四选一准入课、笔试面试及综合择优。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 8,
+          "title": "法学院转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "法学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-053",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        8
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1948,15 +2656,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据更新至2025年的个人法学转专业指南，法理学导论",
+        "据更新至2025年的个人法学转专业指南，民法学总则",
+        "据更新至2025年的个人法学转专业指南，刑法学总论一",
+        "据更新至2025年的个人法学转专业指南，宪法学"
+      ],
+      "reviewerNotes": "个人法学指南直接列出四门法学院准入课。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 8,
+          "title": "法学院转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "法学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-054",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        8
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1973,15 +2702,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据更新至2025年的个人法学转专业指南，民法学总则50分",
+        "据更新至2025年的个人法学转专业指南，刑法学50分",
+        "据更新至2025年的个人法学转专业指南，法理学50分",
+        "据更新至2025年的个人法学转专业指南，三选二作答"
+      ],
+      "reviewerNotes": "个人法学指南的笔试节列出三科各50分、三选二。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 8,
+          "title": "法学院转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "法学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-055",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        8
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -1998,15 +2748,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据更新至2025年的个人法学转专业指南，自我介绍",
+        "据更新至2025年的个人法学转专业指南，专业知识",
+        "据更新至2025年的个人法学转专业指南，英语口语",
+        "据更新至2025年的个人法学转专业指南，专业知识可在民法、刑法、法理中选一"
+      ],
+      "reviewerNotes": "个人法学指南的面试节写明自我介绍、专业知识、英语口语。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 8,
+          "title": "法学院转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "法学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-056",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        8
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据更新至2025年的个人法学指南，多数笔试考生选择民法与刑法，作者建议大一下重视这两门，结合教材、笔记和往年题复习。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2026,15 +2797,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据更新至2025年的个人法学转专业指南，多数人笔试选择民法和刑法",
+        "据更新至2025年的个人法学转专业指南，大一下是重要阶段",
+        "据更新至2025年的个人法学转专业指南，需结合教材笔记和往年题全面备考"
+      ],
+      "reviewerNotes": "指南说明大多数人选择民法与刑法，建议结合教材笔记和往年题准备。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 8,
+          "title": "法学院转专业指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "法学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-057",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        16
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2051,15 +2842,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人整理的转AI风险材料，数学分析每周5学时",
+        "据个人整理的转AI风险材料，高等代数5学时",
+        "据个人整理的转AI风险材料，程序设计基础6学时",
+        "据个人整理的转AI风险材料，离散数学4学时",
+        "据个人整理的转AI风险材料，课表很满"
+      ],
+      "reviewerNotes": "Document 16标题涉及计算机，正文实为AI；列有数学分析、高代、程序设计与离散数学周学时。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 16,
+          "title": "转计算机科学与技术专业的难处",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "计算机学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-058",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        16
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2076,15 +2889,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人整理的转AI风险材料，AI专业课程不能直接替代其他专业课程，其他专业课程也不能直接替代AI课程",
+        "据个人整理的转AI风险材料，若转AI失败，所修AI数学分析仍可能需要补修通修微积分，作者认为失败代价较大"
+      ],
+      "reviewerNotes": "正文直接讨论AI课程互不替代及转入失败后补修通修微积分。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 16,
+          "title": "转计算机科学与技术专业的难处",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "计算机学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-059",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        16
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2101,15 +2933,33 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据个人整理的转AI风险材料，通常不问专业问题、偏闲聊",
+        "据个人整理的转AI风险材料，面试仍会卡人",
+        "据个人整理的转AI风险材料，存在不可控风险"
+      ],
+      "reviewerNotes": "正文以个人经验描述AI面试偏闲聊但仍可能淘汰申请者。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 16,
+          "title": "转计算机科学与技术专业的难处",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "计算机学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-060",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2126,15 +2976,45 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "Document 16 虽以计算机命名，正文实际讨论人工智能；当前库缺少转计算机微积分与笔试机试平衡的证据。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-061",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2155,15 +3035,45 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前库没有可核实的转CS笔试两小时四题及数学题范围的 Evidence。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-062",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2183,15 +3093,45 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前库没有可核实的转CS机试三题题型与分数的 Evidence。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-063",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": false,
+      "expectedDocumentIds": [],
+      "expectedFactsStatus": "NEEDS_FIX",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2208,15 +3148,47 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "冻结知识库无足够 Evidence；该判断不代表现实世界无答案。",
+      "expectedFactsOverride": [],
+      "reviewerNotes": "当前库没有足以支持转计算机四类困难的 Evidence；Document 16 的正文是转AI风险。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [],
+      "reviewedEvidenceScope": {
+        "documentRole": "EVIDENCE",
+        "documentIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      }
     },
     {
       "caseId": "TRAG-064",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        15
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2244,7 +3216,23 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转光电概述，个人概述转述的准入文件要求：普通物理（力学）、大学化学、普通物理（热学）三门中至少已修或在修一门，并在学期结束取得学分"
+      ],
+      "reviewerNotes": "个人光电概述转述准入原文件的三选一课程要求；不得将该二手资料标为OFFICIAL。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 15,
+          "title": "转光电试验班概述",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-065",
@@ -2288,11 +3276,13 @@
     },
     {
       "caseId": "TRAG-066",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        15
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2319,15 +3309,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转光电概述，学院重视数学物理能力",
+        "据2026年个人转光电概述，面试官会看第一学期成绩",
+        "据2026年个人转光电概述，可能追问第二学期期中成绩"
+      ],
+      "reviewerNotes": "个人概述称学院看重数学物理成绩，面试官可能看第一学期并问第二学期期中成绩。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 15,
+          "title": "转光电试验班概述",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-067",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        15
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人光电概述，该次光材二次拔尖面试先自我介绍，之后谈高中印象深刻的事，再从多个问题中选答并有一分钟准备；举例涉及光学隐身、信息材料、海市蜃楼和冷热杯破裂。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2358,15 +3368,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转光电概述，自我介绍",
+        "据2026年个人转光电概述，高中印象深刻的事",
+        "据2026年个人转光电概述，多个问题选答且准备1分钟",
+        "据2026年个人转光电概述，涉及光学隐身、信息材料、海市蜃楼、冷热杯破裂等"
+      ],
+      "reviewerNotes": "个人概述列出2026级光材面试自述及一分钟准备后的题目示例。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 15,
+          "title": "转光电试验班概述",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-068",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2384,7 +3415,29 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，微积分I一层次",
+        "据2026年个人转电子指南，大学物理I",
+        "据2026年个人转电子指南，电路分析",
+        "据2026年个人转电子指南，微积分II一层次",
+        "据2026年个人转电子指南，模拟电路",
+        "据2026年个人转电子指南，大学物理II",
+        "据2026年个人转电子指南，均不低于70分"
+      ],
+      "reviewerNotes": "2026个人电子指南列出六门课总评均不低于70分。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-069",
@@ -2422,11 +3475,13 @@
     },
     {
       "caseId": "TRAG-070",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人转电子指南，面试先限时一分钟自我陈述，再由老师轮流提问，可能涉及大学物理、电路分析、模拟电路和C语言；资料未给出固定提问时长。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2447,15 +3502,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，面试包括限时一分钟自我陈述，随后老师轮流提问",
+        "据2026年个人转电子指南，提问可能涉及大学物理、电路分析、模拟电路、C语言，也可能根据陈述追问"
+      ],
+      "reviewerNotes": "指南写明一分钟陈述后轮流提问，没有3–4分钟提问时长依据。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-071",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2472,15 +3546,34 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，指南建议利用往年卷、课后习题和考前习题课复习",
+        "据2026年个人转电子指南，指南建议大学物理重视书后习题"
+      ],
+      "reviewerNotes": "指南写有往年卷、课后习题与考前习题课；原‘考前指导’需要改写。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-072",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人转电子指南，大一转电子的六门准入课是一层次微积分I/II、大学物理I/II、电路分析、模拟电路，六门总评都不得低于70分。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2512,15 +3605,37 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，微积分I和II第一层次",
+        "据2026年个人转电子指南，大学物理I和II",
+        "据2026年个人转电子指南，电路分析",
+        "据2026年个人转电子指南，模拟电路",
+        "据2026年个人转电子指南，总评均不低于70"
+      ],
+      "reviewerNotes": "指南2026版列出六门一层次数学/物理/电路课及70分总评要求。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-073",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人转电子指南，当年面试约在5月底；流程为一分钟个人陈述后老师轮流提问，问题可能涉及大物、电分、模电或C语言。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2551,7 +3666,26 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，5月底面试",
+        "据2026年个人转电子指南，1分钟个人陈述",
+        "据2026年个人转电子指南，老师轮流提问",
+        "据2026年个人转电子指南，问题可涉及大物、电分、模电、C语言"
+      ],
+      "reviewerNotes": "指南描述2026年5月底面试、一分钟陈述及老师轮流提问。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-074",
@@ -2647,11 +3781,13 @@
     },
     {
       "caseId": "TRAG-076",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人转电子指南，五门专业导学课中至少修一门，四门对外开放；课程在鼓楼开设、计一学分，选修某门不限制后续分流方向。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2682,15 +3818,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，五门专业导学课中至少选修一门；其中四门对外开放",
+        "据2026年个人转电子指南，导学课在鼓楼开设，计一学分",
+        "据2026年个人转电子指南，选择某门导学课不限制之后的专业分流方向"
+      ],
+      "reviewerNotes": "指南列出五门至少修一门、四门对外、鼓楼一学分且不限制分流。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-077",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        14
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据2026年个人转电子指南，六门准入课总评均不低于70分；面试包括一分钟陈述和老师提问，可能问大物、电分、模电或C语言。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [
@@ -2721,15 +3877,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据2026年个人转电子指南，六门准入课均70分以上",
+        "据2026年个人转电子指南，面试1分钟陈述加提问",
+        "据2026年个人转电子指南，可能问大物、电分、模电、C语言"
+      ],
+      "reviewerNotes": "指南同一章节支持六门准入课70分及面试陈述和提问范围。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 14,
+          "title": "转电子指南",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "电子科学与工程学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-078",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        13
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2746,15 +3922,38 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2023级培养方案为背景的个人南赫手册，基础课",
+        "据以2023级培养方案为背景的个人南赫手册，概论课",
+        "据以2023级培养方案为背景的个人南赫手册，专业核心",
+        "据以2023级培养方案为背景的个人南赫手册，地球系统学科交叉模块",
+        "据以2023级培养方案为背景的个人南赫手册，自选模块",
+        "据以2023级培养方案为背景的个人南赫手册，专业选修"
+      ],
+      "reviewerNotes": "南赫个人手册的培养体系节列出六类课程；附录基于2023级培养方案。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 13,
+          "title": "南京大学赫尔辛基大气学院生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "南京赫尔辛基大气与地球系统科学学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-079",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        13
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2771,15 +3970,36 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2023级培养方案为背景的个人南赫手册，套路性强、计算量大",
+        "据以2023级培养方案为背景的个人南赫手册，强调应用和做题而非证明",
+        "据以2023级培养方案为背景的个人南赫手册，以作业和quiz为导向",
+        "据以2023级培养方案为背景的个人南赫手册，需要微积分I基础"
+      ],
+      "reviewerNotes": "手册微积分II节讨论计算与应用、作业/quiz和微积分I基础。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 13,
+          "title": "南京大学赫尔辛基大气学院生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "南京赫尔辛基大气与地球系统科学学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-080",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
-      "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "answerable": true,
+      "expectedDocumentIds": [
+        13
+      ],
+      "expectedFactsStatus": "SUPPORTED",
+      "referenceAnswer": "据个人南赫手册，一学期选课以25学分以内为宜、最多30学分，考试课程建议不超过10门。",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2799,15 +4019,35 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2023级培养方案为背景的个人南赫手册，总学分以25以内为宜",
+        "据以2023级培养方案为背景的个人南赫手册，最多30学分",
+        "据以2023级培养方案为背景的个人南赫手册，考试课程10门以内"
+      ],
+      "reviewerNotes": "手册选课建议写明25以内为宜、最多30学分、考试课10门以内。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 13,
+          "title": "南京大学赫尔辛基大气学院生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "南京赫尔辛基大气与地球系统科学学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-081",
-      "answerable": null,
-      "expectedDocumentIds": null,
-      "expectedFactsStatus": null,
+      "answerable": true,
+      "expectedDocumentIds": [
+        13
+      ],
+      "expectedFactsStatus": "SUPPORTED",
       "referenceAnswer": null,
-      "reviewStatus": "NEEDS_REVIEW",
+      "reviewStatus": "CONFIRMED",
       "expectedFactsAvailable": true,
       "suggestedAnswerable": "true (review required)",
       "suggestedExpectedDocumentIds": [],
@@ -2824,7 +4064,26 @@
           "evaluation/evaluation-results.json"
         ]
       },
-      "notes": "所有历史来源仅作候选线索；请核验当前 DocumentRole=EVIDENCE、ID 与原文。生成建议不会自动填入 Gold，也不会标记 CONFIRMED。"
+      "notes": "依据当前 Evidence 原文；个人资料和年级适用范围均在完整 fact override 中限定。",
+      "expectedFactsOverride": [
+        "据以2023级培养方案为背景的个人南赫手册，观测",
+        "据以2023级培养方案为背景的个人南赫手册，数值模拟",
+        "据以2023级培养方案为背景的个人南赫手册，少量室内实验",
+        "据以2023级培养方案为背景的个人南赫手册，观测可用高速摄像机或天线阵"
+      ],
+      "reviewerNotes": "手册大气电学节列出观测、数值模拟、少量室内实验和摄像机/天线阵。",
+      "reviewSource": "evidence_verified_full_review",
+      "reviewedAt": "2026-10-04T07:49:44+00:00",
+      "verifiedEvidence": [
+        {
+          "documentId": 13,
+          "title": "南京大学赫尔辛基大气学院生存手册",
+          "documentRole": "EVIDENCE",
+          "sourceType": "PERSONAL",
+          "year": 2026,
+          "department": "南京赫尔辛基大气与地球系统科学学院"
+        }
+      ]
     },
     {
       "caseId": "TRAG-082",

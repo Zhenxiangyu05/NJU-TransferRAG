@@ -235,11 +235,30 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
         review_source = previous.get("reviewSource")
         manually_confirmed = (previous.get("reviewStatus") == "CONFIRMED"
                               and review_source == "manual_review_batch_1")
-        evidence_verified = (previous.get("reviewStatus") == "CONFIRMED"
-                             and review_source == "evidence_verified_accelerated_review"
-                             and isinstance(previous.get("verifiedEvidence"), list)
-                             and bool(previous["verifiedEvidence"]))
-        confirmed = manually_confirmed or evidence_verified
+        evidence_review_source = review_source in {
+            "evidence_verified_accelerated_review", "evidence_verified_full_review"
+        }
+        verified_evidence = previous.get("verifiedEvidence")
+        reviewed_scope = previous.get("reviewedEvidenceScope")
+        evidence_verified_answerable = (
+            previous.get("reviewStatus") == "CONFIRMED" and evidence_review_source
+            and previous.get("answerable") is True
+            and isinstance(previous.get("expectedDocumentIds"), list)
+            and bool(previous["expectedDocumentIds"])
+            and isinstance(verified_evidence, list) and bool(verified_evidence)
+        )
+        evidence_verified_unanswerable = (
+            previous.get("reviewStatus") == "CONFIRMED" and evidence_review_source
+            and previous.get("answerable") is False
+            and previous.get("expectedDocumentIds") == []
+            and verified_evidence == []
+            and isinstance(reviewed_scope, dict)
+            and reviewed_scope.get("documentRole") == "EVIDENCE"
+            and isinstance(reviewed_scope.get("documentIds"), list)
+            and bool(reviewed_scope["documentIds"])
+            and bool(previous.get("reviewerNotes"))
+        )
+        confirmed = manually_confirmed or evidence_verified_answerable or evidence_verified_unanswerable
         label = {
             "caseId": case["caseId"],
             "answerable": previous.get("answerable") if confirmed else None,
@@ -260,7 +279,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
         }
         if confirmed:
             for field in ("expectedFactsOverride", "reviewerNotes", "reviewSource", "reviewedAt",
-                          "verifiedEvidence", "notes"):
+                          "verifiedEvidence", "reviewedEvidenceScope", "notes"):
                 if field in previous:
                     label[field] = previous[field]
         labels.append(label)
@@ -279,7 +298,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
         f"- Confirmed expectedDocumentIds / expectedFacts: {coverage['expectedDocumentIdsConfirmed']} / {coverage['expectedFactsConfirmed']}",
         f"- Confirmed reference answers: {coverage['referenceAnswersConfirmed']} (target 20–30)",
         f"- Scorable n — Hit@3 {coverage['scorable']['hitAt3']}, MRR {coverage['scorable']['mrr']}, Citation {coverage['scorable']['citationAccuracy']}, Refusal {coverage['scorable']['refusalAccuracy']}, Context Recall {coverage['scorable']['contextRecall']}, Expected Fact Recall {coverage['scorable']['expectedFactRecall']}",
-        "- Coverage target before full bench: answerable + expectedDocumentIds should reach 82/82; reference answers need only the selected 20–30.", "",
+        "- Full review target: all 82 cases decided; answerable cases have Evidence IDs and refusals have empty IDs. Reference answers cover only the selected 20–30.", "",
         "## Reference-answer shortlist", "",
         "Write concise, evidence-bounded answers only after verifying the original Evidence. The list intentionally includes historical PASS and failure classes to reduce cherry-picking. Historical outcomes are context, not current results.", "",
         "| Case | Suggested reference coverage | Historical outcome |",
@@ -288,7 +307,7 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
     for case_id, categories in reference.items():
         outcomes = ", ".join(history.get(case_id, {}).get("classifications", [])) or "not found"
         lines.append(f"| {case_id} | {', '.join(categories)} | {outcomes} |")
-    lines += ["", "UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. Batch 1 currently includes two manually confirmed UNANSWERABLE cases. The separate `SMOKE-NEG-001` remains outside this 82-case set.", ""]
+    lines += ["", "UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. The separate `SMOKE-NEG-001` remains outside this 82-case set.", ""]
 
     for batch_name, batch_cases in batches.items():
         lines += [f"# {batch_name} — {len(batch_cases)} cases", ""]
@@ -317,10 +336,10 @@ def build_artifacts(cases: list[dict[str, Any]], old_gold: dict[str, Any],
                       (f" — {', '.join(label['referenceAnswerCategories'])}" if label['referenceAnswerRecommended'] else ""),
                       f"Current reviewStatus: {label['reviewStatus']}", "", "Human Decision:",
                       "answerable:", "expectedDocumentIds:", "expectedFactsStatus:",
-                      "referenceAnswer:", "reviewStatus: NEEDS_REVIEW", ""]
+                      "referenceAnswer:", f"reviewStatus: {label['reviewStatus']}", ""]
     review = preserve_human_decisions("\n".join(lines), existing_review)
     return {"dataset": "evaluation/test-cases.json", "generatedBy": "build_gold_review.py",
-            "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or an explicit evidence_verified_accelerated_review with verified Evidence metadata.",
+            "policy": "Generated suggestions are never CONFIRMED. Confirmation requires recorded manual review or explicit Evidence verification; refusals require an audited Evidence scope.",
             "expectedFactsOverrideSemantics": "complete_replacement",
             "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
             "benchmarkToolingVersion": "ae69fae6958fdfc5041677ea4f073d55fce45241",

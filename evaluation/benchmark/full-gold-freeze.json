@@ -1,0 +1,13 @@
+{
+  "totalCases": 82,
+  "confirmed": 82,
+  "needsReview": 0,
+  "answerable": 71,
+  "unanswerable": 11,
+  "referenceAnswers": 20,
+  "testCasesHash": "0205eec24168e405c86ee1a57acb7b74ee568c5b596ce7ad41b82c3a1c48e299",
+  "goldLabelsHash": "640d46e6efa774bcfcb16b8009f24c4dffe14f5915647031ace3822b412dfbf5",
+  "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
+  "benchmarkToolingVersion": "full-benchmark-v1",
+  "frozenAtUtc": "2026-10-04T07:53:54+00:00"
+}

@@ -8,12 +8,13 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from metrics import mean, render_summary_markdown
 
 
-async def score_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+async def score_rows(rows: list[dict[str, Any]],
+                     on_result: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
     from openai import AsyncOpenAI
     from ragas.embeddings import OpenAIEmbeddings
     from ragas.llms import llm_factory
@@ -64,6 +65,8 @@ async def score_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
             scored["faithfulnessNAReason"] = "actual approved context unavailable"
             scored["contextRecallNAReason"] = "actual retrieved context unavailable"
         results.append(scored)
+        if on_result is not None:
+            on_result(scored)
     return {
         "ragasVersion": "0.4.3",
         "api": "collections metric .ascore(**kwargs)",
@@ -80,14 +83,42 @@ async def score_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("result_dir", type=Path)
+    parser.add_argument("--full", action="store_true",
+                        help="Use a private, resumable checkpoint for the new full benchmark")
     args = parser.parse_args()
     rows: list[dict[str, Any]] = []
     for name in ("raw-v1.jsonl", "raw-v2.jsonl"):
         path = args.result_dir / name
         rows.extend(json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
-    result = asyncio.run(score_rows(rows))
-    path = args.result_dir / "ragas-smoke.json"
+    if args.full:
+        checkpoint = args.result_dir / "ragas-progress.jsonl"
+        prior = [json.loads(line) for line in checkpoint.read_text(encoding="utf-8").splitlines()
+                 if line.strip()] if checkpoint.exists() else []
+        expected_keys = [(row["caseId"], row["version"]) for row in rows]
+        prior_keys = [(row["caseId"], row["version"]) for row in prior]
+        if prior_keys != expected_keys[:len(prior_keys)]:
+            raise SystemExit("RAGAS checkpoint does not match the frozen full trace order")
+        def save_progress(scored: dict[str, Any]) -> None:
+            with checkpoint.open("a", encoding="utf-8") as output:
+                output.write(json.dumps(scored, ensure_ascii=False) + "\n")
+        result = asyncio.run(score_rows(rows[len(prior):], on_result=save_progress))
+        result["scores"] = prior + result["scores"]
+        result["judgeEvaluationCount"] = sum(row.get("answerRelevancy") is not None
+                                             for row in result["scores"])
+        result["judgeEvaluationsRequested"] = len(rows)
+    else:
+        result = asyncio.run(score_rows(rows))
+    path = args.result_dir / ("ragas-full.json" if args.full else "ragas-smoke.json")
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.full:
+        print(json.dumps({"output": str(path), "ragasVersion": result["ragasVersion"],
+                          "scored": len(result["scores"]),
+                          "answerRelevancyScored": result["judgeEvaluationCount"],
+                          "faithfulnessScored": sum(x.get("faithfulness") is not None
+                                                   for x in result["scores"]),
+                          "contextRecallScored": sum(x.get("contextRecall") is not None
+                                                    for x in result["scores"])}, ensure_ascii=False))
+        return 0
     summary_path = args.result_dir / "summary.json"
     generation_path = args.result_dir / "generation-summary.json"
     if not summary_path.exists() or not generation_path.exists():

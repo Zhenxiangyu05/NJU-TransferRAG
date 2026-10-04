@@ -107,7 +107,7 @@ class BenchmarkMetricsTest(unittest.TestCase):
         self.assertEqual(result["contextRecallScorable"], 1)
         self.assertEqual(result["notScorable"], 1)
 
-    def test_gold_sidecar_covers_frozen_82_with_only_approved_cases_confirmed(self):
+    def test_full_gold_review_covers_frozen_82_and_preserves_interview_subset(self):
         root = Path(__file__).resolve().parents[3]
         cases = json.loads((root / "evaluation/test-cases.json").read_text(encoding="utf-8"))
         sidecar = json.loads((root / "evaluation/benchmark/gold-labels.json").read_text(encoding="utf-8"))
@@ -117,26 +117,24 @@ class BenchmarkMetricsTest(unittest.TestCase):
         self.assertEqual([row["caseId"] for row in cases], [row["caseId"] for row in sidecar["cases"]])
         confirmed = [row for row in sidecar["cases"] if row["reviewStatus"] == "CONFIRMED"]
         confirmed_ids = {row["caseId"] for row in confirmed}
-        self.assertEqual(24, len(confirmed))
-        self.assertEqual(22, sum(row["answerable"] is True for row in confirmed))
-        self.assertEqual(2, sum(row["answerable"] is False for row in confirmed))
-        self.assertEqual({"TRAG-001", "TRAG-002", "TRAG-003", "TRAG-004", "TRAG-005",
-                          "TRAG-006", "TRAG-007", "TRAG-009", "TRAG-015", "TRAG-021",
-                          "TRAG-024",
-                          "TRAG-032", "TRAG-034", "TRAG-037", "TRAG-038", "TRAG-039",
-                          "TRAG-047", "TRAG-048", "TRAG-049", "TRAG-065", "TRAG-069",
-                          "TRAG-074", "TRAG-075", "TRAG-082"}, confirmed_ids)
-        self.assertEqual(58, sum(row["reviewStatus"] == "NEEDS_REVIEW" for row in sidecar["cases"]))
+        self.assertEqual(82, len(confirmed))
+        self.assertEqual(71, sum(row["answerable"] is True for row in confirmed))
+        self.assertEqual(11, sum(row["answerable"] is False for row in confirmed))
+        self.assertEqual({row["caseId"] for row in cases}, confirmed_ids)
+        self.assertEqual(0, sum(row["reviewStatus"] == "NEEDS_REVIEW" for row in sidecar["cases"]))
         subset_ids = {row["caseId"] for row in subset["cases"]}
         self.assertEqual(24, len(subset_ids))
-        self.assertEqual(confirmed_ids, subset_ids)
+        self.assertTrue(subset_ids < confirmed_ids)
         self.assertEqual("8c34ccdf16d283231ff972ca8860fff3baaa28a4", subset["productionLogicVersion"])
         confirmed_reference_ids = {row["caseId"] for row in confirmed if row.get("referenceAnswer")}
-        self.assertEqual({"TRAG-002", "TRAG-048", "TRAG-049"}, confirmed_reference_ids)
+        self.assertEqual(20, len(confirmed_reference_ids))
+        self.assertTrue({"TRAG-002", "TRAG-048", "TRAG-049"} <= confirmed_reference_ids)
         self.assertEqual(17, sum(row.get("reviewSource") == "manual_review_batch_1" for row in confirmed))
         self.assertEqual(7, sum(row.get("reviewSource") == "evidence_verified_accelerated_review"
                                 for row in confirmed))
-        self.assertTrue(all(row.get("reviewStatus") == "NEEDS_REVIEW"
+        self.assertEqual(58, sum(row.get("reviewSource") == "evidence_verified_full_review"
+                                 for row in confirmed))
+        self.assertTrue(all(row.get("reviewStatus") == "CONFIRMED"
                             for row in sidecar["cases"]
                             if row["caseId"] in {"TRAG-011", "TRAG-012", "TRAG-076"}))
         by_gold_id = {row["caseId"]: row for row in sidecar["cases"]}
@@ -168,9 +166,9 @@ class BenchmarkMetricsTest(unittest.TestCase):
 
         test_cases_by_id = {row["caseId"]: row for row in cases}
         coverage = gold_coverage(sidecar["cases"], test_cases_by_id)
-        self.assertEqual({"hitAt3": 22, "mrr": 22, "citationAccuracy": 22,
-                          "refusalAccuracy": 2, "contextRecall": 3,
-                          "expectedFactRecall": 22}, coverage["scorable"])
+        self.assertEqual({"hitAt3": 71, "mrr": 71, "citationAccuracy": 71,
+                          "refusalAccuracy": 11, "contextRecall": 20,
+                          "expectedFactRecall": 71}, coverage["scorable"])
         saved_coverage = json.loads((root / "evaluation/benchmark/gold-coverage.json").read_text(encoding="utf-8"))
         self.assertEqual(coverage["scorable"], saved_coverage["scorable"])
         self.assertEqual(coverage["confirmedTotal"], saved_coverage["confirmedTotal"])

@@ -1,0 +1,254 @@
+{
+  "datasetVersion": "full-gold-confirmed-v1",
+  "productionLogicVersion": "8c34ccdf16d283231ff972ca8860fff3baaa28a4",
+  "benchmarkToolingVersion": "full-benchmark-v1",
+  "fullBenchmarkCaseCount": 82,
+  "cases": [
+    {
+      "caseId": "TRAG-001"
+    },
+    {
+      "caseId": "TRAG-002"
+    },
+    {
+      "caseId": "TRAG-003"
+    },
+    {
+      "caseId": "TRAG-004"
+    },
+    {
+      "caseId": "TRAG-005"
+    },
+    {
+      "caseId": "TRAG-006"
+    },
+    {
+      "caseId": "TRAG-007"
+    },
+    {
+      "caseId": "TRAG-008"
+    },
+    {
+      "caseId": "TRAG-009"
+    },
+    {
+      "caseId": "TRAG-010"
+    },
+    {
+      "caseId": "TRAG-011"
+    },
+    {
+      "caseId": "TRAG-012"
+    },
+    {
+      "caseId": "TRAG-013"
+    },
+    {
+      "caseId": "TRAG-014"
+    },
+    {
+      "caseId": "TRAG-015"
+    },
+    {
+      "caseId": "TRAG-016"
+    },
+    {
+      "caseId": "TRAG-017"
+    },
+    {
+      "caseId": "TRAG-018"
+    },
+    {
+      "caseId": "TRAG-019"
+    },
+    {
+      "caseId": "TRAG-020"
+    },
+    {
+      "caseId": "TRAG-021"
+    },
+    {
+      "caseId": "TRAG-022"
+    },
+    {
+      "caseId": "TRAG-023"
+    },
+    {
+      "caseId": "TRAG-024"
+    },
+    {
+      "caseId": "TRAG-025"
+    },
+    {
+      "caseId": "TRAG-026"
+    },
+    {
+      "caseId": "TRAG-027"
+    },
+    {
+      "caseId": "TRAG-028"
+    },
+    {
+      "caseId": "TRAG-029"
+    },
+    {
+      "caseId": "TRAG-030"
+    },
+    {
+      "caseId": "TRAG-031"
+    },
+    {
+      "caseId": "TRAG-032"
+    },
+    {
+      "caseId": "TRAG-033"
+    },
+    {
+      "caseId": "TRAG-034"
+    },
+    {
+      "caseId": "TRAG-035"
+    },
+    {
+      "caseId": "TRAG-036"
+    },
+    {
+      "caseId": "TRAG-037"
+    },
+    {
+      "caseId": "TRAG-038"
+    },
+    {
+      "caseId": "TRAG-039"
+    },
+    {
+      "caseId": "TRAG-040"
+    },
+    {
+      "caseId": "TRAG-041"
+    },
+    {
+      "caseId": "TRAG-042"
+    },
+    {
+      "caseId": "TRAG-043"
+    },
+    {
+      "caseId": "TRAG-044"
+    },
+    {
+      "caseId": "TRAG-045"
+    },
+    {
+      "caseId": "TRAG-046"
+    },
+    {
+      "caseId": "TRAG-047"
+    },
+    {
+      "caseId": "TRAG-048"
+    },
+    {
+      "caseId": "TRAG-049"
+    },
+    {
+      "caseId": "TRAG-050"
+    },
+    {
+      "caseId": "TRAG-051"
+    },
+    {
+      "caseId": "TRAG-052"
+    },
+    {
+      "caseId": "TRAG-053"
+    },
+    {
+      "caseId": "TRAG-054"
+    },
+    {
+      "caseId": "TRAG-055"
+    },
+    {
+      "caseId": "TRAG-056"
+    },
+    {
+      "caseId": "TRAG-057"
+    },
+    {
+      "caseId": "TRAG-058"
+    },
+    {
+      "caseId": "TRAG-059"
+    },
+    {
+      "caseId": "TRAG-060"
+    },
+    {
+      "caseId": "TRAG-061"
+    },
+    {
+      "caseId": "TRAG-062"
+    },
+    {
+      "caseId": "TRAG-063"
+    },
+    {
+      "caseId": "TRAG-064"
+    },
+    {
+      "caseId": "TRAG-065"
+    },
+    {
+      "caseId": "TRAG-066"
+    },
+    {
+      "caseId": "TRAG-067"
+    },
+    {
+      "caseId": "TRAG-068"
+    },
+    {
+      "caseId": "TRAG-069"
+    },
+    {
+      "caseId": "TRAG-070"
+    },
+    {
+      "caseId": "TRAG-071"
+    },
+    {
+      "caseId": "TRAG-072"
+    },
+    {
+      "caseId": "TRAG-073"
+    },
+    {
+      "caseId": "TRAG-074"
+    },
+    {
+      "caseId": "TRAG-075"
+    },
+    {
+      "caseId": "TRAG-076"
+    },
+    {
+      "caseId": "TRAG-077"
+    },
+    {
+      "caseId": "TRAG-078"
+    },
+    {
+      "caseId": "TRAG-079"
+    },
+    {
+      "caseId": "TRAG-080"
+    },
+    {
+      "caseId": "TRAG-081"
+    },
+    {
+      "caseId": "TRAG-082"
+    }
+  ]
+}

@@ -3,18 +3,18 @@
 Production Logic Version: `8c34ccdf16d283231ff972ca8860fff3baaa28a4`
 Benchmark Tooling Version: `ae69fae6958fdfc5041677ea4f073d55fce45241` (evaluation-only tracing; not a new RAG version).
 
-`evaluation/test-cases.json` remains frozen. Generated candidate labels remain suggestions only. A row becomes `CONFIRMED` only through an explicit manual decision or an `evidence_verified_accelerated_review` carrying verified Evidence metadata. Verify each candidate against the current Document metadata and original Evidence; never use a Canonical Document as a final source ID.
+`evaluation/test-cases.json` remains frozen. Candidate labels are suggestions only. Verify each candidate against the current MySQL Document metadata and original Evidence; never use a Canonical Document as a final source ID.
 Gold `expectedFactsOverride` is optional and, when present, completely replaces the frozen test case's `expectedFacts` array; it is never an index patch.
 Edit only the `Human Decision` fields in this file, then run `python evaluation/benchmark/sync_gold_review.py` to validate and apply human decisions to `gold-labels.json`. Generated suggestions are never confirmed.
 
 ## Coverage
 
 - Total: 82
-- Confirmed total / answerable / unanswerable: 24 / 22 / 2
-- Confirmed expectedDocumentIds / expectedFacts: 24 / 22
-- Confirmed reference answers: 3 (target 20–30)
-- Scorable n — Hit@3 22, MRR 22, Citation 22, Refusal 2, Context Recall 3, Expected Fact Recall 22
-- Coverage target before full bench: answerable + expectedDocumentIds should reach 82/82; reference answers need only the selected 20–30.
+- Confirmed total / answerable / unanswerable: 82 / 71 / 11
+- Confirmed expectedDocumentIds / expectedFacts: 82 / 71
+- Confirmed reference answers: 15 (target 20–30)
+- Scorable n — Hit@3 71, MRR 71, Citation 71, Refusal 11, Context Recall 20, Expected Fact Recall 71
+- Full review target: all 82 cases decided; answerable cases have Evidence IDs and refusals have empty IDs. Reference answers cover only the selected 20–30.
 
 ## Reference-answer shortlist
 
@@ -47,7 +47,7 @@ Write concise, evidence-bounded answers only after verifying the original Eviden
 | TRAG-077 | COMPOUND, POLICY, EXPERIENCE | REFUSAL_FALSE_NEGATIVE |
 | TRAG-080 | EXPERIENCE, DEPARTMENT_SCOPED | REFUSAL_FALSE_NEGATIVE |
 
-UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. Batch 1 currently includes two manually confirmed UNANSWERABLE cases. The separate `SMOKE-NEG-001` remains outside this 82-case set.
+UNANSWERABLE Gold is evidence-relative: confirmed negative cases are scorable for Refusal Accuracy only and do not enter retrieval, citation, expected-fact, or context-recall metrics. The separate `SMOKE-NEG-001` remains outside this 82-case set.
 
 # Batch 1 — 20 cases
 
@@ -182,10 +182,10 @@ Query: 化生大类大一上有哪些主要专业相关课程？
 Source file: 化生大类生存指南_.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 微积分I二层次
-- 大学化学实验基础
-- 普通生物学上
-- 大学化学A
+- 据以2024级课程为参考的个人化生大类手册，微积分I二层次
+- 据以2024级课程为参考的个人化生大类手册，大学化学实验基础
+- 据以2024级课程为参考的个人化生大类手册，普通生物学上
+- 据以2024级课程为参考的个人化生大类手册，大学化学A
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 化生大类生存指南; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -193,7 +193,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -208,7 +208,7 @@ Query: 化生大类分流进生命科学方向，大一下程序设计课程如�
 Source file: 化生大类生存指南_.pdf
 Category: 课程规划
 Existing Expected Facts:
-- Python程序设计与C语言程序设计二选一
+- 据以2024级课程为参考的个人化生大类手册，Python程序设计与C语言程序设计二选一
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 化生大类生存指南; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -216,7 +216,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -509,10 +509,9 @@ Query: 电子专业导学课有什么修读要求，选某一门是否限制后�
 Source file: 转电子指北2026版.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 5门中至少修1门
-- 对外开放4门
-- 鼓楼开设1学分
-- 选择某门不限制分流方向
+- 据2026年个人转电子指南，五门专业导学课中至少选修一门；其中四门对外开放
+- 据2026年个人转电子指南，导学课在鼓楼开设，计一学分
+- 据2026年个人转电子指南，选择某门导学课不限制之后的专业分流方向
 
 Candidate Evidence Documents:
 - Document ID: 14; Title: 转电子指北2026版; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -520,7 +519,7 @@ Historical outcome (not current benchmark result): PARTIAL, REFUSAL_FALSE_NEGATI
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -587,10 +586,7 @@ Query: 2026年汉文二次选拔的初试和复试形式是什么？
 Source file: 26分流转汉文指北.pdf
 Category: 面试/机试
 Existing Expected Facts:
-- 初试闭卷笔试2小时100分
-- 复试面试10分钟
-- 自我陈述2分钟
-- 针对性提问8分钟
+- (none; human review required)
 
 Candidate Evidence Documents:
 - Document ID: 20; Title: 26分流转汉文指北; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -598,7 +594,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE, PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [20] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -638,7 +634,7 @@ Query: 文学院是否接受大二学年的汉语言文学转专业申请？
 Source file: 26分流转汉文指北.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 不接受大二学年转专业申请
+- 据2026年个人汉文分流指南，不接受大二学年转专业申请
 
 Candidate Evidence Documents:
 - Document ID: 20; Title: 26分流转汉文指北; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -646,7 +642,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [20] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -688,9 +684,8 @@ Query: 2026年汉语言文学跨大类准入对第一学期平均学分绩和不
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 条件
 Existing Expected Facts:
-- 平均学分绩4.0及以上
-- 无不及格记录
-- 无违纪行为
+- 2026准入计划中2025级汉语言文学条目：第一学期全部课程平均学分绩须达4.0（含）以上
+- 2026准入计划中2025级汉语言文学条目：课程无不及格记录
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -698,7 +693,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -713,8 +708,8 @@ Query: 2026年法学大一转专业的准入课程条件是什么？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 法理学导论、刑法学总论一、民法学总则、宪法学中任意1门
-- 学期结束取得学分
+- 2026准入计划中2025级法学条目：法理学导论、刑法学总论一、民法学总则、宪法学中任意1门
+- 2026准入计划中2025级法学条目：学期结束取得学分
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -722,7 +717,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -737,9 +732,9 @@ Query: 2026年数学学院数学类转专业可用哪两套数学课程方案满
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 数分I、II+高代I、II+解析几何
-- 或微积分I、II第一层次+线性代数第一层次
-- 两套满足一套即可
+- 2026准入计划中2025级数学类条目：数分I、II+高代I、II+解析几何
+- 2026准入计划中2025级数学类条目：或微积分I、II第一层次+线性代数第一层次
+- 2026准入计划中2025级数学类条目：两套满足一套即可
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -747,7 +742,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -762,8 +757,9 @@ Query: 2026年数学学院准入考核如何使用校内数学竞赛成绩？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 条件
 Existing Expected Facts:
-- 校内数学竞赛成绩可计附加分
-- 数学专业类或非数学专业A类按课程方案对应
+- 2026准入计划中2025级数学类条目：校内数学竞赛成绩可以计入准入考核附加分
+- 2026准入计划中2025级数学类条目：修读数学分析、高等代数、解析几何路线，对应数学专业类竞赛附加分
+- 2026准入计划中2025级数学类条目：修读第一层次微积分I/II、线性代数路线，对应非数学专业A类竞赛附加分
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -771,7 +767,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -786,11 +782,11 @@ Query: 2026年物理学类跨大类准入需要修哪些数学和物理课程？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 微积分I第一层次
-- 微积分II第一层次
-- 线性代数第一层次
-- 力学
-- 热学
+- 2026准入计划中2025级物理学类条目：微积分I第一层次
+- 2026准入计划中2025级物理学类条目：微积分II第一层次
+- 2026准入计划中2025级物理学类条目：线性代数第一层次
+- 2026准入计划中2025级物理学类条目：力学
+- 2026准入计划中2025级物理学类条目：热学
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -798,7 +794,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -842,8 +838,8 @@ Query: 2026年人工智能学院转专业的考核形式是什么？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 面试/机试
 Existing Expected Facts:
-- 资格审核后组织综合考核面试
-- 按综合考核成绩确定名单
+- 2026准入计划中2025级人工智能条目：资格审核后组织综合考核面试
+- 2026准入计划中2025级人工智能条目：按综合考核成绩确定名单
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -851,7 +847,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -866,11 +862,7 @@ Query: 2026年软件工程转专业至少要修软件学院哪几门基础课中
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 计算系统基础
-- C语言程序设计基础
-- 软件工程与计算I
-- 离散数学
-- 四门中至少2门并取得学分
+- 2026准入计划中2024级软件工程条目：计算系统基础、C语言程序设计基础、软件工程与计算I、离散数学四门中至少修读两门并取得学分
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -878,7 +870,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -893,9 +885,8 @@ Query: 2026年计算机科学与技术转专业需要修哪两门准入课，成
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 离散数学
-- 程序设计基础或计算机程序的构造和解释
-- 成绩80分及以上
+- 2026准入计划中2024级计算机科学与技术条目：离散数学，以及程序设计基础或计算机程序的构造和解释
+- 2026准入计划中2024级计算机科学与技术条目：两门准入课程本学期结束须取得学分且成绩均达80分（含）以上
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -903,7 +894,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -918,10 +909,10 @@ Query: 2026年计算机学院转专业综合考核有哪些环节？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 面试/机试
 Existing Expected Facts:
-- 笔试
-- 机试
-- 面试
-- 任一项不及格不予录取
+- 2026准入计划中计算机学院综合考核条目：笔试
+- 2026准入计划中计算机学院综合考核条目：机试
+- 2026准入计划中计算机学院综合考核条目：面试
+- 2026准入计划中计算机学院综合考核条目：任一项不及格不予录取
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -929,7 +920,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -944,8 +935,8 @@ Query: 2026年社会学院大一跨类准入需要哪些课程条件？
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 已取得社会与心理科学导论学分
-- 社会学概论、社会工作概论、心理学概论上中在修任意1门
+- 2026准入计划中2025级社会工作条目：已取得社会与心理科学导论学分
+- 2026准入计划中2025级社会工作条目：社会学概论、社会工作概论、心理学概论上中在修任意1门
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -953,7 +944,7 @@ Historical outcome (not current benchmark result): PASS, YEAR_MISMATCH
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: YES — YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -968,11 +959,11 @@ Query: 2026年信息管理与信息系统专业跨类准入可选四门课程中
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 信息资源管理导论
-- 信息组织
-- 程序设计语言
-- 数据思维
-- 任意1门
+- 2026准入计划中2025级信息管理与信息系统条目：信息资源管理导论
+- 2026准入计划中2025级信息管理与信息系统条目：信息组织
+- 2026准入计划中2025级信息管理与信息系统条目：程序设计语言
+- 2026准入计划中2025级信息管理与信息系统条目：数据思维
+- 2026准入计划中2025级信息管理与信息系统条目：任意1门
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -980,7 +971,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -995,10 +986,8 @@ Query: 人文大类学生想学有所获，指南建议重点培养哪些能力�
 Source file: 南京大学人文大类求生指南(1).docx
 Category: 学习经验
 Existing Expected Facts:
-- 多看专著和前沿论文
-- 分析能力
-- 知识功底
-- 文献整理和信息提取能力
+- 据2025年个人汉文转专业指南，指南建议阅读两三本经典原著、四五本相关衍生著作，并参考学术论文或书籍
+- 据2025年个人汉文转专业指南，指南强调耐心阅读、提炼自己的观点并培养文学思考与表达能力
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1006,7 +995,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1021,9 +1010,9 @@ Query: 2025级技科分流加权排名主要参考哪些课程？
 Source file: 南京大学技术科学试验班新生生存指南.pdf
 Category: 条件
 Existing Expected Facts:
-- 微积分
-- 线性代数
-- 信息科学中的物理学
+- 据以2025级经验为主的个人技科指南，微积分
+- 据以2025级经验为主的个人技科指南，线性代数
+- 据以2025级经验为主的个人技科指南，信息科学中的物理学
 
 Candidate Evidence Documents:
 - Document ID: 19; Title: 南京大学技术科学试验班新生生存指南; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1031,7 +1020,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [19] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1046,10 +1035,10 @@ Query: 地学大类分流排名看哪四门课的成绩？
 Source file: 地学大类生存指南(2).docx
 Category: 条件
 Existing Expected Facts:
-- 英语
-- 数学通修课
-- 大学化学A
-- 地球科学与资源环境导论
+- 据个人地学大类生存指南，英语
+- 据个人地学大类生存指南，数学通修课
+- 据个人地学大类生存指南，大学化学A
+- 据个人地学大类生存指南，地球科学与资源环境导论
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1057,7 +1046,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1072,8 +1061,8 @@ Query: 地学大类学生转专业选课时，指南对数学层次有什么建�
 Source file: 地学大类生存指南(2).docx
 Category: 学习经验
 Existing Expected Facts:
-- 修读目标专业要求的数学层次
-- 若目标线代大一修读建议上学期提前修
+- 据个人地学大类生存指南，修读目标专业要求的数学层次
+- 据个人地学大类生存指南，若目标线代大一修读建议上学期提前修
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1081,7 +1070,7 @@ Historical outcome (not current benchmark result): PARTIAL
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1096,10 +1085,7 @@ Query: 工科试验班为什么被指南认为利于转专业？
 Source file: 工科试验班生存指南_Revised by 吻安.docx
 Category: 经验
 Existing Expected Facts:
-- 自带一层次微积分
-- 除通修课外准入课均可选
-- 可按目标院系安排课程
-- 转失败补课相对少
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1107,7 +1093,7 @@ Historical outcome (not current benchmark result): PARTIAL
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, COLLOQUIAL
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1124,8 +1110,8 @@ Query: 数理大类分流数学，往年核心课程平均学分绩大约需要�
 Source file: 数理大类生存指北.pdf
 Category: 条件
 Existing Expected Facts:
-- 通常约4.2
-- 2024级因考试较难约4.1
+- 据2025级个人数理大类指南，按指南往年经验，数学分流核心课平均学分绩约4.2可进入数学学院
+- 据2025级个人数理大类指南，指南回顾2024级因考试较难约降到4.1；这不是固定准入线
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 数理大类生存指北; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1133,7 +1119,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1148,9 +1134,9 @@ Query: 转法学需要满足哪两个基本条件？
 Source file: 法学转专业分享（更新至2025年）.docx
 Category: 转专业政策
 Existing Expected Facts:
-- 四门准入课中任意一门取得学分
-- 参加笔试和面试
-- 按综合成绩和计划人数择优录取
+- 据更新至2025年的个人法学转专业指南，四门准入课中任意一门取得学分
+- 据更新至2025年的个人法学转专业指南，参加笔试和面试
+- 据更新至2025年的个人法学转专业指南，按综合成绩和计划人数择优录取
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1158,7 +1144,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1173,10 +1159,10 @@ Query: 法学转专业笔试的科目选择和分值结构是什么？
 Source file: 法学转专业分享（更新至2025年）.docx
 Category: 面试/机试
 Existing Expected Facts:
-- 民法学总则50分
-- 刑法学50分
-- 法理学50分
-- 三选二作答
+- 据更新至2025年的个人法学转专业指南，民法学总则50分
+- 据更新至2025年的个人法学转专业指南，刑法学50分
+- 据更新至2025年的个人法学转专业指南，法理学50分
+- 据更新至2025年的个人法学转专业指南，三选二作答
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1184,7 +1170,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1199,10 +1185,10 @@ Query: 法学转专业面试通常有哪些环节？
 Source file: 法学转专业分享（更新至2025年）.docx
 Category: 面试/机试
 Existing Expected Facts:
-- 自我介绍
-- 专业知识
-- 英语口语
-- 专业知识可在民法、刑法、法理中选一
+- 据更新至2025年的个人法学转专业指南，自我介绍
+- 据更新至2025年的个人法学转专业指南，专业知识
+- 据更新至2025年的个人法学转专业指南，英语口语
+- 据更新至2025年的个人法学转专业指南，专业知识可在民法、刑法、法理中选一
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1210,7 +1196,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1225,9 +1211,8 @@ Query: 转AI失败为何可能产生课程无法替代的风险？
 Source file: 转AI风险.md
 Category: 风险经验
 Existing Expected Facts:
-- AI课程不能替代其他专业课程
-- 失败后仍需补通修微积分
-- 失败代价较大
+- 据个人整理的转AI风险材料，AI专业课程不能直接替代其他专业课程，其他专业课程也不能直接替代AI课程
+- 据个人整理的转AI风险材料，若转AI失败，所修AI数学分析仍可能需要补修通修微积分，作者认为失败代价较大
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1235,7 +1220,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1250,9 +1235,9 @@ Query: AI学院转专业面试有什么经验性特征和风险？
 Source file: 转AI风险.md
 Category: 面试/机试
 Existing Expected Facts:
-- 通常不问专业问题、偏闲聊
-- 面试仍会卡人
-- 存在不可控风险
+- 据个人整理的转AI风险材料，通常不问专业问题、偏闲聊
+- 据个人整理的转AI风险材料，面试仍会卡人
+- 据个人整理的转AI风险材料，存在不可控风险
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1260,7 +1245,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1275,10 +1260,7 @@ Query: 转计困难主要体现在哪四方面？
 Source file: 转CS风险.md
 Category: 经验
 Existing Expected Facts:
-- 数学要求高
-- 笔试思维要求高
-- 机试题型多变且变难
-- 报考人数与成功率不确定
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1286,7 +1268,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1301,8 +1283,7 @@ Query: 2026级跨专业准入光电信息类，准入课程最低要求是什么
 Source file: 转光电概述（新）.docx
 Category: 转专业政策
 Existing Expected Facts:
-- 普通物理力学、大学化学、普通物理热学中任意一门
-- 已修或在修并在学期结束取得学分
+- 据2026年个人转光电概述，个人概述转述的准入文件要求：普通物理（力学）、大学化学、普通物理（热学）三门中至少已修或在修一门，并在学期结束取得学分
 
 Candidate Evidence Documents:
 - Document ID: 13; Title: 转光电概述（新）; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1310,7 +1291,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [13] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1325,9 +1306,9 @@ Query: 转光电面试为什么要重视数学和物理成绩？
 Source file: 转光电概述（新）.docx
 Category: 面试/机试
 Existing Expected Facts:
-- 学院重视数学物理能力
-- 面试官会看第一学期成绩
-- 可能追问第二学期期中成绩
+- 据2026年个人转光电概述，学院重视数学物理能力
+- 据2026年个人转光电概述，面试官会看第一学期成绩
+- 据2026年个人转光电概述，可能追问第二学期期中成绩
 
 Candidate Evidence Documents:
 - Document ID: 13; Title: 转光电概述（新）; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1335,7 +1316,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [13] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1350,10 +1331,10 @@ Query: 2026级光材二次拔尖的面试流程和题型有哪些？
 Source file: 转光电概述（新）.docx
 Category: 面试/机试
 Existing Expected Facts:
-- 自我介绍
-- 高中印象深刻的事
-- 多个问题选答且准备1分钟
-- 涉及光学隐身、信息材料、海市蜃楼、冷热杯破裂等
+- 据2026年个人转光电概述，自我介绍
+- 据2026年个人转光电概述，高中印象深刻的事
+- 据2026年个人转光电概述，多个问题选答且准备1分钟
+- 据2026年个人转光电概述，涉及光学隐身、信息材料、海市蜃楼、冷热杯破裂等
 
 Candidate Evidence Documents:
 - Document ID: 13; Title: 转光电概述（新）; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1361,7 +1342,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [13] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, YEAR_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1376,9 +1357,8 @@ Query: 转电子课程复习有哪些通用建议？
 Source file: 转电子指北.pdf
 Category: 学习经验
 Existing Expected Facts:
-- 多做往年卷
-- 认真听考前指导
-- 大物重视书后习题
+- 据2026年个人转电子指南，指南建议利用往年卷、课后习题和考前习题课复习
+- 据2026年个人转电子指南，指南建议大学物理重视书后习题
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1386,7 +1366,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1401,11 +1381,11 @@ Query: 2026年大一转电子的六门准入课和最低成绩要求是什么？
 Source file: 转电子指北2026版.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 微积分I和II第一层次
-- 大学物理I和II
-- 电路分析
-- 模拟电路
-- 总评均不低于70
+- 据2026年个人转电子指南，微积分I和II第一层次
+- 据2026年个人转电子指南，大学物理I和II
+- 据2026年个人转电子指南，电路分析
+- 据2026年个人转电子指南，模拟电路
+- 据2026年个人转电子指南，总评均不低于70
 
 Candidate Evidence Documents:
 - Document ID: 14; Title: 转电子指北2026版; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1413,7 +1393,7 @@ Historical outcome (not current benchmark result): PASS, YEAR_MISMATCH
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1428,10 +1408,10 @@ Query: 2026年电子学院转专业面试时间和流程大致怎样？
 Source file: 转电子指北2026版.pdf
 Category: 面试/机试
 Existing Expected Facts:
-- 5月底面试
-- 1分钟个人陈述
-- 老师轮流提问
-- 问题可涉及大物、电分、模电、C语言
+- 据2026年个人转电子指南，5月底面试
+- 据2026年个人转电子指南，1分钟个人陈述
+- 据2026年个人转电子指南，老师轮流提问
+- 据2026年个人转电子指南，问题可涉及大物、电分、模电、C语言
 
 Candidate Evidence Documents:
 - Document ID: 14; Title: 转电子指北2026版; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1439,7 +1419,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: YES — POLICY, YEAR_SCOPED, FALLBACK
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1480,10 +1460,10 @@ Query: 南赫学院微积分II有什么学习特点和建议？
 Source file: 难喝生存手册v0（完整版）.pdf
 Category: 学习经验
 Existing Expected Facts:
-- 套路性强、计算量大
-- 强调应用和做题而非证明
-- 以作业和quiz为导向
-- 需要微积分I基础
+- 据以2023级培养方案为背景的个人南赫手册，套路性强、计算量大
+- 据以2023级培养方案为背景的个人南赫手册，强调应用和做题而非证明
+- 据以2023级培养方案为背景的个人南赫手册，以作业和quiz为导向
+- 据以2023级培养方案为背景的个人南赫手册，需要微积分I基础
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1491,7 +1471,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1506,10 +1486,10 @@ Query: 大气电学有哪些主要研究方法？
 Source file: 难喝生存手册v0（完整版）.pdf
 Category: 学习经验
 Existing Expected Facts:
-- 观测
-- 数值模拟
-- 少量室内实验
-- 观测可用高速摄像机或天线阵
+- 据以2023级培养方案为背景的个人南赫手册，观测
+- 据以2023级培养方案为背景的个人南赫手册，数值模拟
+- 据以2023级培养方案为背景的个人南赫手册，少量室内实验
+- 据以2023级培养方案为背景的个人南赫手册，观测可用高速摄像机或天线阵
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1517,7 +1497,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1532,12 +1512,12 @@ Query: 化生大类分流进化学方向，大一下需要修哪些主要课程�
 Source file: 化生大类生存指南_.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 微积分II二层次
-- Python或C语言二选一
-- 大学化学B
-- 大学化学实验
-- 普通物理
-- 马克思主义原理
+- 据以2024级课程为参考的个人化生大类手册，微积分II二层次
+- 据以2024级课程为参考的个人化生大类手册，Python或C语言二选一
+- 据以2024级课程为参考的个人化生大类手册，大学化学B
+- 据以2024级课程为参考的个人化生大类手册，大学化学实验
+- 据以2024级课程为参考的个人化生大类手册，普通物理
+- 据以2024级课程为参考的个人化生大类手册，马克思主义原理
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 化生大类生存指南; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1545,7 +1525,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1560,9 +1540,9 @@ Query: 化生大类学生大一需要完成哪些劳育和志愿时长？
 Source file: 化生大类生存指南_.pdf
 Category: 综合生存指南
 Existing Expected Facts:
-- 基础劳育10小时
-- 每学期志愿10小时
-- 完成大学生劳育考试
+- 据以2024级课程为参考的个人化生大类手册，基础劳育10小时
+- 据以2024级课程为参考的个人化生大类手册，每学期志愿10小时
+- 据以2024级课程为参考的个人化生大类手册，完成大学生劳育考试
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 化生大类生存指南; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1570,7 +1550,7 @@ Historical outcome (not current benchmark result): PASS, PARTIAL
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1585,10 +1565,8 @@ Query: 人文大类有哪些主要分流方向？
 Source file: 南京大学人文大类求生指南(1).docx
 Category: 综合生存指南
 Existing Expected Facts:
-- 历史
-- 哲学
-- 新闻传播
-- 汉语国际教育
+- 据2025年个人汉文转专业指南，人文大类分流方向包括历史、哲学、新闻传播、汉语国际教育
+- 据2025年个人汉文转专业指南，2025年汉语言文学回到人文大类分流，指南估计约有五个名额
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1596,7 +1574,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1611,11 +1589,7 @@ Query: 2026级工科试验班有哪些主要分流学院和专业？
 Source file: 工科试验班生存指南_Revised by 吻安.docx
 Category: 综合生存指南
 Existing Expected Facts:
-- 现代工程与应用科学学院
-- 工程管理学院
-- 能源与资源学院
-- 生物医学工程学院
-- 共8个专业方向
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1623,7 +1597,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1638,11 +1612,11 @@ Query: 人工智能专业大一上课程压力主要体现在哪些课？
 Source file: 转AI风险.md
 Category: 课程规划
 Existing Expected Facts:
-- 数学分析每周5学时
-- 高等代数5学时
-- 程序设计基础6学时
-- 离散数学4学时
-- 课表很满
+- 据个人整理的转AI风险材料，数学分析每周5学时
+- 据个人整理的转AI风险材料，高等代数5学时
+- 据个人整理的转AI风险材料，程序设计基础6学时
+- 据个人整理的转AI风险材料，离散数学4学时
+- 据个人整理的转AI风险材料，课表很满
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1650,7 +1624,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1665,12 +1639,12 @@ Query: 南赫学院的课程体系主要分为哪些类别？
 Source file: 难喝生存手册v0（完整版）.pdf
 Category: 培养方案
 Existing Expected Facts:
-- 基础课
-- 概论课
-- 专业核心
-- 地球系统学科交叉模块
-- 自选模块
-- 专业选修
+- 据以2023级培养方案为背景的个人南赫手册，基础课
+- 据以2023级培养方案为背景的个人南赫手册，概论课
+- 据以2023级培养方案为背景的个人南赫手册，专业核心
+- 据以2023级培养方案为背景的个人南赫手册，地球系统学科交叉模块
+- 据以2023级培养方案为背景的个人南赫手册，自选模块
+- 据以2023级培养方案为背景的个人南赫手册，专业选修
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1678,7 +1652,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1743,10 +1717,8 @@ Query: 2026年软件工程转专业既要修哪些数学通修课，又要满足
 Source file: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表.pdf
 Category: 组合问题
 Existing Expected Facts:
-- 微积分I第一层次
-- 微积分II第一层次
-- 线性代数第一层次
-- 四门专业基础课中至少2门
+- 2026准入计划中2024级软件工程条目：微积分I、微积分II、线性代数须为第一层次并取得学分
+- 2026准入计划中2024级软件工程条目：计算系统基础、C语言程序设计基础、软件工程与计算I、离散数学中至少两门取得学分
 
 Candidate Evidence Documents:
 - Document ID: 6; Title: 南京大学2026年全日制本科生跨大类（学院）专业准入计划及实施方案一览表; sourceType: OFFICIAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1754,7 +1726,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE, WRONG
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [6] (no auto-mapped current IDs)
 Reference answer required: YES — COMPOUND, POLICY
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1769,11 +1741,7 @@ Query: 2023级人文大类110人的分流和转专业人数如何分布？
 Source file: 南京大学人文大类求生指南(1).docx
 Category: 明确事实
 Existing Expected Facts:
-- 新传57人
-- 历史22人
-- 汉语国际教育11人
-- 哲学5人
-- 转专业15人
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1781,7 +1749,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — FACT, YEAR_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1796,8 +1764,8 @@ Query: 技术科学试验班通常大一和大二分别在哪个校区？
 Source file: 南京大学技术科学试验班新生生存指南.pdf
 Category: 综合生存指南
 Existing Expected Facts:
-- 大一鼓楼校区
-- 大二起苏州校区
+- 据以2025级经验为主的个人技科指南，大一鼓楼校区
+- 据以2025级经验为主的个人技科指南，大二起苏州校区
 
 Candidate Evidence Documents:
 - Document ID: 19; Title: 南京大学技术科学试验班新生生存指南; sourceType: COMMUNITY; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1805,7 +1773,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [19] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1820,11 +1788,11 @@ Query: 地学大类2023级分流去向人数是多少？
 Source file: 地学大类生存指南(2).docx
 Category: 明确事实
 Existing Expected Facts:
-- 大气17人
-- 环境29人
-- 地科13人
-- 地海24人
-- 转出39人
+- 据个人地学大类生存指南，大气17人
+- 据个人地学大类生存指南，环境29人
+- 据个人地学大类生存指南，地科13人
+- 据个人地学大类生存指南，地海24人
+- 据个人地学大类生存指南，转出39人
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1832,7 +1800,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1847,10 +1815,10 @@ Query: 地海拔尖对数学层次有什么要求？
 Source file: 地学大类生存指南(2).docx
 Category: 条件
 Existing Expected Facts:
-- 需要一层次数学
-- 微积分I一层次
-- 微积分II一层次
-- 线性代数
+- 据个人地学大类生存指南，需要一层次数学
+- 据个人地学大类生存指南，微积分I一层次
+- 据个人地学大类生存指南，微积分II一层次
+- 据个人地学大类生存指南，线性代数
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1858,7 +1826,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1873,10 +1841,7 @@ Query: 2026级工试想分流现工院，需要修读哪些课中的至少一门
 Source file: 工科试验班生存指南_Revised by 吻安.docx
 Category: 转专业政策
 Existing Expected Facts:
-- 普通物理力学
-- 普通物理热学
-- 大学化学
-- 三门中一门
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1884,7 +1849,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1899,9 +1864,9 @@ Query: 数理大类准备分流数学时，解析几何、数学分析、高等�
 Source file: 数理大类生存指北.pdf
 Category: 学习经验
 Existing Expected Facts:
-- 解析几何课后题和考前突击可高分
-- 数学分析应最大投入并打牢课本例题作业
-- 高代重基础且赋分，若求后续学习也要打牢
+- 据2025级个人数理大类指南，解析几何课后题和考前突击可高分
+- 据2025级个人数理大类指南，数学分析应最大投入并打牢课本例题作业
+- 据2025级个人数理大类指南，高代重基础且赋分，若求后续学习也要打牢
 
 Candidate Evidence Documents:
 - Document ID: 待当前库核验（历史 ID 不沿用）; Title: 数理大类生存指北; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -1909,7 +1874,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1924,10 +1889,10 @@ Query: 法学转专业四门准入课程分别是什么？
 Source file: 法学转专业分享（更新至2025年）.docx
 Category: 明确事实
 Existing Expected Facts:
-- 法理学导论
-- 民法学总则
-- 刑法学总论一
-- 宪法学
+- 据更新至2025年的个人法学转专业指南，法理学导论
+- 据更新至2025年的个人法学转专业指南，民法学总则
+- 据更新至2025年的个人法学转专业指南，刑法学总论一
+- 据更新至2025年的个人法学转专业指南，宪法学
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1935,7 +1900,7 @@ Historical outcome (not current benchmark result): PASS
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1950,9 +1915,9 @@ Query: 法学转专业备考为什么应重点准备民法总则和刑法总论�
 Source file: 法学转专业分享（更新至2025年）.docx
 Category: 经验
 Existing Expected Facts:
-- 多数人笔试选择民法和刑法
-- 大一下是重要阶段
-- 需结合教材笔记和往年题全面备考
+- 据更新至2025年的个人法学转专业指南，多数人笔试选择民法和刑法
+- 据更新至2025年的个人法学转专业指南，大一下是重要阶段
+- 据更新至2025年的个人法学转专业指南，需结合教材笔记和往年题全面备考
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1960,7 +1925,7 @@ Historical outcome (not current benchmark result): PARTIAL, WRONG
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -1975,9 +1940,7 @@ Query: 转计算机前，资料建议如何平衡微积分II和笔试机试准�
 Source file: 转CS风险.md
 Category: 经验
 Existing Expected Facts:
-- 微积分II需要大量投入
-- 同时不能忽视离散、高程、计算系统等
-- 平衡数学刷题与笔试机试内容
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -1985,7 +1948,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2000,9 +1963,7 @@ Query: 转CS笔试的题量和数学题风格有什么经验？
 Source file: 转CS风险.md
 Category: 面试/机试
 Existing Expected Facts:
-- 笔试2小时4题
-- 微积分偏证明
-- 不考多元函数微分积分、曲线曲面积分等下学期内容
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -2010,7 +1971,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, FALLBACK
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2025,9 +1986,7 @@ Query: 转CS机试失败案例中三道题大致是什么类型、得分如何�
 Source file: 转CS风险.md
 Category: 面试/机试
 Existing Expected Facts:
-- 第一题大模拟60分
-- 第二题状压DP约10分
-- 第三题困难图论约10分
+- (none; human review required)
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -2035,7 +1994,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, COLLOQUIAL
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2050,13 +2009,13 @@ Query: 转电子大一准入需要哪六门课程达到多少分？
 Source file: 转电子指北.pdf
 Category: 转专业政策
 Existing Expected Facts:
-- 微积分I一层次
-- 大学物理I
-- 电路分析
-- 微积分II一层次
-- 模拟电路
-- 大学物理II
-- 均不低于70分
+- 据2026年个人转电子指南，微积分I一层次
+- 据2026年个人转电子指南，大学物理I
+- 据2026年个人转电子指南，电路分析
+- 据2026年个人转电子指南，微积分II一层次
+- 据2026年个人转电子指南，模拟电路
+- 据2026年个人转电子指南，大学物理II
+- 据2026年个人转电子指南，均不低于70分
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -2064,7 +2023,7 @@ Historical outcome (not current benchmark result): PASS, REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: NO
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2079,9 +2038,8 @@ Query: 电子转专业面试一般有哪些环节和提问范围？
 Source file: 转电子指北.pdf
 Category: 面试/机试
 Existing Expected Facts:
-- 1分钟自我介绍
-- 3到4分钟提问
-- 可能问大学物理、电路分析、模拟电路等
+- 据2026年个人转电子指南，面试包括限时一分钟自我陈述，随后老师轮流提问
+- 据2026年个人转电子指南，提问可能涉及大学物理、电路分析、模拟电路、C语言，也可能根据陈述追问
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -2089,7 +2047,7 @@ Historical outcome (not current benchmark result): PARTIAL, REFUSAL_FALSE_NEGATI
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, FALLBACK
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2104,9 +2062,9 @@ Query: 2026年转电子需要修哪些准入课，面试主要问什么？
 Source file: 转电子指北2026版.pdf
 Category: 组合问题
 Existing Expected Facts:
-- 六门准入课均70分以上
-- 面试1分钟陈述加提问
-- 可能问大物、电分、模电、C语言
+- 据2026年个人转电子指南，六门准入课均70分以上
+- 据2026年个人转电子指南，面试1分钟陈述加提问
+- 据2026年个人转电子指南，可能问大物、电分、模电、C语言
 
 Candidate Evidence Documents:
 - Document ID: 14; Title: 转电子指北2026版; sourceType: PERSONAL; why relevant: 历史评测中曾引用与该题 sourceFile 同名/同标题的资料；请在当前 Document 列表核验角色、ID 与原文。
@@ -2114,7 +2072,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [14] (no auto-mapped current IDs)
 Reference answer required: YES — COMPOUND, POLICY, EXPERIENCE
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
@@ -2129,9 +2087,9 @@ Query: 南赫学院大一选课的总学分和考试课程数量建议是多少�
 Source file: 难喝生存手册v0（完整版）.pdf
 Category: 课程规划
 Existing Expected Facts:
-- 总学分以25以内为宜
-- 最多30学分
-- 考试课程10门以内
+- 据以2023级培养方案为背景的个人南赫手册，总学分以25以内为宜
+- 据以2023级培养方案为背景的个人南赫手册，最多30学分
+- 据以2023级培养方案为背景的个人南赫手册，考试课程10门以内
 
 Candidate Evidence Documents:
 - 未找到可安全映射的历史来源引用；按 sourceFile 与当前 Evidence 文档标题查找。
@@ -2139,7 +2097,7 @@ Historical outcome (not current benchmark result): REFUSAL_FALSE_NEGATIVE
 Suggested answerable: true (review required)
 Suggested expectedDocumentIds: [] (no auto-mapped current IDs)
 Reference answer required: YES — EXPERIENCE, DEPARTMENT_SCOPED
-Current reviewStatus: NEEDS_REVIEW
+Current reviewStatus: CONFIRMED
 
 Human Decision:
 answerable:
