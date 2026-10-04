@@ -31,8 +31,7 @@ async def score_rows(rows: list[dict[str, Any]],
     faithfulness = Faithfulness(llm=llm)
     context_recall = ContextRecall(llm=llm)
 
-    results = []
-    for row in rows:
+    async def score_one(row: dict[str, Any]) -> dict[str, Any]:
         scored: dict[str, Any] = {"caseId": row["caseId"], "version": row["version"],
                                   "answerRelevancy": None, "faithfulness": None, "contextRecall": None}
         if (row.get("httpStatus") == 200 or row.get("executionStatus") == "COMPLETED") and row.get("answer"):
@@ -64,9 +63,16 @@ async def score_rows(rows: list[dict[str, Any]],
         else:
             scored["faithfulnessNAReason"] = "actual approved context unavailable"
             scored["contextRecallNAReason"] = "actual retrieved context unavailable"
-        results.append(scored)
-        if on_result is not None:
-            on_result(scored)
+        return scored
+
+    results = []
+    # Limit judge load while preserving the frozen case order and resumable checkpoint.
+    for offset in range(0, len(rows), 3):
+        batch = await asyncio.gather(*(score_one(row) for row in rows[offset:offset + 3]))
+        for scored in batch:
+            results.append(scored)
+            if on_result is not None:
+                on_result(scored)
     return {
         "ragasVersion": "0.4.3",
         "api": "collections metric .ascore(**kwargs)",
