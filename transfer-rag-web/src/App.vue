@@ -10,7 +10,7 @@ const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
 
 const recommendedQuestions = [
   '转软件工程机考要做什么准备？',
-  '转软件工程时间安排是怎样的？',
+  '转人工智能专业有什么困难',
   '2024级数理大类有哪些分流方向？',
   '如何分流进入汉语言文学？',
   '法学院转专业考核方式？',
