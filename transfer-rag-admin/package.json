@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "node --test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,4 +17,3 @@
     "vite": "^7.1.7"
   }
 }
-

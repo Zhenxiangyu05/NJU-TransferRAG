@@ -28,6 +28,16 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
+    @Test
+    void preparedEvidenceUploadDoesNotWriteDatabase() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.md", "text/markdown", "test".getBytes(StandardCharsets.UTF_8));
+        when(documentRepository.findByFileHash(org.mockito.ArgumentMatchers.anyString())).thenReturn(Optional.empty());
+        Document candidate = documentService.prepareEvidenceUpload(file,"test","dept",2026,"PERSONAL","DEPARTMENT");
+        assertEquals(DocumentRole.EVIDENCE,candidate.getDocumentRole());
+        assertTrue(Files.exists(Path.of(candidate.getFilePath())));
+        verify(documentRepository,never()).save(org.mockito.ArgumentMatchers.any());
+        verify(documentRepository,never()).saveAndFlush(org.mockito.ArgumentMatchers.any());
+    }
 
     @Mock
     private DocumentRepository documentRepository;

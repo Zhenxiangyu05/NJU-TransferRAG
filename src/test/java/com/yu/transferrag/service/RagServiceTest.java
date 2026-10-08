@@ -68,7 +68,7 @@ class RagServiceTest {
                 chatModel,
                 documentRepository,
                 evidenceRefRepository,
-                false
+                false, PublishedEvidenceFixture.gate()
         );
     }
 

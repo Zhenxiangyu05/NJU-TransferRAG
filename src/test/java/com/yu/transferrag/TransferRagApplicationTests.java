@@ -19,6 +19,8 @@ import static org.mockito.Mockito.mock;
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.ai.openai.base-url=http://127.0.0.1:9",
         "spring.ai.openai.api-key=test-only-key",
+        "spring.ai.openai.embedding.model=isolated-test-model",
+        "app.import-tasks.enabled=false",
         "spring.autoconfigure.exclude="
                 + "org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration,"
                 + "org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration,"
@@ -26,9 +28,14 @@ import static org.mockito.Mockito.mock;
 })
 @Import(TransferRagApplicationTests.TestBeans.class)
 class TransferRagApplicationTests {
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.context.ApplicationContext context;
 
     @Test
     void contextLoads() {
+        org.junit.jupiter.api.Assertions.assertTrue(context.getBeansOfType(com.yu.transferrag.service.ImportTaskDispatcher.class).isEmpty());
+        org.junit.jupiter.api.Assertions.assertNotNull(context.getBean(com.yu.transferrag.service.EvidenceReadinessService.class));
+        org.junit.jupiter.api.Assertions.assertNotNull(context.getBean(com.yu.transferrag.service.PublicSourceService.class));
     }
 
     @TestConfiguration(proxyBeanMethods = false)

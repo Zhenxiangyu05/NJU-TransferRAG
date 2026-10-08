@@ -22,6 +22,10 @@ public interface ChunkRepository extends JpaRepository<Chunk, Long> {
             SELECT MAX(COALESCE(c.policyYear, c.document.year))
             FROM Chunk c
             WHERE COALESCE(c.policyYear, c.document.year) IS NOT NULL
+              AND NOT EXISTS (SELECT t.id FROM ImportTask t WHERE t.document = c.document
+                  AND NOT (t.taskKind = com.yu.transferrag.entity.ImportTaskKind.LEGACY_VERIFICATION
+                      OR (t.taskKind = com.yu.transferrag.entity.ImportTaskKind.NEW_EVIDENCE
+                          AND t.status = com.yu.transferrag.entity.ImportTaskStatus.SUCCEEDED)))
               AND (
                     c.document.department IN :departments
                     OR (c.document.scope = :globalScope
@@ -38,6 +42,10 @@ public interface ChunkRepository extends JpaRepository<Chunk, Long> {
             SELECT MAX(COALESCE(c.policyYear, c.document.year))
             FROM Chunk c
             WHERE COALESCE(c.policyYear, c.document.year) IS NOT NULL
+              AND NOT EXISTS (SELECT t.id FROM ImportTask t WHERE t.document = c.document
+                  AND NOT (t.taskKind = com.yu.transferrag.entity.ImportTaskKind.LEGACY_VERIFICATION
+                      OR (t.taskKind = com.yu.transferrag.entity.ImportTaskKind.NEW_EVIDENCE
+                          AND t.status = com.yu.transferrag.entity.ImportTaskStatus.SUCCEEDED)))
             """)
     Integer findMaxEffectiveYear();
 }

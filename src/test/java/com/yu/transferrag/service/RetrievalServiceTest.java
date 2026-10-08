@@ -53,7 +53,7 @@ class RetrievalServiceTest {
     @BeforeEach
     void setUp() {
         retrievalService = new RetrievalService(
-                vectorStore, queryRewriteService, chunkRepository, precomputedVectorSearch
+                vectorStore, queryRewriteService, chunkRepository, precomputedVectorSearch, PublishedEvidenceFixture.gate()
         );
         lenient().when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
     }
@@ -75,7 +75,7 @@ class RetrievalServiceTest {
         assertEquals(expectedDepartmentFilter(Set.of("文学院"), 2025, false),
                 requests.get(1).getFilterExpression());
         assertEquals(query, requests.get(0).getQuery());
-        assertEquals(3, requests.get(0).getTopK());
+        assertEquals(20, requests.get(0).getTopK());
         assertEquals(List.of(11L), results.stream().map(SearchResultResponse::getChunkId).toList());
     }
 
@@ -418,7 +418,7 @@ class RetrievalServiceTest {
         List<SearchRequest> requests = capturedRequests(1);
         assertEquals(expectedDepartmentFilter(Set.of("数学学院"), null, true),
                 requests.getFirst().getFilterExpression());
-        assertEquals(10, requests.getFirst().getTopK());
+        assertEquals(40, requests.getFirst().getTopK());
         assertEquals(List.of(301L), results.stream().map(SearchResultResponse::getChunkId).toList());
     }
 
@@ -442,7 +442,7 @@ class RetrievalServiceTest {
         List<SearchRequest> requests = capturedRequests(1);
         assertEquals(expectedDepartmentFilter(Set.of("数学学院"), 2025, true),
                 requests.getFirst().getFilterExpression());
-        assertEquals(3, requests.getFirst().getTopK());
+        assertEquals(20, requests.getFirst().getTopK());
         verifyNoInteractions(chunkRepository);
     }
 
@@ -467,7 +467,7 @@ class RetrievalServiceTest {
         List<SearchRequest> requests = capturedRequests(1);
         assertEquals(expectedDepartmentFilter(Set.of("数学学院"), currentYear, true),
                 requests.getFirst().getFilterExpression());
-        assertEquals(3, requests.getFirst().getTopK());
+        assertEquals(20, requests.getFirst().getTopK());
         verifyNoInteractions(chunkRepository);
     }
 
@@ -491,7 +491,7 @@ class RetrievalServiceTest {
         List<SearchRequest> requests = capturedRequests(1);
         assertEquals(expectedDepartmentFilter(Set.of("数学学院"), null, true),
                 requests.getFirst().getFilterExpression());
-        assertEquals(3, requests.getFirst().getTopK());
+        assertEquals(20, requests.getFirst().getTopK());
         verifyNoInteractions(chunkRepository);
     }
 

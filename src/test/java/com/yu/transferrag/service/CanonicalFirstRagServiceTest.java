@@ -56,7 +56,7 @@ class CanonicalFirstRagServiceTest {
     @BeforeEach
     void setUp() {
         ragService = new RagService(retrievalService, answerabilityService, chatModel,
-                documentRepository, evidenceRefRepository, true);
+                documentRepository, evidenceRefRepository, true, PublishedEvidenceFixture.gate());
         preparedQuery = mock(RetrievalService.PreparedQuery.class);
     }
 
@@ -86,6 +86,24 @@ class CanonicalFirstRagServiceTest {
         assertTrue(context.getValue().contains("需要参加面试"));
         assertTrue(context.getValue().contains("通知要求参加面试"));
         assertEquals("S1", sources.getValue().getFirst().getCitationId());
+    }
+
+    @Test
+    void unpublishedCanonicalEvidenceCannotReachAnswerabilityOrCitation() {
+        String question = "isolated readiness query";
+        SearchResultResponse canonical = canonicalResult(900L, "[F0] isolated fact", 0.80);
+        Document evidence = evidenceDocument(12L, "isolated evidence");
+        when(retrievalService.prepareCanonicalFirst(question)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery, 3)).thenReturn(List.of(canonical));
+        when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
+        when(evidenceRefRepository.findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1L,900L,0,evidence,null,"isolated excerpt")));
+        // Missing DB readiness row is denied, even when the referenced entity says EVIDENCE.
+        when(documentRepository.findReadinessByIds(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(List.of());
+        RagService gated = new RagService(retrievalService,answerabilityService,chatModel,
+                documentRepository,evidenceRefRepository,true,new EvidenceReadinessService(documentRepository));
+        assertTrue(gated.ask(question).getSources().isEmpty());
+        org.mockito.Mockito.verifyNoInteractions(answerabilityService,chatModel);
     }
 
     @Test
@@ -453,7 +471,7 @@ class CanonicalFirstRagServiceTest {
                 .thenReturn(productionLikeRefs(evidence));
         AnswerabilityService realAnswerability = new AnswerabilityService(chatModel);
         RagService service = new RagService(retrievalService, realAnswerability, chatModel,
-                documentRepository, evidenceRefRepository, true);
+                documentRepository, evidenceRefRepository, true, PublishedEvidenceFixture.gate());
         when(chatModel.call(any(Prompt.class))).thenReturn(
                 chatResponse("{\"answerable\":true,\"evidenceCitationIds\":[\"S1\"],\"reason\":\"三条事实均有证据\"}"),
                 chatResponse("需要完成微积分 I 和 II；大二申请还需线性代数；专业准入课程需已修或在修。[S1]"));
@@ -511,7 +529,7 @@ class CanonicalFirstRagServiceTest {
         when(retrievalService.searchEvidence(preparedQuery, 3)).thenReturn(List.of());
         AnswerabilityService realAnswerability = new AnswerabilityService(chatModel);
         RagService service = new RagService(retrievalService, realAnswerability, chatModel,
-                documentRepository, evidenceRefRepository, true);
+                documentRepository, evidenceRefRepository, true, PublishedEvidenceFixture.gate());
         when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse(
                 "{\"answerable\":true,\"evidenceCitationIds\":[\"S99\"],\"reason\":\"错误引用\"}"));
 

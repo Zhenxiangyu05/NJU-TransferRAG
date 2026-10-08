@@ -1,6 +1,21 @@
 package com.yu.transferrag.dto;
 
 public class DocumentImportResponse {
+    private Long taskId;
+    private String stage;
+    private Integer attemptCount;
+    private boolean retryable;
+    private String error;
+    public Long getTaskId() { return taskId; }
+    public void setTaskId(Long value) { taskId = value; }
+    public String getStage() { return stage; }
+    public void setStage(String value) { stage = value; }
+    public Integer getAttemptCount() { return attemptCount; }
+    public void setAttemptCount(Integer value) { attemptCount = value; }
+    public boolean isRetryable() { return retryable; }
+    public void setRetryable(boolean value) { retryable = value; }
+    public String getError() { return error; }
+    public void setError(String value) { error = value; }
 
     private Long documentId;
     private String title;

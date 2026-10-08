@@ -13,6 +13,9 @@ public class VectorIndexService {
 
     private final ChunkRepository chunkRepository;
     private final VectorStore vectorStore;
+    private ImportTaskManualGuard manualGuard;
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setManualGuard(ImportTaskManualGuard guard) { this.manualGuard=guard; }
 
     public VectorIndexService(ChunkRepository chunkRepository, VectorStore vectorStore) {
         this.chunkRepository = chunkRepository;
@@ -20,6 +23,7 @@ public class VectorIndexService {
     }
 
     public int indexDocument(Long documentId) {
+        if(manualGuard!=null) manualGuard.checkIndexMutation(documentId);
         removeDocumentIndex(documentId);
 
         List<Chunk> chunks = chunkRepository
@@ -46,6 +50,7 @@ public class VectorIndexService {
         if (documentId == null) {
             return;
         }
+        if(manualGuard!=null) manualGuard.checkIndexMutation(documentId);
         Filter.Expression documentFilter = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("documentId"),
@@ -54,7 +59,7 @@ public class VectorIndexService {
         vectorStore.delete(documentFilter);
     }
 
-    private org.springframework.ai.document.Document toVectorDocument(Chunk chunk) {
+    org.springframework.ai.document.Document toVectorDocument(Chunk chunk) {
         com.yu.transferrag.entity.Document sourceDocument = chunk.getDocument();
         var builder = org.springframework.ai.document.Document.builder()
                 .text(chunk.getContent())

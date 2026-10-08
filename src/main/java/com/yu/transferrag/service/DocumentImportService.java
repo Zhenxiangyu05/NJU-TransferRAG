@@ -1,230 +1,90 @@
 package com.yu.transferrag.service;
 
-import com.yu.transferrag.dto.BatchDocumentImportItemResponse;
-import com.yu.transferrag.dto.BatchDocumentImportResponse;
-import com.yu.transferrag.dto.DocumentImportResponse;
-import com.yu.transferrag.dto.DocumentResponse;
+import com.yu.transferrag.dto.*;
 import com.yu.transferrag.entity.Document;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class DocumentImportService {
-
-    private static final String SUCCESS = "SUCCESS";
-    private static final String FAILED = "FAILED";
-
-    private final DocumentService documentService;
-    private final ChunkService chunkService;
-    private final VectorIndexService vectorIndexService;
-
-    public DocumentImportService(DocumentService documentService,
-                                 ChunkService chunkService,
-                                 VectorIndexService vectorIndexService) {
-        this.documentService = documentService;
-        this.chunkService = chunkService;
-        this.vectorIndexService = vectorIndexService;
+    private final DocumentService documents;
+    private final EvidenceRegistrationService registration;
+    private final ImportTaskStateService state;
+    private final boolean enabled;
+    public DocumentImportService(DocumentService documents, EvidenceRegistrationService registration,
+                                 ImportTaskStateService state, @Value("${app.import-tasks.enabled:false}") boolean enabled) {
+        this.documents = documents; this.registration = registration; this.state = state; this.enabled = enabled;
     }
-
-    public DocumentImportResponse importDocument(MultipartFile file,
-                                                 String title,
-                                                 String department,
-                                                 Integer year,
-                                                 String sourceType) {
-        return importDocumentInternal(
-                file, title, department, year, sourceType, Document.SCOPE_DEPARTMENT, false
-        );
+    public DocumentImportResponse importDocument(MultipartFile file, String title, String department, Integer year, String sourceType) {
+        return importDocument(file, title, department, year, sourceType, Document.SCOPE_DEPARTMENT);
     }
-
-    public DocumentImportResponse importDocument(MultipartFile file,
-                                                 String title,
-                                                 String department,
-                                                 Integer year,
-                                                 String sourceType,
-                                                 String scope) {
-        return importDocumentInternal(file, title, department, year, sourceType, scope, true);
-    }
-
-    private DocumentImportResponse importDocumentInternal(MultipartFile file,
-                                                          String title,
-                                                          String department,
-                                                          Integer year,
-                                                          String sourceType,
-                                                          String scope,
-                                                          boolean explicitScope) {
+    public DocumentImportResponse importDocument(MultipartFile file, String title, String department, Integer year, String sourceType, String scope) {
+        ensureEnabled();
         validateMetadata(department, year, sourceType);
-        String resolvedTitle = resolveTitle(title, file);
-
-        DocumentService.UploadResult uploadResult;
-        try {
-            uploadResult = explicitScope
-                    ? documentService.uploadDocumentIfAbsent(
-                            file, resolvedTitle, department.trim(), year, sourceType.trim(), scope
-                    )
-                    : documentService.uploadDocumentIfAbsent(
-                            file, resolvedTitle, department.trim(), year, sourceType.trim()
-                    );
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw stageFailure("文件保存", e);
+        Document candidate = documents.prepareEvidenceUpload(file, resolveTitle(title, file), department.trim(), year, sourceType.trim(), scope);
+        EvidenceRegistrationService.Registration registered;
+        try { registered = registration.register(candidate); }
+        catch (DataIntegrityViolationException conflict) {
+            // The failed registration transaction has already rolled back. Resolve the committed hash winner in a NEW transaction.
+            registered = registration.resolveHash(candidate.getFileHash());
         }
-
-        DocumentResponse savedDocument = uploadResult.document();
-        if (uploadResult.duplicate()) {
-            return duplicateResponse(savedDocument);
+        // Candidate files from failed/losing transactions are retained for explicit operator review.
+        // Never delete an existing file, including after an ambiguous commit outcome.
+        DocumentImportResponse response = state.view(registered.taskId(), registered.duplicate());
+        if (registered.duplicate() && "FAILED".equals(response.getStatus()) && response.isRetryable()) {
+            state.retry(registered.taskId());
+            response = state.view(registered.taskId(), true);
         }
-
-        int chunkCount;
-        try {
-            chunkCount = chunkService.createChunks(savedDocument.getId());
-        } catch (RuntimeException e) {
-            throw stageFailure("Chunk 创建", e);
-        }
-
-        int indexedChunks;
-        try {
-            indexedChunks = vectorIndexService.indexDocument(savedDocument.getId());
-        } catch (RuntimeException e) {
-            throw stageFailure("Qdrant 索引", e);
-        }
-
-        DocumentImportResponse response = new DocumentImportResponse();
-        response.setDocumentId(savedDocument.getId());
-        response.setTitle(savedDocument.getTitle());
-        response.setDepartment(savedDocument.getDepartment());
-        response.setYear(savedDocument.getYear());
-        response.setSourceType(savedDocument.getSourceType());
-        response.setChunkCount(chunkCount);
-        response.setIndexedChunks(indexedChunks);
-        response.setStatus(SUCCESS);
-        response.setDuplicate(false);
         return response;
     }
-
-    public BatchDocumentImportResponse importBatch(List<MultipartFile> files,
-                                                   String department,
-                                                   Integer year,
-                                                   String sourceType) {
-        if (files == null || files.isEmpty()) {
-            throw new IllegalArgumentException("files 不能为空");
-        }
+    public BatchDocumentImportResponse importBatch(List<MultipartFile> files, String department, Integer year, String sourceType) {
+        ensureEnabled();
+        if (files == null || files.isEmpty()) throw new IllegalArgumentException("files 不能为空");
         validateMetadata(department, year, sourceType);
-
-        List<BatchDocumentImportItemResponse> results = new ArrayList<>();
-        int successCount = 0;
-
+        List<BatchDocumentImportItemResponse> items = new ArrayList<>();
+        int succeeded = 0, failed = 0, pending = 0;
         for (MultipartFile file : files) {
+            var item = new BatchDocumentImportItemResponse();
+            item.setFileName(file == null ? null : file.getOriginalFilename());
             try {
-                DocumentImportResponse imported = importDocument(
-                        file,
-                        null,
-                        department,
-                        year,
-                        sourceType
-                );
-                results.add(toBatchSuccess(file, imported));
-                successCount++;
-            } catch (RuntimeException e) {
-                results.add(toBatchFailure(file, e));
+                var response = importDocument(file, null, department, year, sourceType);
+                item.setTaskId(response.getTaskId()); item.setStage(response.getStage());
+                item.setDocumentId(response.getDocumentId()); item.setDuplicate(response.isDuplicate());
+                item.setChunkCount(response.getChunkCount()); item.setIndexedChunks(response.getIndexedChunks());
+                item.setStatus(response.getStatus()); item.setError(response.getError());
+                if ("SUCCEEDED".equals(response.getStatus())) succeeded++;
+                else if ("FAILED".equals(response.getStatus())) failed++;
+                else pending++;
+            } catch (RuntimeException failure) {
+                item.setStatus("FAILED"); item.setError("文件登记失败，请检查输入或服务状态"); failed++;
             }
+            items.add(item);
         }
-
-        BatchDocumentImportResponse response = new BatchDocumentImportResponse();
-        response.setTotal(files.size());
-        response.setSuccess(successCount);
-        response.setFailed(files.size() - successCount);
-        response.setResults(results);
-        return response;
+        var result = new BatchDocumentImportResponse();
+        result.setTotal(files.size()); result.setSuccess(succeeded); result.setFailed(failed); result.setPending(pending); result.setResults(items);
+        return result;
     }
-
-    private BatchDocumentImportItemResponse toBatchSuccess(MultipartFile file,
-                                                           DocumentImportResponse imported) {
-        BatchDocumentImportItemResponse item = new BatchDocumentImportItemResponse();
-        item.setFileName(getOriginalFileName(file));
-        item.setDocumentId(imported.getDocumentId());
-        item.setChunkCount(imported.getChunkCount());
-        item.setIndexedChunks(imported.getIndexedChunks());
-        item.setStatus(SUCCESS);
-        item.setDuplicate(imported.isDuplicate());
-        return item;
+    private void ensureEnabled() {
+        if (!enabled) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Evidence import tasks are not enabled");
     }
-
-    private DocumentImportResponse duplicateResponse(DocumentResponse existingDocument) {
-        DocumentImportResponse response = new DocumentImportResponse();
-        response.setDocumentId(existingDocument.getId());
-        response.setTitle(existingDocument.getTitle());
-        response.setDepartment(existingDocument.getDepartment());
-        response.setYear(existingDocument.getYear());
-        response.setSourceType(existingDocument.getSourceType());
-        response.setChunkCount(0);
-        response.setIndexedChunks(0);
-        response.setStatus(SUCCESS);
-        response.setDuplicate(true);
-        return response;
-    }
-
-    private BatchDocumentImportItemResponse toBatchFailure(MultipartFile file,
-                                                           RuntimeException exception) {
-        BatchDocumentImportItemResponse item = new BatchDocumentImportItemResponse();
-        item.setFileName(getOriginalFileName(file));
-        item.setStatus(FAILED);
-        item.setError(errorMessage(exception));
-        return item;
-    }
-
     private void validateMetadata(String department, Integer year, String sourceType) {
-        if (department == null || department.isBlank()) {
-            throw new IllegalArgumentException("department 不能为空");
-        }
-        if (year == null || year <= 0) {
-            throw new IllegalArgumentException("year 必须大于 0");
-        }
-        if (sourceType == null || sourceType.isBlank()) {
-            throw new IllegalArgumentException("sourceType 不能为空");
-        }
+        if (department == null || department.isBlank()) throw new IllegalArgumentException("department 不能为空");
+        if (year == null || year <= 0) throw new IllegalArgumentException("year 必须大于 0");
+        if (sourceType == null || sourceType.isBlank()) throw new IllegalArgumentException("sourceType 不能为空");
     }
-
     private String resolveTitle(String title, MultipartFile file) {
-        if (title != null && !title.isBlank()) {
-            return title.trim();
-        }
-
-        String fileName = getOriginalFileName(file);
-        if (fileName == null || fileName.isBlank()) {
-            throw new IllegalArgumentException("上传文件缺少文件名，无法生成 title");
-        }
-
-        String simpleFileName = Path.of(fileName).getFileName().toString();
-        int dotIndex = simpleFileName.lastIndexOf('.');
-        String generatedTitle = dotIndex > 0
-                ? simpleFileName.substring(0, dotIndex)
-                : simpleFileName;
-        generatedTitle = generatedTitle.replace('_', ' ')
-                .replace('-', ' ')
-                .trim();
-        return generatedTitle.isEmpty() ? simpleFileName : generatedTitle;
-    }
-
-    private String getOriginalFileName(MultipartFile file) {
-        return file == null ? null : file.getOriginalFilename();
-    }
-
-    private IllegalStateException stageFailure(String stage, RuntimeException cause) {
-        return new IllegalStateException(
-                "文档导入在【" + stage + "】阶段失败: " + errorMessage(cause),
-                cause
-        );
-    }
-
-    private String errorMessage(RuntimeException exception) {
-        String message = exception.getMessage();
-        return message == null || message.isBlank()
-                ? exception.getClass().getSimpleName()
-                : message;
+        if (title != null && !title.isBlank()) return title.trim();
+        if (file == null || file.getOriginalFilename() == null || file.getOriginalFilename().isBlank())
+            throw new IllegalArgumentException("上传文件缺少文件名");
+        String name = Path.of(file.getOriginalFilename().replace('\\', '/')).getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        String generated = (dot > 0 ? name.substring(0, dot) : name).replace('_', ' ').replace('-', ' ').trim();
+        return generated.isEmpty() ? name : generated;
     }
 }

@@ -25,6 +25,9 @@ public class ChunkService {
     private final DocumentRepository documentRepository;
     private final ChunkRepository chunkRepository;
     private final DocumentParserService documentParserService;
+    private ImportTaskManualGuard manualGuard;
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setManualGuard(ImportTaskManualGuard guard) { this.manualGuard=guard; }
     private final TextChunker textChunker = new TextChunker();
     private final StructuredPolicyChunker structuredPolicyChunker = new StructuredPolicyChunker();
     private final CohortAwareTextChunker cohortAwareTextChunker = new CohortAwareTextChunker();
@@ -39,6 +42,7 @@ public class ChunkService {
 
     @Transactional
     public int createChunks(Long documentId) {
+        if(manualGuard!=null) manualGuard.checkIndexMutation(documentId);
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
 
@@ -64,6 +68,28 @@ public class ChunkService {
 
         chunkRepository.saveAll(chunks);
         return chunks.size();
+    }
+
+    /** Task path: only prepare, never delete or persist existing chunks. */
+    public List<Chunk> prepareEvidenceChunks(Long documentId) {
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive())
+            throw new IllegalStateException("Parsing must execute outside database transactions");
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new IllegalArgumentException("文档不存在"));
+        if (document.getDocumentRole() != com.yu.transferrag.entity.DocumentRole.EVIDENCE)
+            throw new IllegalArgumentException("Only EVIDENCE imports are supported");
+        String text = documentParserService.extractText(documentId);
+        List<Chunk> prepared = new ArrayList<>();
+        var data = createChunkData(document, text);
+        for (int n = 0; n < data.size(); n++) {
+            var item = data.get(n);
+            Chunk chunk = new Chunk();
+            chunk.setDocument(document); chunk.setChunkIndex(n); chunk.setContent(item.content());
+            chunk.setPolicyYear(item.policyYear()); chunk.setCohortYear(item.cohortYear());
+            chunk.setDepartment(item.department()); chunk.setMajor(item.major());
+            prepared.add(chunk);
+        }
+        return prepared;
     }
 
     private List<StructuredPolicyChunker.PolicyChunk> createChunkData(Document document,

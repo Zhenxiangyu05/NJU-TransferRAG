@@ -1,199 +1,77 @@
 package com.yu.transferrag.service;
 
-import com.yu.transferrag.dto.BatchDocumentImportResponse;
 import com.yu.transferrag.dto.DocumentImportResponse;
-import com.yu.transferrag.dto.DocumentResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.yu.transferrag.entity.Document;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentImportServiceTest {
-
-    @Mock
-    private DocumentService documentService;
-
-    @Mock
-    private ChunkService chunkService;
-
-    @Mock
-    private VectorIndexService vectorIndexService;
-
-    private DocumentImportService documentImportService;
-
-    @BeforeEach
-    void setUp() {
-        documentImportService = new DocumentImportService(
-                documentService,
-                chunkService,
-                vectorIndexService
-        );
+    @Mock DocumentService documents;
+    @Mock EvidenceRegistrationService registration;
+    @Mock ImportTaskStateService state;
+    DocumentImportService service;
+    MockMultipartFile file = new MockMultipartFile("file", "first.md", "text/markdown", new byte[]{1});
+    Document candidate;
+    @BeforeEach void setup() {
+        service = new DocumentImportService(documents, registration, state, true);
+        candidate = new Document(); candidate.setFileHash("hash");
     }
-
-    @Test
-    void shouldImportOneDocumentInOrderAndGenerateTitleFromFileName() {
-        MockMultipartFile file = markdownFile("转光电概述.md");
-        DocumentResponse savedDocument = documentResponse(
-                13L,
-                "转光电概述",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        );
-        when(documentService.uploadDocumentIfAbsent(
-                file,
-                "转光电概述",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        )).thenReturn(new DocumentService.UploadResult(savedDocument, false));
-        when(chunkService.createChunks(13L)).thenReturn(6);
-        when(vectorIndexService.indexDocument(13L)).thenReturn(6);
-
-        DocumentImportResponse response = documentImportService.importDocument(
-                file,
-                " ",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        );
-
-        assertEquals(13L, response.getDocumentId());
-        assertEquals("转光电概述", response.getTitle());
-        assertEquals("现代工程学院", response.getDepartment());
-        assertEquals(2026, response.getYear());
-        assertEquals("COMMUNITY", response.getSourceType());
-        assertEquals(6, response.getChunkCount());
-        assertEquals(6, response.getIndexedChunks());
-        assertEquals("SUCCESS", response.getStatus());
-
-        InOrder inOrder = inOrder(documentService, chunkService, vectorIndexService);
-        inOrder.verify(documentService).uploadDocumentIfAbsent(
-                file,
-                "转光电概述",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        );
-        inOrder.verify(chunkService).createChunks(13L);
-        inOrder.verify(vectorIndexService).indexDocument(13L);
+    void prepare(boolean duplicate, String status, boolean retryable) {
+        when(documents.prepareEvidenceUpload(file, "first", "软件学院", 2026, "PERSONAL", "DEPARTMENT")).thenReturn(candidate);
+        when(registration.register(candidate)).thenReturn(new EvidenceRegistrationService.Registration(9, 1, duplicate, null));
+        when(state.view(9, duplicate)).thenReturn(response(status, duplicate, retryable));
     }
-
-    @Test
-    void shouldReturnExistingDocumentAndSkipChunkAndIndexForDuplicateFile() {
-        MockMultipartFile file = markdownFile("duplicate.md");
-        DocumentResponse existingDocument = documentResponse(
-                13L,
-                "已存在文档",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        );
-        when(documentService.uploadDocumentIfAbsent(
-                file,
-                "duplicate",
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        )).thenReturn(new DocumentService.UploadResult(existingDocument, true));
-
-        DocumentImportResponse response = documentImportService.importDocument(
-                file,
-                null,
-                "现代工程学院",
-                2026,
-                "COMMUNITY"
-        );
-
-        assertEquals(13L, response.getDocumentId());
-        assertEquals("已存在文档", response.getTitle());
-        assertEquals(0, response.getChunkCount());
-        assertEquals(0, response.getIndexedChunks());
-        assertEquals("SUCCESS", response.getStatus());
-        assertEquals(true, response.isDuplicate());
-        verifyNoInteractions(chunkService, vectorIndexService);
+    DocumentImportResponse response(String status, boolean duplicate, boolean retryable) {
+        var r = new DocumentImportResponse(); r.setDocumentId(1L); r.setTaskId(9L);
+        r.setStatus(status); r.setDuplicate(duplicate); r.setRetryable(retryable); return r;
     }
-
-    @Test
-    void shouldContinueBatchAfterOneFileFails() {
-        MockMultipartFile firstFile = markdownFile("first.md");
-        MockMultipartFile failedFile = markdownFile("failed.md");
-        MockMultipartFile lastFile = markdownFile("last.md");
-
-        when(documentService.uploadDocumentIfAbsent(
-                firstFile, "first", "软件学院", 2026, "COMMUNITY"
-        )).thenReturn(new DocumentService.UploadResult(
-                documentResponse(1L, "first", "软件学院", 2026, "COMMUNITY"),
-                false
-        ));
-        when(chunkService.createChunks(1L)).thenReturn(2);
-        when(vectorIndexService.indexDocument(1L)).thenReturn(2);
-
-        when(documentService.uploadDocumentIfAbsent(
-                failedFile, "failed", "软件学院", 2026, "COMMUNITY"
-        )).thenThrow(new IllegalArgumentException("测试文件无法保存"));
-
-        when(documentService.uploadDocumentIfAbsent(
-                lastFile, "last", "软件学院", 2026, "COMMUNITY"
-        )).thenReturn(new DocumentService.UploadResult(
-                documentResponse(3L, "last", "软件学院", 2026, "COMMUNITY"),
-                false
-        ));
-        when(chunkService.createChunks(3L)).thenReturn(4);
-        when(vectorIndexService.indexDocument(3L)).thenReturn(4);
-
-        BatchDocumentImportResponse response = documentImportService.importBatch(
-                java.util.List.of(firstFile, failedFile, lastFile),
-                "软件学院",
-                2026,
-                "COMMUNITY"
-        );
-
-        assertEquals(3, response.getTotal());
-        assertEquals(2, response.getSuccess());
-        assertEquals(1, response.getFailed());
-        assertEquals("SUCCESS", response.getResults().get(0).getStatus());
-        assertEquals("FAILED", response.getResults().get(1).getStatus());
-        assertEquals("测试文件无法保存", response.getResults().get(1).getError());
-        assertNull(response.getResults().get(1).getDocumentId());
-        assertEquals("SUCCESS", response.getResults().get(2).getStatus());
-        assertEquals(3L, response.getResults().get(2).getDocumentId());
-        assertEquals(4, response.getResults().get(2).getIndexedChunks());
-
-        verify(vectorIndexService).indexDocument(3L);
+    DocumentImportResponse submit() { return service.importDocument(file, null, "软件学院", 2026, "PERSONAL"); }
+    @Test void queuedRegistrationDoesNotParseOrIndexInRequest() {
+        prepare(false, "QUEUED", true);
+        assertEquals("QUEUED", submit().getStatus());
+        verify(registration).register(candidate);
     }
-
-    private MockMultipartFile markdownFile(String fileName) {
-        return new MockMultipartFile(
-                "files",
-                fileName,
-                "text/markdown",
-                "测试内容".getBytes(java.nio.charset.StandardCharsets.UTF_8)
-        );
+    @Test void duplicateProcessingIsNotSuccess() {
+        prepare(true, "PROCESSING", true);
+        assertEquals("PROCESSING", submit().getStatus()); verify(state, never()).retry(anyLong());
     }
-
-    private DocumentResponse documentResponse(Long id,
-                                              String title,
-                                              String department,
-                                              Integer year,
-                                              String sourceType) {
-        DocumentResponse response = new DocumentResponse();
-        response.setId(id);
-        response.setTitle(title);
-        response.setDepartment(department);
-        response.setYear(year);
-        response.setSourceType(sourceType);
-        return response;
+    @Test void duplicateSucceededKeepsActualStatus() {
+        prepare(true, "SUCCEEDED", false);
+        assertEquals("SUCCEEDED", submit().getStatus()); verify(state, never()).retry(anyLong());
+    }
+    @Test void failedDuplicateRequestsRetry() {
+        prepare(true, "FAILED", true);
+        when(state.view(9, true)).thenReturn(response("FAILED",true,true), response("QUEUED",true,true));
+        assertEquals("QUEUED", submit().getStatus()); verify(state).retry(9);
+    }
+    @Test void exhaustedDuplicateRemainsFailed() {
+        prepare(true, "FAILED", false);
+        assertEquals("FAILED", submit().getStatus()); verify(state, never()).retry(anyLong());
+    }
+    @Test void uniqueHashRaceIsResolvedOutsideFailedRegistrationTransaction() {
+        when(documents.prepareEvidenceUpload(file, "first", "软件学院", 2026, "PERSONAL", "DEPARTMENT")).thenReturn(candidate);
+        when(registration.register(candidate)).thenThrow(new DataIntegrityViolationException("unique"));
+        when(registration.resolveHash("hash")).thenReturn(new EvidenceRegistrationService.Registration(9,1,true,null));
+        when(state.view(9,true)).thenReturn(response("QUEUED",true,true));
+        assertTrue(submit().isDuplicate()); verify(registration).resolveHash("hash");
+    }
+    @Test void batchPendingIsNotCountedAsSuccess() {
+        prepare(false, "QUEUED", true);
+        var result = service.importBatch(List.of(file), "软件学院", 2026, "PERSONAL");
+        assertEquals(1, result.getPending()); assertEquals(0, result.getSuccess());
+        assertEquals(9L, result.getResults().getFirst().getTaskId());
+    }
+    @Test void disabledImportNeverSavesFile() {
+        service = new DocumentImportService(documents,registration,state,false);
+        assertThrows(ResponseStatusException.class, this::submit); verifyNoInteractions(documents,registration,state);
     }
 }

@@ -77,6 +77,7 @@ public class RagService {
     private final DocumentRepository documentRepository;
     private final EvidenceRefRepository evidenceRefRepository;
     private final boolean canonicalFirstEnabled;
+    private final EvidenceReadinessService readiness;
     private final ThreadLocal<EvaluationTrace.Builder> evaluationTrace = new ThreadLocal<>();
 
     public RagService(RetrievalService retrievalService,
@@ -84,13 +85,15 @@ public class RagService {
                       ChatModel chatModel,
                       DocumentRepository documentRepository,
                       EvidenceRefRepository evidenceRefRepository,
-                      @Value("${app.rag.canonical-first-enabled:false}") boolean canonicalFirstEnabled) {
+                      @Value("${app.rag.canonical-first-enabled:false}") boolean canonicalFirstEnabled,
+                      EvidenceReadinessService readiness) {
         this.retrievalService = retrievalService;
         this.answerabilityService = answerabilityService;
         this.chatModel = chatModel;
         this.documentRepository = documentRepository;
         this.evidenceRefRepository = evidenceRefRepository;
         this.canonicalFirstEnabled = canonicalFirstEnabled;
+        this.readiness = readiness;
     }
 
     public RagResponse ask(String question) {
@@ -205,6 +208,7 @@ public class RagService {
     }
 
     private RagResponse answerFromEvidence(String question, List<SearchResultResponse> searchResults) {
+        searchResults = readiness.filterCandidates(searchResults);
         if (!passesRelevanceGate(searchResults)) {
             return insufficientKnowledgeResponse(question);
         }
@@ -263,6 +267,11 @@ public class RagService {
         }
         List<EvidenceRef> refs = evidenceRefRepository
                 .findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(chunkIds);
+        Set<Long> published = readiness.readyDocumentIds(refs.stream()
+                .filter(ref -> ref.getEvidenceDocument() != null)
+                .map(ref -> ref.getEvidenceDocument().getId()).toList());
+        refs = refs.stream().filter(ref -> ref.getEvidenceDocument() != null
+                && published.contains(ref.getEvidenceDocument().getId())).toList();
         EvaluationTrace.Builder trace = evaluationTrace.get();
         if (trace != null) trace.evidenceEquivalentRanking(
                 EvaluationTrace.Builder.projectEvidence(canonicalResults, refs));

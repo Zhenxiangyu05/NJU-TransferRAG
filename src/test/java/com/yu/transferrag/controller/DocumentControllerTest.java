@@ -45,6 +45,10 @@ class DocumentControllerTest {
 
     @Mock
     private DocumentRepository documentRepository;
+    @Mock
+    private com.yu.transferrag.service.ImportTaskManualGuard importTaskGuard;
+    @Mock
+    private com.yu.transferrag.service.DocumentImportService documentImportService;
 
     @TempDir
     private Path tempDir;
@@ -58,7 +62,9 @@ class DocumentControllerTest {
                 documentParserService,
                 chunkService,
                 vectorIndexService,
-                documentRepository
+                documentRepository,
+                importTaskGuard,
+                documentImportService
         );
     }
 

@@ -155,6 +155,29 @@ public class DocumentService {
         }
     }
 
+    /** Save a candidate file only; database registration belongs to a separate short transaction. */
+    public Document prepareEvidenceUpload(MultipartFile file, String title, String department,
+                                          Integer year, String sourceType, String scope) {
+        if (file == null || file.isEmpty()) throw new IllegalArgumentException("上传文件不能为空");
+        String extension = getSupportedExtension(file.getOriginalFilename());
+        String normalizedScope = normalizeScope(scope);
+        String hash = calculateSha256(file);
+        var existing = documentRepository.findByFileHash(hash);
+        if (existing.isPresent()) return existing.get();
+        Path target = Path.of(uploadDir).resolve(UUID.randomUUID() + "." + extension);
+        try {
+            Files.createDirectories(target.getParent());
+            try (InputStream input = file.getInputStream()) { Files.copy(input, target); }
+        } catch (IOException e) { throw new IllegalStateException("File persistence failed"); }
+        Document document = new Document();
+        document.setTitle(title); document.setDepartment(department); document.setYear(year);
+        document.setSourceType(sourceType); document.setDocumentRole(DocumentRole.EVIDENCE);
+        document.setScope(normalizedScope); document.setFilePath(target.toString());
+        document.setOriginalFileName(file.getOriginalFilename()); document.setFileSize(file.getSize());
+        document.setContentType(file.getContentType()); document.setFileHash(hash); document.setStatus("UPLOADED");
+        return document;
+    }
+
     private void deleteStoredFile(Path path, RuntimeException cause) {
         try {
             Files.deleteIfExists(path);

@@ -4,6 +4,12 @@ public class BatchDocumentImportItemResponse {
 
     private String fileName;
     private Long documentId;
+    private Long taskId;
+    private String stage;
+    public Long getTaskId() { return taskId; }
+    public void setTaskId(Long taskId) { this.taskId = taskId; }
+    public String getStage() { return stage; }
+    public void setStage(String stage) { this.stage = stage; }
     private Integer chunkCount;
     private Integer indexedChunks;
     private String status;

@@ -35,15 +35,18 @@ public class RetrievalService {
     private final QueryRewriteService queryRewriteService;
     private final ChunkRepository chunkRepository;
     private final PrecomputedVectorSearch precomputedVectorSearch;
+    private final EvidenceReadinessService readiness;
 
     public RetrievalService(VectorStore vectorStore,
                             QueryRewriteService queryRewriteService,
                             ChunkRepository chunkRepository,
-                            PrecomputedVectorSearch precomputedVectorSearch) {
+                            PrecomputedVectorSearch precomputedVectorSearch,
+                            EvidenceReadinessService readiness) {
         this.vectorStore = vectorStore;
         this.queryRewriteService = queryRewriteService;
         this.chunkRepository = chunkRepository;
         this.precomputedVectorSearch = precomputedVectorSearch;
+        this.readiness = readiness;
     }
 
     public List<SearchResultResponse> search(String query, int topK) {
@@ -324,27 +327,35 @@ public class RetrievalService {
                                                      Filter.Expression metadataFilter) {
         SearchRequest.Builder requestBuilder = SearchRequest.builder()
                 .query(rewrittenQuery)
-                .topK(topK);
+                .topK(evidenceFetchBudget(topK));
         if (metadataFilter != null) {
             requestBuilder.filterExpression(metadataFilter);
         }
 
-        return AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
+        List<SearchResultResponse> candidates = AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
                 () -> vectorStore.similaritySearch(requestBuilder.build())).stream()
                 .map(this::toResponse)
                 .filter(result -> result.getDocumentRole() == DocumentRole.EVIDENCE)
                 .toList();
+        return readiness.filterCandidates(candidates).stream().limit(topK).toList();
     }
 
     private List<SearchResultResponse> executePrecomputed(float[] embedding,
                                                           int topK,
                                                           Filter.Expression metadataFilter,
                                                           DocumentRole expectedRole) {
-        return precomputedVectorSearch.search(embedding, topK, metadataFilter).stream()
+        List<SearchResultResponse> candidates = precomputedVectorSearch.search(embedding,
+                expectedRole == DocumentRole.EVIDENCE ? evidenceFetchBudget(topK) : topK, metadataFilter).stream()
                 .map(this::toResponse)
                 .filter(result -> result.getDocumentRole() == expectedRole)
-                .limit(topK)
                 .toList();
+        return (expectedRole == DocumentRole.EVIDENCE ? readiness.filterCandidates(candidates) : candidates)
+                .stream().limit(topK).toList();
+    }
+
+    /** One bounded search, hence no extra query embedding. Not exhaustive beyond 256 candidates. */
+    private int evidenceFetchBudget(int requested) {
+        return (int) Math.min(256L, Math.max(20L, requested * 4L));
     }
 
     private Integer resolveYear(QueryRewriteResult rewriteResult,

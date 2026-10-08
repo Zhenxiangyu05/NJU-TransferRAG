@@ -54,7 +54,7 @@ class AiProviderFailureTest {
 
     private void useService(boolean canonical) {
         RagService service = new RagService(retrieval, new AnswerabilityService(chat), chat,
-                documents, mock(EvidenceRefRepository.class), canonical);
+                documents, mock(EvidenceRefRepository.class), canonical, com.yu.transferrag.service.PublishedEvidenceFixture.gate());
         mvc = MockMvcBuilders.standaloneSetup(new RagController(service))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
     }
@@ -82,7 +82,7 @@ class AiProviderFailureTest {
                 .thenThrow(notFound());
         var service = new RetrievalService(store, new QueryRewriteService(
                 mock(com.yu.transferrag.repository.EntityAliasRepository.class)),
-                mock(com.yu.transferrag.repository.ChunkRepository.class), null);
+                mock(com.yu.transferrag.repository.ChunkRepository.class), null, com.yu.transferrag.service.PublishedEvidenceFixture.gate());
         var exception = assertThrows(AiServiceUnavailableException.class,
                 () -> service.search("问题", 3));
         assertEquals(AiServiceUnavailableException.Stage.EMBEDDING, exception.getStage());

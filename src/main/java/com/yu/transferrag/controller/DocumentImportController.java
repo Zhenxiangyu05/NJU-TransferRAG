@@ -37,7 +37,8 @@ public class DocumentImportController {
             DocumentImportResponse response = documentImportService.importDocument(
                     file, title, department, year, sourceType, scope
             );
-            HttpStatus status = response.isDuplicate() ? HttpStatus.OK : HttpStatus.CREATED;
+            HttpStatus status = ("QUEUED".equals(response.getStatus()) || "PROCESSING".equals(response.getStatus()))
+                    ? HttpStatus.ACCEPTED : HttpStatus.OK;
             return ResponseEntity.status(status).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(errorResponse(e));
@@ -66,7 +67,8 @@ public class DocumentImportController {
     private Map<String, String> errorResponse(RuntimeException exception) {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("status", "FAILED");
-        response.put("error", exception.getMessage());
+        response.put("error", exception instanceof IllegalArgumentException
+                ? exception.getMessage() : "Import registration failed");
         return response;
     }
 }

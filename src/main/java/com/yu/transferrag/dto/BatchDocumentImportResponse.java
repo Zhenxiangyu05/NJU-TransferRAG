@@ -7,6 +7,9 @@ public class BatchDocumentImportResponse {
     private Integer total;
     private Integer success;
     private Integer failed;
+    private Integer pending;
+    public Integer getPending() { return pending; }
+    public void setPending(Integer pending) { this.pending = pending; }
     private List<BatchDocumentImportItemResponse> results;
 
     public Integer getTotal() {

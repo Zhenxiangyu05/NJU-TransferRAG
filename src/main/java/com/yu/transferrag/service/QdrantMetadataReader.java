@@ -19,6 +19,7 @@ public class QdrantMetadataReader {
     private static final Set<String> METADATA_FIELDS = Set.of(
             "documentId",
             "chunkId",
+            "chunkIndex",
             "department",
             "chunkDepartment",
             "major",

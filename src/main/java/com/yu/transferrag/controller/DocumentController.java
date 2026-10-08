@@ -42,17 +42,23 @@ public class    DocumentController {
     private final ChunkService chunkService;
     private final VectorIndexService vectorIndexService;
     private final DocumentRepository documentRepository;
+    private final com.yu.transferrag.service.ImportTaskManualGuard importTaskGuard;
+    private final com.yu.transferrag.service.DocumentImportService documentImportService;
 
     public DocumentController(DocumentService documentService,
                               DocumentParserService documentParserService,
                               ChunkService chunkService,
                               VectorIndexService vectorIndexService,
-                              DocumentRepository documentRepository) {
+                              DocumentRepository documentRepository,
+                              com.yu.transferrag.service.ImportTaskManualGuard importTaskGuard,
+                              com.yu.transferrag.service.DocumentImportService documentImportService) {
         this.documentService = documentService;
         this.documentParserService = documentParserService;
         this.chunkService = chunkService;
         this.vectorIndexService = vectorIndexService;
         this.documentRepository = documentRepository;
+        this.importTaskGuard = importTaskGuard;
+        this.documentImportService = documentImportService;
     }
 
     @PostMapping
@@ -68,10 +74,11 @@ public class    DocumentController {
                                             @RequestParam Integer year,
                                             @RequestParam String sourceType) {
         try {
-            DocumentResponse response = documentService.uploadDocument(
+            var response = documentImportService.importDocument(
                     file, title, department, year, sourceType
             );
-            return ResponseEntity.status(201).body(response);
+            boolean pending = "QUEUED".equals(response.getStatus()) || "PROCESSING".equals(response.getStatus());
+            return ResponseEntity.status(pending ? 202 : 200).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -85,12 +92,14 @@ public class    DocumentController {
 
     @PostMapping("/{id}/chunks")
     public ResponseEntity<Integer> createChunks(@PathVariable Long id) {
+        importTaskGuard.check(id);
         int chunkCount = chunkService.createChunks(id);
         return ResponseEntity.status(201).body(chunkCount);
     }
 
     @PostMapping("/{id}/index")
     public ResponseEntity<Map<String, Object>> indexDocument(@PathVariable Long id) {
+        importTaskGuard.check(id);
         int indexedChunks = vectorIndexService.indexDocument(id);
 
         Map<String, Object> response = new LinkedHashMap<>();

@@ -1,5 +1,6 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onBeforeUnmount } from 'vue'
+import { pollImportTask, validateTask } from './importTaskPolling.js'
 
 const ACCEPTED_EXTENSIONS = new Set(['pdf', 'docx', 'md', 'txt'])
 const SOURCE_TYPES = ['OFFICIAL', 'OFFICIAL_PDF', 'GITHUB', 'COMMUNITY', 'PERSONAL']
@@ -105,7 +106,9 @@ const canonicalStatus = ref('IDLE')
 const canonicalResult = ref(null)
 const canonicalError = ref('')
 
-const importing = computed(() => status.value === 'IMPORTING')
+let pollingController
+onBeforeUnmount(() => pollingController?.abort())
+const importing = computed(() => ['IMPORTING', 'QUEUED', 'PROCESSING'].includes(status.value))
 const canonicalImporting = computed(() => canonicalStatus.value === 'IMPORTING')
 const isOfficial = computed(() => (
   metadata.sourceType === 'OFFICIAL' || metadata.sourceType === 'OFFICIAL_PDF'
@@ -258,6 +261,10 @@ function continueUpload() {
 }
 
 async function startImport() {
+  if (result.value?.taskId && !importing.value) {
+    await resumeImportTask()
+    return
+  }
   clearMessages()
 
   if (!selectedFile.value) {
@@ -299,15 +306,14 @@ async function startImport() {
     if (!response.ok) {
       throw new UserFacingError(safeServerMessage(responseBody, response.status))
     }
-    if (!responseBody || responseBody.status !== 'SUCCESS' || responseBody.documentId == null) {
-      throw new UserFacingError('后端返回的导入结果格式不正确。')
-    }
-
+    validateTask(responseBody)
     result.value = responseBody
-    status.value = 'SUCCESS'
+    await monitorTask(responseBody)
   } catch (error) {
-    status.value = 'FAILED'
-    pageError.value = '导入失败，请检查文件或后端服务。'
+    status.value = result.value?.taskId ? 'PAUSED' : 'FAILED'
+    pageError.value = result.value?.taskId
+      ? '任务已登记，但状态查询暂不可用。可稍后继续查询，不必重新上传。'
+      : '导入失败，请检查文件或后端服务。'
     if (error instanceof UserFacingError) {
       errorDetail.value = error.message
     } else if (error instanceof TypeError) {
@@ -315,6 +321,43 @@ async function startImport() {
     } else {
       errorDetail.value = '请求未能完成，请稍后重试。'
     }
+  }
+}
+
+function applyTask(task) {
+  result.value = task
+  status.value = task.status === 'SUCCEEDED' ? 'SUCCESS' : task.status
+  if (task.status === 'FAILED') {
+    pageError.value = '任务失败；已保存的任务和阶段检查点不会丢失。'
+    errorDetail.value = task.error || '请核查任务状态。'
+  }
+}
+
+async function monitorTask(task) {
+  pollingController?.abort()
+  pollingController = new AbortController()
+  await pollImportTask(task, { signal: pollingController.signal, onUpdate: applyTask })
+}
+
+async function resumeImportTask() {
+  if (importing.value) return
+  clearMessages()
+  try {
+    const task = result.value
+    if (task.status === 'FAILED' && !task.retryable) {
+      pageError.value = '重试次数已用尽或需要人工核验，请联系管理员检查。'
+      return
+    }
+    status.value = 'IMPORTING'
+    const retry = task.status === 'FAILED'
+    const response = await fetch(`api/import-tasks/${task.taskId}${retry ? '/retry' : ''}`, {
+      method: retry ? 'POST' : 'GET',
+    })
+    if (!response.ok) throw new Error('Task unavailable')
+    await monitorTask(validateTask(await response.json()))
+  } catch {
+    status.value = 'PAUSED'
+    pageError.value = '状态查询暂不可用；任务仍保留在服务器，可稍后继续查询。'
   }
 }
 
@@ -516,7 +559,8 @@ class UserFacingError extends Error {}
       <div v-if="importing" class="loading-note" role="status">
         <span class="spinner" aria-hidden="true"></span>
         <div>
-          <strong>正在解析并建立知识索引，这可能需要一些时间…</strong>
+          <strong>{{ status === 'QUEUED' ? '任务已登记，等待 Worker 处理…' : '正在解析并建立知识索引，这可能需要一些时间…' }}</strong>
+          <p v-if="result?.taskId">任务 #{{ result.taskId }}：{{ result.status }} / {{ result.stage }}（尝试 {{ result.attemptCount }} 次）</p>
           <span>PDF OCR 和 Embedding 期间请不要关闭页面或重复提交。</span>
         </div>
       </div>
@@ -545,7 +589,7 @@ class UserFacingError extends Error {}
           <button v-if="status === 'SUCCESS'" class="primary-button" type="button" @click="openQuestionApp">打开问答页面</button>
           <button v-else class="primary-button" type="button" :disabled="!canImport" @click="startImport">
             <span v-if="importing" class="spinner spinner-light" aria-hidden="true"></span>
-            {{ importing ? '正在导入…' : (status === 'FAILED' ? '重新导入' : '导入知识库') }}
+            {{ importing ? '正在导入…' : (status === 'PAUSED' ? '继续查询任务' : (status === 'FAILED' ? '重试任务' : '导入知识库')) }}
           </button>
         </div>
       </div>
