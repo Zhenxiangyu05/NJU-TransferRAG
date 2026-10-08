@@ -1,6 +1,7 @@
 package com.yu.transferrag.controller;
 
 import com.yu.transferrag.exception.AiServiceUnavailableException;
+import com.yu.transferrag.exception.ImportTasksDisabledException;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -18,6 +19,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(ImportTasksDisabledException.class)
+    public ResponseEntity<Map<String, Object>> importTasksDisabled(ImportTasksDisabledException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "status", 503,
+                "code", ImportTasksDisabledException.CODE,
+                "message", ImportTasksDisabledException.USER_MESSAGE));
+    }
 
     @ExceptionHandler(AiServiceUnavailableException.class)
     public ResponseEntity<Map<String, Object>> aiUnavailable(

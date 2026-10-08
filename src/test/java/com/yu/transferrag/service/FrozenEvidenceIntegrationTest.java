@@ -47,6 +47,7 @@ class FrozenEvidenceIntegrationTest {
     @Import({EvidenceRegistrationService.class,ImportTaskStateService.class,EvidenceChunkPersistenceService.class,
         EvidenceSnapshotStateService.class,VectorIndexService.class,ImportTaskManualGuard.class,EvidenceReadinessService.class,FrozenEvidenceIndexer.class})
     static class Config {
+        @Bean ImportTaskFeatureGuard importFeature() { return new ImportTaskFeatureGuard(true); }
         @Bean DataSource dataSource() { return new DriverManagerDataSource(MYSQL.getJdbcUrl(),MYSQL.getUsername(),MYSQL.getPassword()); }
         @Bean LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource ds) {
             var f=new LocalContainerEntityManagerFactoryBean();f.setDataSource(ds);f.setPackagesToScan("com.yu.transferrag.entity");

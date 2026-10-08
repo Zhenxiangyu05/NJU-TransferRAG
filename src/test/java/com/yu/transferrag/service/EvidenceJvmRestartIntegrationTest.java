@@ -43,6 +43,7 @@ class EvidenceJvmRestartIntegrationTest {
     @Import({ImportTaskStateService.class,EvidenceRegistrationService.class,EvidenceChunkPersistenceService.class,
             EvidenceReadinessService.class, EvidenceSnapshotStateService.class, ImportTaskManualGuard.class})
     static class DatabaseConfig {
+        @Bean ImportTaskFeatureGuard importFeature() { return new ImportTaskFeatureGuard(true); }
         @Bean LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource ds,
                 org.springframework.core.env.Environment env) {
             var f = new LocalContainerEntityManagerFactoryBean(); f.setDataSource(ds);

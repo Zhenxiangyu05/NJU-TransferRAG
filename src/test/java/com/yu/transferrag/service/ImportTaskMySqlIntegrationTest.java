@@ -38,6 +38,7 @@ class ImportTaskMySqlIntegrationTest {
     @Import({ImportTaskStateService.class, EvidenceRegistrationService.class, EvidenceChunkPersistenceService.class,
              VectorIndexService.class, EvidenceReadinessService.class, ImportTaskManualGuard.class, EvidenceSnapshotStateService.class})
     static class Config {
+        @Bean ImportTaskFeatureGuard importFeature() { return new ImportTaskFeatureGuard(true); }
         @Bean DataSource dataSource() {
             // No fallback URL, environment secrets, or external database credentials.
             return new DriverManagerDataSource(MYSQL.getJdbcUrl(),MYSQL.getUsername(),MYSQL.getPassword());
@@ -325,6 +326,40 @@ class ImportTaskMySqlIntegrationTest {
                 "INSERT INTO evidence_index_snapshot(task_id,input_json,input_sha256) VALUES (999,'{}',?)","0".repeat(64)));
         }
     }
+    @Test void disabledWritesUseRealSqlWithoutChangingTaskDocumentOrCheckpoint() {
+        var r=register(); var lease=state.claim(r.taskId(),"fixture-owner").orElseThrow();
+        state.stage(lease,ImportTaskStage.CHUNKING); persistence.persistFirst(lease,List.of(chunk()));
+        state.fail(lease,"TEST_ONLY",true);
+        var sql=new JdbcTemplate(dataSource);
+        Map<String,Object> before=sql.queryForMap("SELECT * FROM import_task WHERE id=?",r.taskId());
+        Map<String,Object> snapshotBefore=sql.queryForMap("SELECT * FROM evidence_index_snapshot WHERE task_id=?",r.taskId());
+        long documentsBefore=sql.queryForObject("SELECT COUNT(*) FROM document",Long.class);
+        long chunksBefore=sql.queryForObject("SELECT COUNT(*) FROM chunk",Long.class);
+        try(var ctx=new AnnotationConfigApplicationContext()) {
+            ctx.registerBean(DataSource.class,() -> dataSource);
+            ctx.register(DisabledWritesConfig.class); ctx.refresh();
+            var disabled=ctx.getBean(ImportTaskStateService.class);
+            var registrationOff=ctx.getBean(EvidenceRegistrationService.class);
+            assertThrows(com.yu.transferrag.exception.ImportTasksDisabledException.class,()->disabled.retry(r.taskId()));
+            assertThrows(com.yu.transferrag.exception.ImportTasksDisabledException.class,()->disabled.claim(r.taskId(),"blocked"));
+            assertThrows(com.yu.transferrag.exception.ImportTasksDisabledException.class,()->disabled.recoverExpired(Set.of()));
+            assertThrows(com.yu.transferrag.exception.ImportTasksDisabledException.class,()->registrationOff.register(candidate(UUID.randomUUID().toString())));
+            assertThrows(com.yu.transferrag.exception.ImportTasksDisabledException.class,()->registrationOff.resolveHash("blocked"));
+            assertEquals("FAILED",disabled.view(r.taskId(),false).getStatus());
+            assertTrue(ctx.getBean(EvidenceReadinessService.class).readyDocumentIds(List.of(r.documentId())).isEmpty());
+            assertEquals(before,sql.queryForMap("SELECT * FROM import_task WHERE id=?",r.taskId()));
+            assertEquals(snapshotBefore,sql.queryForMap("SELECT * FROM evidence_index_snapshot WHERE task_id=?",r.taskId()));
+            assertEquals(documentsBefore,sql.queryForObject("SELECT COUNT(*) FROM document",Long.class));
+            assertEquals(chunksBefore,sql.queryForObject("SELECT COUNT(*) FROM chunk",Long.class));
+        }
+    }
+
+    @Configuration @EnableTransactionManagement @EnableJpaRepositories(basePackageClasses=DocumentRepository.class)
+    @Import({ImportTaskStateService.class,EvidenceRegistrationService.class,EvidenceReadinessService.class})
+    static class DisabledWritesConfig extends ValidateLegacyConfig {
+        @Bean ImportTaskFeatureGuard importFeature() { return new ImportTaskFeatureGuard(false); }
+    }
+
     @Configuration @EnableTransactionManagement @EnableJpaRepositories(basePackageClasses=DocumentRepository.class)
     @Import(EvidenceReadinessService.class)
     static class ValidateLegacyConfig {

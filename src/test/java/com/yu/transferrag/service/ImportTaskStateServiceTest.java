@@ -15,7 +15,7 @@ class ImportTaskStateServiceTest {
     ImportTask task;
     LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
     @BeforeEach void setup() {
-        repo = mock(ImportTaskRepository.class); state = new ImportTaskStateService(repo, 90, 3);
+        repo = mock(ImportTaskRepository.class); state = new ImportTaskStateService(repo, 90, 3, new ImportTaskFeatureGuard(true));
         task = new ImportTask(); task.setId(1L);
         Document d = new Document(); d.setId(2L); d.setTitle("Test");
         task.setDocument(d); task.setStatus(ImportTaskStatus.QUEUED); task.setStage(ImportTaskStage.PARSING);

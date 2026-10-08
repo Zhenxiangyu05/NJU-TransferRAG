@@ -2,11 +2,8 @@ package com.yu.transferrag.service;
 
 import com.yu.transferrag.dto.*;
 import com.yu.transferrag.entity.Document;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
 import java.util.*;
@@ -16,10 +13,10 @@ public class DocumentImportService {
     private final DocumentService documents;
     private final EvidenceRegistrationService registration;
     private final ImportTaskStateService state;
-    private final boolean enabled;
+    private final ImportTaskFeatureGuard feature;
     public DocumentImportService(DocumentService documents, EvidenceRegistrationService registration,
-                                 ImportTaskStateService state, @Value("${app.import-tasks.enabled:false}") boolean enabled) {
-        this.documents = documents; this.registration = registration; this.state = state; this.enabled = enabled;
+                                 ImportTaskStateService state, ImportTaskFeatureGuard feature) {
+        this.documents = documents; this.registration = registration; this.state = state; this.feature = feature;
     }
     public DocumentImportResponse importDocument(MultipartFile file, String title, String department, Integer year, String sourceType) {
         return importDocument(file, title, department, year, sourceType, Document.SCOPE_DEPARTMENT);
@@ -71,7 +68,7 @@ public class DocumentImportService {
         return result;
     }
     private void ensureEnabled() {
-        if (!enabled) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Evidence import tasks are not enabled");
+        feature.requireEnabled();
     }
     private void validateMetadata(String department, Integer year, String sourceType) {
         if (department == null || department.isBlank()) throw new IllegalArgumentException("department 不能为空");

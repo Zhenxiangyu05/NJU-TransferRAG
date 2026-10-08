@@ -22,7 +22,7 @@ class DocumentImportServiceTest {
     MockMultipartFile file = new MockMultipartFile("file", "first.md", "text/markdown", new byte[]{1});
     Document candidate;
     @BeforeEach void setup() {
-        service = new DocumentImportService(documents, registration, state, true);
+        service = new DocumentImportService(documents, registration, state, new ImportTaskFeatureGuard(true));
         candidate = new Document(); candidate.setFileHash("hash");
     }
     void prepare(boolean duplicate, String status, boolean retryable) {
@@ -71,7 +71,7 @@ class DocumentImportServiceTest {
         assertEquals(9L, result.getResults().getFirst().getTaskId());
     }
     @Test void disabledImportNeverSavesFile() {
-        service = new DocumentImportService(documents,registration,state,false);
+        service = new DocumentImportService(documents,registration,state,new ImportTaskFeatureGuard(false));
         assertThrows(ResponseStatusException.class, this::submit); verifyNoInteractions(documents,registration,state);
     }
 }

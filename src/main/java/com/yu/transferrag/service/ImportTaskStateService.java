@@ -17,17 +17,21 @@ public class ImportTaskStateService {
     private final ImportTaskRepository tasks;
     private final int leaseSeconds;
     private final int maxAttempts;
+    private final ImportTaskFeatureGuard feature;
 
     public ImportTaskStateService(ImportTaskRepository tasks,
             @Value("${app.import-tasks.lease-seconds:90}") int leaseSeconds,
-            @Value("${app.import-tasks.max-attempts:3}") int maxAttempts) {
+            @Value("${app.import-tasks.max-attempts:3}") int maxAttempts,
+            ImportTaskFeatureGuard feature) {
         if (leaseSeconds < 15 || maxAttempts < 1) throw new IllegalArgumentException("Invalid import task limits");
         this.tasks = tasks; this.leaseSeconds = leaseSeconds; this.maxAttempts = maxAttempts;
+        this.feature = feature;
     }
 
     /** Called by the registration transaction; never commits independently. */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public ImportTask create(Document document, boolean legacy) {
+        feature.requireEnabled();
         if (document.getDocumentRole() != DocumentRole.EVIDENCE) throw new IllegalArgumentException("Only EVIDENCE may have import tasks");
         ImportTask t = new ImportTask();
         t.setTaskKind(legacy ? ImportTaskKind.LEGACY_VERIFICATION : ImportTaskKind.NEW_EVIDENCE);
@@ -41,6 +45,7 @@ public class ImportTaskStateService {
 
     @Transactional
     public Optional<Lease> claim(long id, String owner) {
+        feature.requireEnabled();
         ImportTask t = tasks.lockById(id).orElseThrow(ImportTaskStateService::missing);
         LocalDateTime now = tasks.databaseNow();
         if (t.getStatus() != ImportTaskStatus.QUEUED || t.getNextAttemptAt().isAfter(now)) return Optional.empty();
@@ -55,6 +60,7 @@ public class ImportTaskStateService {
 
     @Transactional
     public boolean heartbeat(Lease lease) {
+        feature.requireEnabled();
         ImportTask t = tasks.lockById(lease.taskId()).orElseThrow(ImportTaskStateService::missing);
         LocalDateTime now = tasks.databaseNow();
         if (!owns(t, lease, now)) return false;
@@ -64,6 +70,7 @@ public class ImportTaskStateService {
 
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public ImportTask requireOwned(Lease lease) {
+        feature.requireEnabled();
         ImportTask t = tasks.lockById(lease.taskId()).orElseThrow(ImportTaskStateService::missing);
         if (!owns(t, lease, tasks.databaseNow())) throw new LostLease();
         return t;
@@ -103,6 +110,7 @@ public class ImportTaskStateService {
 
     @Transactional
     public void retry(long id) {
+        feature.requireEnabled();
         ImportTask t = tasks.lockById(id).orElseThrow(ImportTaskStateService::missing);
         if (t.getStatus() == ImportTaskStatus.QUEUED || t.getStatus() == ImportTaskStatus.PROCESSING || t.getStatus() == ImportTaskStatus.SUCCEEDED) return;
         if (!t.isRetryable() || t.getAttemptCount() >= t.getMaxAttempts())
@@ -112,6 +120,7 @@ public class ImportTaskStateService {
 
     @Transactional
     public int recoverExpired(Set<Long> locallyRunning) {
+        feature.requireEnabled();
         LocalDateTime now = tasks.databaseNow(); int recovered = 0;
         for (Long id : tasks.expiredIds(ImportTaskStatus.PROCESSING, now, PageRequest.of(0, 32))) {
             if (locallyRunning.contains(id)) continue; // Expiry alone never starts a second local worker.

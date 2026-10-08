@@ -4,6 +4,8 @@
 
 ## 1. 结论与版本边界
 
+> 最新发布阻塞修复轮次：以 `evidence-import-release-blockers-acceptance.md` 和新固定提交的产物记录为准。下面早期 300 PASS / 未提交版本描述保留为历史评审背景，不再指向最终候选版本。旧 `45d2de4ec746352cd4ddff0d176d7dbad2d96d10` 及其 JAR/验收证据保留，不用于本轮最终发布。
+
 - `LOCAL_ACCEPTANCE_COMPLETE=true`：最新 MySQL 18 PASS、Qdrant raw 对照 2 PASS、冻结索引联合集成 4 PASS、真实 JVM 恢复 1 PASS；全量 Maven 303 项 / 300 PASS / 0 FAIL/ERROR / 3 SKIP（两个 opt-in Benchmark、一个 Windows symlink 条件跳过）；Canonical 31 PASS、RAG/Retrieval 30 PASS、管理端 6 PASS、build PASS。详细结果见 evidence-import-immutable-index-acceptance.md。
 - **`PRODUCTION_RELEASE_READY=false`**：本地不可变快照加固已实现并补充隔离验收；仍待授权提交/推送固定版本、生产有效 schema/配置及备份恢复核验。不得把本地通过当作生产已准备完成。
 - `PRODUCTION_DEPLOYED=false`。最新授权轮次已完成本地快照加固、测试和候选构建；未连接生产，未执行生产迁移、提交、推送、部署或配置变更。
@@ -17,6 +19,10 @@
 2. **B：异步导入试运行**：依据本地加固验收记录，再单独批准启用任务与一份授权测试资料。A 上线成功不代表 B 已获批准。
 
 ## 2. 实际代码与写入边界
+
+本轮关闭开关保护：共享 `ImportTaskFeatureGuard` 固定读取进程启动配置。DocumentImportService 在保存文件前检查，EvidenceRegistrationService 在任何 Document/Task 查询或写入前检查；ImportTaskStateService 在 create/retry/claim/heartbeat/recoverExpired/requireOwned 前检查。stage/succeed/fail 和 Chunk/快照检查点通过 requireOwned 同时校验开关及 owner/generation。关闭时统一返回 HTTP 503 / `IMPORT_TASKS_DISABLED`，不修改既有 Task 或检查点。任务只读 view/GET 不受影响；Readiness Gate 不受开关影响；Canonical 不依赖此 guard。Dispatcher/线程池继续仅 true 时创建。
+
+手工 Evidence 重切分、删除式 Index 及其删除入口保持不可绕过的 Service 冻结保护；不得通过关闭开关恢复这些写路径。
 
 | 位置 / 方法 | 已实现 | 边界 |
 |---|---|---|
@@ -229,6 +235,10 @@ sudo mysql --defaults-extra-file="$MYSQL_CNF" --database=transfer_rag --batch --
 即使只产生了 Legacy 核验任务，也应走 B 的保守路径核验，不擅自认定所有任务都无写入。全库/snapshot恢复属于另一种数据恢复操作，有覆盖风险，必须额外批准。
 
 ## 8. 发布批准条件与本轮交付
+
+最新本地准备状态：管理端只更新 lockfile 内 source-map-js 1.2.1→1.2.2，不改布局、Vue/Vite 版本或业务行为；依赖和开关阻塞项的测试证据见新验收记录。旧版 retry 在 false 时可重新排队的限制已在新版本 Service 层修复，不能用旧版产物替代新固定版本。管理写入冻结仍用于维护窗口阻止 Canonical 等其他业务写入，不再是修复 disabled retry 的临时替代。
+
+安全降级版本仍采用新加固 JAR + tasks=false，并实际隔离启动验证。它不是独立较老的兼容版本；若该 JAR 自身不可运行，只能维持维护状态，不恢复无门禁旧 JAR。三份 Migration 不变：task→readiness→snapshot，ddl-auto=validate；开启处理与真实资料试导入仍须分别审批。
 
 正式启用前的阻塞项：
 

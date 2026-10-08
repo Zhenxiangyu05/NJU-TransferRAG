@@ -12,11 +12,15 @@ public class EvidenceRegistrationService {
  private final DocumentRepository documents;
  private final ImportTaskRepository tasks;
  private final ImportTaskStateService state;
- public EvidenceRegistrationService(DocumentRepository documents,ImportTaskRepository tasks,ImportTaskStateService state) {
+ private final ImportTaskFeatureGuard feature;
+ public EvidenceRegistrationService(DocumentRepository documents,ImportTaskRepository tasks,ImportTaskStateService state,
+                                    ImportTaskFeatureGuard feature) {
   this.documents=documents;this.tasks=tasks;this.state=state;
+  this.feature=feature;
  }
  @Transactional
  public Registration register(Document prepared) {
+  feature.requireEnabled();
   var existing=documents.findByFileHash(prepared.getFileHash());
   if(existing.isPresent()) return existing(existing.get().getId());
   if(prepared.getId()!=null) throw new IllegalStateException("Prepared document disappeared");
@@ -26,6 +30,7 @@ public class EvidenceRegistrationService {
  }
  @Transactional
  public Registration resolveHash(String hash) {
+  feature.requireEnabled();
   Document found=documents.findByFileHash(hash).orElseThrow(()->new IllegalStateException("Registration could not be confirmed"));
   return existing(found.getId());
  }
