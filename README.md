@@ -4,7 +4,9 @@
 
 ## Online Demo
 
-[南京大学校园知识助手](http://124.220.159.31/)
+🌐 [在线体验 NJU Compass](https://njucompass.site/)
+
+正式站点使用 HTTPS，并提供 Evidence 原文溯源阅读：PDF 在线阅读、Markdown 在线阅读和 DOCX 原件下载（受公开授权检查）。
 
 知识库管理端采用独立鉴权，不公开凭据。
 
@@ -47,7 +49,7 @@ Canonical Retrieval → Relevance Gate → Answerability
 ```text
 Internet
    ↓
-Nginx :80 ── Vue static / protected admin
+Nginx :80/:443 ── Vue static / protected admin
    └── /api/ → Spring Boot 127.0.0.1:8080
                     ├── MySQL 127.0.0.1:3306
                     ├── Qdrant 127.0.0.1:6333/6334
