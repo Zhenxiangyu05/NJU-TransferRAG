@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { readingUrl } from '../sourceReading.js'
 
 const props = defineProps({
   source: { type: Object, required: true },
@@ -34,6 +35,10 @@ const sourcePageUrl = computed(() => {
     return null
   }
 })
+
+const originalUrl = computed(() => props.source.sourceType === 'CURATED'
+  ? null
+  : readingUrl(props.source.documentId, props.source.sourcePage))
 </script>
 
 <template>
@@ -51,7 +56,10 @@ const sourcePageUrl = computed(() => {
       <div v-if="source.policyYear != null"><dt>政策年份</dt><dd>{{ source.policyYear }}</dd></div>
       <div><dt>检索年份</dt><dd>{{ source.effectiveYear || '未标注' }}</dd></div>
     </dl>
-    <div v-if="sourcePageUrl" class="source-actions">
+    <div v-if="originalUrl || sourcePageUrl" class="source-actions">
+      <a v-if="originalUrl" class="source-link" :href="originalUrl" target="_blank" rel="noopener noreferrer">
+        查看原文<span aria-hidden="true">↗</span>
+      </a>
       <a
         v-if="sourcePageUrl"
         class="source-link source-link-muted"

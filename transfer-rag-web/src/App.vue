@@ -5,9 +5,11 @@ import AskForm from './components/AskForm.vue'
 import LegalPage from './components/LegalPage.vue'
 import PrivacyPage from './components/PrivacyPage.vue'
 import FeedbackPage from './components/FeedbackPage.vue'
+import SourceReaderPage from './components/SourceReaderPage.vue'
 import { icpNumber, policeRecordNumber } from './complianceConfig.js'
 
 const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
+const sourcePath = pagePath.match(/^\/sources\/(\d+)$/)
 
 const recommendedQuestions = [
   '转软件工程机考要做什么准备？',
@@ -81,6 +83,7 @@ function selectQuestion(value) {
       <LegalPage v-if="pagePath === '/legal'" />
       <PrivacyPage v-else-if="pagePath === '/privacy'" />
       <FeedbackPage v-else-if="pagePath === '/feedback'" />
+      <SourceReaderPage v-else-if="sourcePath" :document-id="sourcePath[1]" />
       <template v-else>
         <section class="intro" aria-labelledby="page-title">
           <p class="eyebrow">CAMPUS KNOWLEDGE SEARCH</p>
