@@ -1,7 +1,3 @@
-<script setup>
-import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
-</script>
-
 <template>
   <article class="legal-page" aria-labelledby="privacy-title">
     <a class="back-link" href="/">← 返回首页</a>
@@ -19,10 +15,7 @@ import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
       当前代码未发现将公开问答用于广告、营销、用户画像或出售、交易个人信息的行为。本站不向公开用户提供文件上传、评论或发帖功能；受保护的知识库管理端仅供管理员使用。
     </p>
     <p>
-      纠错、资料更新或侵权反馈请联系
-      <a v-if="contactEmail" :href="`mailto:${contactEmail}`">{{ contactEmail }}</a>
-      <a v-else :href="feedbackIssuesUrl" target="_blank" rel="noopener noreferrer">项目 GitHub Issues</a>。
-      公开 Issue 中请勿提交身份证号、学号、手机号、住址、私人文件或其他敏感个人信息。需要私密发送侵权材料时，请通过项目专用邮箱联系；邮箱配置后将在此显示。在此之前请勿将私密材料上传至公开 Issue。也可查看<a href="/legal#feedback">反馈说明</a>。
+      纠错、资料更新或侵权反馈请查看<a href="/feedback">纠错 / 侵权反馈</a>页面，并通过其中的邮箱联系我。请勿在公开渠道提交身份证号、学号、手机号、住址、私人文件或其他敏感个人信息。
     </p>
   </article>
 </template>

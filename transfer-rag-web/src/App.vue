@@ -4,6 +4,7 @@ import AnswerPanel from './components/AnswerPanel.vue'
 import AskForm from './components/AskForm.vue'
 import LegalPage from './components/LegalPage.vue'
 import PrivacyPage from './components/PrivacyPage.vue'
+import FeedbackPage from './components/FeedbackPage.vue'
 import { icpNumber, policeRecordNumber } from './complianceConfig.js'
 
 const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -79,6 +80,7 @@ function selectQuestion(value) {
     <main class="main-content">
       <LegalPage v-if="pagePath === '/legal'" />
       <PrivacyPage v-else-if="pagePath === '/privacy'" />
+      <FeedbackPage v-else-if="pagePath === '/feedback'" />
       <template v-else>
         <section class="intro" aria-labelledby="page-title">
           <p class="eyebrow">CAMPUS KNOWLEDGE SEARCH</p>
@@ -111,7 +113,7 @@ function selectQuestion(value) {
       <nav class="footer-links" aria-label="站点信息">
         <a href="/legal">免责声明</a>
         <a href="/privacy">隐私说明</a>
-        <a href="/legal#feedback">纠错 / 侵权反馈</a>
+        <a href="/feedback">纠错 / 侵权反馈</a>
       </nav>
       <div v-if="icpNumber || policeRecordNumber" class="record-links">
         <a v-if="icpNumber" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">{{ icpNumber }}</a>

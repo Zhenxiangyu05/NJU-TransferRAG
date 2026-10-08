@@ -1,7 +1,3 @@
-<script setup>
-import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
-</script>
-
 <template>
   <article class="legal-page" aria-labelledby="legal-title">
     <a class="back-link" href="/">← 返回首页</a>
@@ -27,14 +23,7 @@ import { contactEmail, feedbackIssuesUrl } from '../complianceConfig.js'
     <section id="feedback" class="legal-feedback" aria-labelledby="feedback-title">
       <h2 id="feedback-title">纠错、资料更新与侵权反馈</h2>
       <p>请说明相关页面、资料标题或引用位置，以及需要更正、更新或处理的内容。</p>
-      <p v-if="contactEmail">
-        项目联系邮箱：<a :href="`mailto:${contactEmail}`">{{ contactEmail }}</a>
-      </p>
-      <p v-else>
-        项目专用邮箱尚未配置。可先通过
-        <a :href="feedbackIssuesUrl" target="_blank" rel="noopener noreferrer">项目 GitHub Issues</a>
-        提交不含敏感信息的反馈；该入口需要 GitHub 账号，内容可能公开。请勿在公开 Issue 中提交身份证号、学号、手机号、住址、私人文件或其他敏感个人信息。涉及需要私密发送的侵权材料，请通过项目专用邮箱联系；邮箱配置后显示。在此之前不要上传私密材料。
-      </p>
+      <p>联系方式和反馈说明请见<a href="/feedback">纠错 / 侵权反馈</a>页面。请勿在公开渠道提交敏感个人信息或私人材料。</p>
     </section>
   </article>
 </template>
