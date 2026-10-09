@@ -30,6 +30,12 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
     private final String collectionName;
+    private com.yu.transferrag.cache.QueryEmbeddingCache queryCache;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setQueryEmbeddingCache(com.yu.transferrag.cache.QueryEmbeddingCache queryCache) {
+        this.queryCache = queryCache;
+    }
 
     public QdrantPrecomputedVectorSearch(
             VectorStore vectorStore,
@@ -45,7 +51,7 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
     @Override
     public float[] embed(String query) {
         return AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
-                () -> embeddingModel.embed(query));
+                () -> queryCache == null ? embeddingModel.embed(query) : queryCache.embed(query));
     }
 
     @Override

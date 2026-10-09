@@ -1,0 +1,21 @@
+# Opt-in LOCAL disposable cache. Never included by the production deploy script.
+services:
+  redis-query-cache:
+    image: redis:7.4-alpine
+    ports:
+      - "127.0.0.1:16379:6379"
+    command:
+      - redis-server
+      - --requirepass
+      - ${NJU_REDIS_PASSWORD:?Set a local throwaway Redis password first}
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+    mem_limit: 128m
+    cpus: 0.25
+    restart: "no"
