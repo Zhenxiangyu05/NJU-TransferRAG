@@ -20,6 +20,12 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(com.yu.transferrag.protection.ProtectionException.class)
+    public ResponseEntity<Map<String,Object>> protection(com.yu.transferrag.protection.ProtectionException e) {
+        return ResponseEntity.status(e.status()).header("Retry-After",Long.toString(Math.max(1,e.retryAfter())))
+                .body(Map.of("status",e.status(),"code",e.code(),"message",e.getMessage()));
+    }
+
     @ExceptionHandler(ImportTasksDisabledException.class)
     public ResponseEntity<Map<String, Object>> importTasksDisabled(ImportTasksDisabledException exception) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(

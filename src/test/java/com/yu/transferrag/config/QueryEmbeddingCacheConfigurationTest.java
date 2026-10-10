@@ -15,6 +15,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class QueryEmbeddingCacheConfigurationTest {
+    @Test void limiterCanReuseClientWhileCacheStaysDisabled() {
+        context.withUserConfiguration(com.yu.transferrag.protection.RateLimitConfiguration.class)
+                .withPropertyValues("app.rag.rate-limit.enabled=true","app.rag.rate-limit.hmac-secret=synthetic-32-character-only-test-secret")
+                .run(c->{assertThat(c).hasNotFailed();assertThat(c).hasSingleBean(LettuceConnectionFactory.class);
+                    assertThat(c).doesNotHaveBean(EmbeddingCacheStore.class);
+                    assertThat(c.getBean(QueryEmbeddingCache.class).embed("q")).containsExactly(1,2,3);
+                    var failure=org.junit.jupiter.api.Assertions.assertThrows(com.yu.transferrag.protection.ProtectionException.class,
+                            ()->c.getBean(com.yu.transferrag.protection.RagRateLimiter.class).check("isolated"));
+                    assertThat(failure.code()).isEqualTo("RATE_LIMITER_UNAVAILABLE");});
+    }
     final ApplicationContextRunner context=new ApplicationContextRunner()
             .withUserConfiguration(QueryEmbeddingCacheConfiguration.class,Fixture.class)
             .withConfiguration(AutoConfigurations.of(QdrantVectorStoreAutoConfiguration.class))

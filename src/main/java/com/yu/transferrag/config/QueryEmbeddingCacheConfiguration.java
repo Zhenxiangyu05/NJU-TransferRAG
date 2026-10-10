@@ -55,14 +55,16 @@ public class QueryEmbeddingCacheConfiguration {
     }
 
     @Configuration(proxyBeanMethods=false)
-    @ConditionalOnProperty(name="app.cache.embedding.enabled",havingValue="true")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false} or ${app.ai.resilience.enabled:false}")
     @EnableConfigurationProperties(QdrantVectorStoreProperties.class)
     static class Enabled {
         @Bean(destroyMethod="shutdown")
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false}")
         DefaultClientResources queryCacheRedisResources() {
             return DefaultClientResources.builder().ioThreadPoolSize(2).computationThreadPoolSize(2).build();
         }
         @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false}")
         LettuceConnectionFactory queryCacheRedisConnectionFactory(
                 @Qualifier("queryCacheRedisResources") DefaultClientResources resources,Environment env) {
             var server=new RedisStandaloneConfiguration(env.getProperty("app.cache.embedding.redis.host","127.0.0.1"),
@@ -83,6 +85,7 @@ public class QueryEmbeddingCacheConfiguration {
                     .clientOptions(options).commandTimeout(timeout).shutdownTimeout(Duration.ofMillis(100)).build());
         }
         @Bean
+        @ConditionalOnProperty(name="app.cache.embedding.enabled",havingValue="true")
         EmbeddingCacheStore queryEmbeddingCacheStore(@Qualifier("queryCacheRedisConnectionFactory") LettuceConnectionFactory factory) {
             RedisTemplate<String,byte[]> template=new RedisTemplate<>();template.setConnectionFactory(factory);
             template.setKeySerializer(RedisSerializer.string());template.setValueSerializer(RedisSerializer.byteArray());
@@ -90,6 +93,7 @@ public class QueryEmbeddingCacheConfiguration {
         }
         /** Same builder/settings as Spring AI 2.0.1 auto-config; only its query embedding delegate changes. */
         @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.ai.resilience.enabled:false}")
         QdrantVectorStore vectorStore(EmbeddingModel original,QueryEmbeddingCache cache,QdrantVectorStoreProperties properties,
                 QdrantClient client,ObjectProvider<ObservationRegistry> observations,
                 ObjectProvider<VectorStoreObservationConvention> convention,BatchingStrategy batches) {

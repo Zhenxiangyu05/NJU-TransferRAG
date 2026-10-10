@@ -107,6 +107,16 @@ class AiProviderFailureTest {
     }
 
     @Test
+    void circuitOrBulkheadRejectionNeverBecomesKnowledgeFallback() throws Exception {
+        relevantEvidence();
+        when(chat.call(any(Prompt.class))).thenThrow(new com.yu.transferrag.protection.ProtectionException(503,"AI_CIRCUIT_OPEN","AI 服务暂不可用",30));
+        mvc.perform(post("/api/rag/ask").contentType("application/json").content("{\"question\":\"软件工程机试怎么准备\"}"))
+                .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.code").value("AI_CIRCUIT_OPEN"))
+                .andExpect(jsonPath("$.answer").doesNotExist()).andExpect(jsonPath("$.sources").doesNotExist());
+        verify(chat,times(1)).call(any(Prompt.class));
+    }
+
+    @Test
     void noEvidenceRemains200WithoutCallingProvider() throws Exception {
         when(retrieval.search(anyString(), anyInt())).thenReturn(List.of());
         ask().andExpect(status().isOk())

@@ -80,7 +80,7 @@ public class AnswerabilityService {
                     validated.evidenceCitationIds().size()
             );
             return validated;
-        } catch (AiServiceUnavailableException exception) {
+        } catch (AiServiceUnavailableException | com.yu.transferrag.protection.ProtectionException exception) {
             throw exception;
         } catch (Exception exception) {
             logger.warn(

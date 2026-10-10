@@ -18,6 +18,9 @@ public final class QueryEmbeddingCache {
     private final EmbeddingCacheProperties config;
     private final Supplier<String> modelIdentity;
     private final MeterRegistry meters;
+    private com.yu.transferrag.protection.AiRemoteGuard remoteGuard;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    public void setRemoteGuard(com.yu.transferrag.protection.AiRemoteGuard guard){this.remoteGuard=guard;}
     private final ConcurrentHashMap<String, CompletableFuture<float[]>> flights = new ConcurrentHashMap<>();
     private final Semaphore flightSlots = new Semaphore(128);
     private final AtomicLong retryRedisAfter = new AtomicLong(), nextWarning = new AtomicLong();
@@ -79,8 +82,12 @@ public final class QueryEmbeddingCache {
         return result.clone();
     }
     private float[] provider(String query) {
+        if(remoteGuard!=null && remoteGuard.enabled())return remoteGuard.embed(model,query,m->invokeModel(m,query));
+        return invokeModel(model,query);
+    }
+    private float[] invokeModel(EmbeddingModel selected,String query) {
         calls.increment();meters.counter("nju.embedding.provider.calls").increment();long start=System.nanoTime();
-        try { return model.embed(query); }
+        try { return selected.embed(query); }
         finally {
             long elapsed=System.nanoTime()-start;providerNanos.add(elapsed);
             meters.timer("nju.embedding.provider.duration").record(elapsed,TimeUnit.NANOSECONDS);
