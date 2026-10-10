@@ -19,8 +19,13 @@ The existing local PrivacyPage edit and three benchmark review files are retaine
   explicitly rejects rather than silently bypassing the guard or retrying partial output.
 - QueryEmbeddingCache.provider is the query-only embedding boundary. HIT bypasses
   the guard/model call. MISS uses a separate OpenAI query client built from the
-  original model options; model, endpoint, credentials, dimensions and extra-body
-  options are preserved. Only transport timeout/retry change. The original global
+  original model options plus Spring AI's resolved common/model-specific connection
+  properties. Auto-configured OpenAiEmbeddingModel.toOptions() omits SDK connection
+  credentials; copying getOptions() alone is NOT sufficient. Resolution uses the
+  same OpenAiAutoConfigurationUtil as the actual SDK autoconfiguration, including
+  explicit empty API keys and model-level overrides, without logging their values.
+  Model, endpoint, credentials, dimensions and extra-body options are preserved.
+  Only transport timeout/retry change. The original global
   EmbeddingModel and import/index-snapshot calls are not wrapped.
 - Qdrant's query wrapper is also installed with resilience enabled and cache
   disabled, covering V1 queries. V2's precomputed embedding and Evidence fallback

@@ -16,7 +16,14 @@ import reactor.core.publisher.Flux;
 @Configuration(proxyBeanMethods=false)
 @EnableConfigurationProperties(AiResilienceProperties.class)
 public class AiResilienceConfiguration {
-    @Bean(destroyMethod="close") AiRemoteGuard aiRemoteGuard(AiResilienceProperties p,ObjectProvider<MeterRegistry> meters){return new AiRemoteGuard(p,meters.getIfUnique(SimpleMeterRegistry::new));}
+    @Bean(destroyMethod="close") AiRemoteGuard aiRemoteGuard(AiResilienceProperties p,ObjectProvider<MeterRegistry> meters,
+            ObjectProvider<org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties> common,
+            ObjectProvider<org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingProperties> embedding){
+        return new AiRemoteGuard(p,meters.getIfUnique(SimpleMeterRegistry::new),()->{
+            var c=common.getIfAvailable();var e=embedding.getIfAvailable();
+            return c!=null&&e!=null?org.springframework.ai.model.openai.autoconfigure.OpenAiAutoConfigurationUtil.resolveCommonProperties(c,e):null;
+        });
+    }
     @Bean static BeanPostProcessor protectedChatModel(Environment env,ObjectProvider<AiRemoteGuard> guards) {
         return new BeanPostProcessor(){@Override public Object postProcessAfterInitialization(Object bean,String name){
             if(!env.getProperty("app.ai.resilience.enabled",Boolean.class,false))return bean;

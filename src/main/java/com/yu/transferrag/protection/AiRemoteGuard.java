@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 /** Remote boundaries only. No executor, fabricated fallback, or distributed/exactly-once claims. */
 public final class AiRemoteGuard implements AutoCloseable {
     private final AiResilienceProperties p;private final MeterRegistry meters;
+    private final Supplier<org.springframework.ai.model.openai.autoconfigure.OpenAiAutoConfigurationUtil.ResolvedConnectionProperties> embeddingConnection;
     private final Map<String,CircuitBreaker> breakers=new HashMap<>();private final Map<String,Bulkhead> bulkheads=new HashMap<>();
     private final Map<String,Retry> retries=new HashMap<>();
     // Identity keys and a short synchronized creation/close boundary; network calls never hold this lock.
@@ -23,7 +24,12 @@ public final class AiRemoteGuard implements AutoCloseable {
     private boolean closed;
     private record QueryClient(OpenAiEmbeddingModel model,OpenAIClient client) {}
     public AiRemoteGuard(AiResilienceProperties p,MeterRegistry meters) {
+        this(p,meters,()->null);
+    }
+    public AiRemoteGuard(AiResilienceProperties p,MeterRegistry meters,
+            Supplier<org.springframework.ai.model.openai.autoconfigure.OpenAiAutoConfigurationUtil.ResolvedConnectionProperties> embeddingConnection) {
         this.p=p;this.meters=meters;
+        this.embeddingConnection=embeddingConnection;
         for(String name:List.of("deepseekChat","queryEmbedding")){
             var cb=CircuitBreaker.of(name,CircuitBreakerConfig.custom().slidingWindowSize(p.windowSize()).minimumNumberOfCalls(p.minimumCalls())
                     .failureRateThreshold(p.failureRate()).waitDurationInOpenState(p.openWait()).permittedNumberOfCallsInHalfOpenState(p.halfOpenCalls())
@@ -82,6 +88,23 @@ public final class AiRemoteGuard implements AutoCloseable {
         QueryClient existing=queryModels.get(original);
         if(existing!=null)return existing.model();
         var options=OpenAiEmbeddingOptions.builder().from(openai.getOptions()).timeout(p.embeddingTimeout()).maxRetries(0).build();
+        // Auto-config supplies a separate resolved SDK client; toOptions() omits connection credentials.
+        // Resolve the same common/model-specific properties rather than falling back to SDK process env.
+        var connection=embeddingConnection.get();
+        if(connection!=null) {
+            options=OpenAiEmbeddingOptions.builder().from(options)
+                    .baseUrl(options.getBaseUrl()!=null?options.getBaseUrl():connection.getBaseUrl())
+                    .apiKey(options.getApiKey()!=null?options.getApiKey():connection.getApiKey())
+                    .credential(options.getCredential()!=null?options.getCredential():connection.getCredential())
+                    .organizationId(options.getOrganizationId()!=null?options.getOrganizationId():connection.getOrganizationId())
+                    .deploymentName(options.getMicrosoftDeploymentName()!=null?options.getMicrosoftDeploymentName():connection.getMicrosoftDeploymentName())
+                    .microsoftFoundryServiceVersion(options.getMicrosoftFoundryServiceVersion()!=null?options.getMicrosoftFoundryServiceVersion():connection.getMicrosoftFoundryServiceVersion())
+                    .microsoftFoundry(options.isMicrosoftFoundry()||connection.isMicrosoftFoundry())
+                    .gitHubModels(options.isGitHubModels()||connection.isGitHubModels())
+                    .proxy(options.getProxy()!=null?options.getProxy():connection.getProxy())
+                    .customHeaders(options.getCustomHeaders()!=null&&!options.getCustomHeaders().isEmpty()?options.getCustomHeaders():connection.getCustomHeaders())
+                    .build();
+        }
         // Same setup as Spring AI's model builder, but retain ownership so context shutdown closes it.
         var client=org.springframework.ai.openai.setup.OpenAiSetup.setupSyncClient(options.getBaseUrl(),options.getApiKey(),
                 options.getCredential(),options.getMicrosoftDeploymentName(),options.getMicrosoftFoundryServiceVersion(),

@@ -23,9 +23,10 @@ import com.yu.transferrag.cache.*;
 class AiRemoteGuardTest {
     final java.util.List<AiRemoteGuard> guards=new java.util.ArrayList<>();
     HttpServer server;ExecutorService executor;AtomicInteger requests=new AtomicInteger();volatile int status=200;volatile long delay;
+    volatile String lastAuthorization;
     @BeforeEach void start() throws Exception {
         server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);executor=Executors.newFixedThreadPool(4);server.setExecutor(executor);
-        server.createContext("/",exchange->{requests.incrementAndGet();exchange.getRequestBody().readAllBytes();try{Thread.sleep(delay);}catch(InterruptedException e){Thread.currentThread().interrupt();}
+        server.createContext("/",exchange->{requests.incrementAndGet();lastAuthorization=exchange.getRequestHeaders().getFirst("Authorization");exchange.getRequestBody().readAllBytes();try{Thread.sleep(delay);}catch(InterruptedException e){Thread.currentThread().interrupt();}
             String body=status!=200?"{\"error\":{\"message\":\"synthetic\",\"type\":\"test\",\"code\":\"test\"}}":exchange.getRequestURI().getPath().contains("embeddings")?
                     "{\"object\":\"list\",\"model\":\"test\",\"data\":[{\"object\":\"embedding\",\"index\":0,\"embedding\":[1,0,0]}],\"usage\":{\"prompt_tokens\":1,\"total_tokens\":1}}":
                     "{\"id\":\"test\",\"object\":\"chat.completion\",\"created\":1,\"model\":\"test\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"OK\"},\"finish_reason\":\"stop\"}]}";
@@ -94,5 +95,29 @@ class AiRemoteGuardTest {
                 .run(c->{assertNull(c.getStartupFailure());status=503;var model=c.getBean(ChatModel.class);
                     assertThrows(OpenAIServiceException.class,()->model.call(new Prompt("test")));assertThrows(OpenAIServiceException.class,()->model.call(new Prompt("test")));
                     assertEquals("AI_CIRCUIT_OPEN",assertThrows(ProtectionException.class,()->model.call(new Prompt("test"))).code());assertEquals(2,requests.get());});
+    }
+    @Test void actualEmbeddingAutoConfigurationPreservesResolvedConnectionAndImportClient(){
+        new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class)
+                .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration.class))
+                .withPropertyValues("spring.ai.openai.base-url="+base(),"spring.ai.openai.api-key=synthetic-test-token",
+                        "spring.ai.openai.embedding.model=test","spring.ai.openai.embedding.dimensions=3",
+                        "app.ai.resilience.enabled=true","app.ai.resilience.minimum-calls=2","app.ai.resilience.window-size=4")
+                .run(c->{assertNull(c.getStartupFailure());var original=c.getBean(OpenAiEmbeddingModel.class);var g=c.getBean(AiRemoteGuard.class);
+                    assertNull(original.getOptions().getBaseUrl());assertNull(original.getOptions().getApiKey());
+                    assertArrayEquals(new float[]{1,0,0},g.embed(original,"test"));assertEquals(1,requests.get());
+                    assertEquals("Bearer synthetic-test-token",lastAuthorization);g.breaker("queryEmbedding").reset();
+                    status=503;assertThrows(OpenAIServiceException.class,()->g.embed(original,"test"));assertEquals(2,requests.get());
+                    assertThrows(OpenAIServiceException.class,()->g.embed(original,"test"));assertEquals(3,requests.get());
+                    assertEquals("AI_CIRCUIT_OPEN",assertThrows(ProtectionException.class,()->g.embed(original,"test")).code());assertEquals(3,requests.get());
+                    status=200;assertArrayEquals(new float[]{1,0,0},original.embed("import remains original"));assertEquals(4,requests.get());});
+    }
+    @Test void modelSpecificEmbeddingConnectionOverridesCommonProperties(){
+        new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class)
+                .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration.class))
+                .withPropertyValues("spring.ai.openai.base-url=http://127.0.0.1:1","spring.ai.openai.api-key=synthetic-common-token",
+                        "spring.ai.openai.embedding.base-url="+base(),"spring.ai.openai.embedding.api-key=synthetic-model-token",
+                        "spring.ai.openai.embedding.model=test","spring.ai.openai.embedding.dimensions=3","app.ai.resilience.enabled=true")
+                .run(c->{assertNull(c.getStartupFailure());assertArrayEquals(new float[]{1,0,0},c.getBean(AiRemoteGuard.class).embed(c.getBean(OpenAiEmbeddingModel.class),"test"));
+                    assertEquals(1,requests.get());assertEquals("Bearer synthetic-model-token",lastAuthorization);});
     }
 }

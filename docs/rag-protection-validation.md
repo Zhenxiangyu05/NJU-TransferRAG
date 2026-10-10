@@ -15,9 +15,9 @@ credentials or services are used.
 
 | Suite | PASS | FAIL | SKIP |
 |---|---:|---:|---:|
-| Full Maven freeze test suite (373 cases) | 370 | 0 | 3 |
+| Full Maven final freeze test suite (375 cases) | 372 | 0 | 3 |
 | New Redis Lua integration | 14 | 0 | 0 |
-| New resilience HTTP / Spring Bean / client lifecycle tests | 14 | 0 | 0 |
+| New resilience HTTP / Spring Bean / client lifecycle tests | 16 | 0 | 0 |
 | Cache configuration / independent limiter client | 3 | 0 | 0 |
 | Provider failure controller regressions | 17 | 0 | 0 |
 | Existing MySQL 8 integration | 19 | 0 | 0 |
@@ -36,7 +36,12 @@ build were repeated and passed. Initial acceptance was 369/0/3. The freeze revie
 added explicit ownership/close of the dedicated query SDK client, synchronized
 creation/shutdown without holding that lock during HTTP calls, and a lifecycle
 test proving idempotent close and that the original import model is not closed.
-All 373 cases were rerun after this minimal fix, including authenticated,
+The next actual Embedding auto-config review also found that getOptions() omits
+the separate SDK client's connection properties. The query-only client now uses
+the same common/model-specific connection resolution as Spring AI. Real HTTP
+tests verify the common endpoint/authentication, model-level overrides, zero
+SDK retries, and that the original import client still works after the query
+circuit opens. All 375 cases were rerun after both minimal fixes, including authenticated,
 loopback-only Redis and the real MySQL/Qdrant/JVM recovery suites.
 No application source changed after the final full Maven run.
 
@@ -46,7 +51,8 @@ benchmark was run) and the pre-existing Windows symlink capability test.
 Commands: `mvnw.cmd -q test`, focused `-Dtest=RateLimiterIntegrationTest`, and
 `npm test` / `npm run build` in transfer-rag-admin. Ignored local evidence:
 `target/rag-protection-final-maven.log`, `target/rag-protection-redis-final.log`,
-`target/rag-protection-freeze-final-maven.log` and Surefire XML reports.
+`target/rag-protection-freeze-final-maven.log`,
+`target/rag-protection-freeze-connection-final.log` and Surefire XML reports.
 Compilation and git diff --check passed. The exact frozen commit, clean-source
 JAR SHA-256 and sensitive-entry scan are recorded under its new ignored
 `target/releases/<commit>/VERIFICATION.md`; previous release artifacts are retained.
@@ -72,6 +78,11 @@ JAR SHA-256 and sensitive-entry scan are recorded under its new ignored
 - Actual Spring AI OpenAiChatAutoConfiguration is tested, not just a mock or a
   decorated Supplier: an adversarial configured SDK retry count is suppressed,
   two failures cause OPEN, and the third invocation reaches no HTTP handler.
+- Actual OpenAiEmbeddingAutoConfiguration leaves connection credentials out of
+  model options. Tests verify that the protected client nonetheless uses the
+  common connection endpoint and Authorization, or the model-specific override
+  instead of a deliberately unreachable common endpoint. The original embedding
+  client remains callable when only the query circuit is OPEN.
 - Cache HIT works with the embedding circuit OPEN. A new-query MISS is rejected,
   and neither HTTP request count nor cache provider-call count increases on that
   rejection. Cache vector validation and existing frozen-import regressions pass.
