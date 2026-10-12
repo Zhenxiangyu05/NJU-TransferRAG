@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
         "spring.ai.openai.api-key=test-only-key",
         "spring.ai.openai.embedding.model=isolated-test-model",
         "app.import-tasks.enabled=false",
+        "spring.ai.model.chat=none",
         "spring.autoconfigure.exclude="
                 + "org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration,"
                 + "org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration,"
