@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
@@ -21,11 +22,62 @@ import java.time.Duration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.ai.model.chat", havingValue = "openai", matchIfMissing = true)
 public class ChatTimeoutConfiguration {
+    /** Spring AI 2.0.1 creates these two clients privately and its final model is not closeable. */
+    @Bean
+    static org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor chatClientLifecycle() {
+        return new org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor() {
+            private final java.util.Map<Object, java.util.List<Runnable>> owned = new java.util.IdentityHashMap<>();
+
+            @Override
+            public synchronized Object postProcessAfterInitialization(Object bean, String name) {
+                if (name.equals("openAiChatModel") && bean instanceof OpenAiChatModel) {
+                    var clients = new java.util.ArrayList<Runnable>();
+                    for (String fieldName : java.util.List.of("openAiClient", "openAiClientAsync")) {
+                        var field = org.springframework.util.ReflectionUtils.findField(OpenAiChatModel.class, fieldName);
+                        if (field == null) throw new IllegalStateException("Unsupported Chat SDK lifecycle layout");
+                        org.springframework.util.ReflectionUtils.makeAccessible(field);
+                        Object client = org.springframework.util.ReflectionUtils.getField(field, bean);
+                        // SDK interfaces expose close() but do not implement AutoCloseable.
+                        if (client instanceof com.openai.client.OpenAIClient sync) clients.add(sync::close);
+                        else if (client instanceof com.openai.client.OpenAIClientAsync async) clients.add(async::close);
+                        else throw new IllegalStateException("Unsupported Chat SDK client type");
+                    }
+                    owned.put(bean, java.util.List.copyOf(clients));
+                }
+                return bean;
+            }
+
+            @Override
+            public synchronized boolean requiresDestruction(Object bean) { return owned.containsKey(bean); }
+
+            @Override
+            public void postProcessBeforeDestruction(Object bean, String name) {
+                java.util.List<Runnable> clients;
+                synchronized (this) { clients = owned.remove(bean); }
+                if (clients == null) return;
+                RuntimeException failure = null;
+                for (Runnable client : clients) try { client.run(); }
+                catch (Exception error) {
+                    if (failure == null) failure = new IllegalStateException("Chat SDK shutdown failed", error);
+                    else failure.addSuppressed(error);
+                }
+                if (failure != null) throw failure;
+            }
+        };
+    }
+
     @Bean
     @Primary
     ChatModel timeoutConfiguredChatModel(OpenAiChatModel delegate, OpenAiCommonProperties common,
-                                        OpenAiChatProperties chat) {
+                                        OpenAiChatProperties chat, Environment environment) {
         Duration timeout = OpenAiAutoConfigurationUtil.resolveCommonProperties(common, chat).getTimeout();
+        if (environment.getProperty("app.ai.resilience.enabled", Boolean.class, false)) {
+            Duration ceiling = org.springframework.boot.convert.DurationStyle.detectAndParse(
+                    environment.getProperty("app.ai.resilience.chat-timeout", "60s"));
+            if (ceiling.isZero() || ceiling.isNegative()) throw new IllegalArgumentException("Chat protection timeout must be positive");
+            // Protection may tighten but never extend the Hotfix's configured timeout.
+            if (timeout != null && ceiling.compareTo(timeout) < 0) timeout = ceiling;
+        }
         return new TimeoutConfiguredChatModel(delegate, timeout);
     }
 

@@ -39,7 +39,7 @@ class ChatTimeoutConfigurationTest {
     AtomicInteger chatCalls = new AtomicInteger(), embeddingCalls = new AtomicInteger();
     volatile long firstDelay, laterDelay, embeddingDelay;
     volatile int chatStatus = 200, embeddingStatus = 200;
-    volatile boolean retryAfter, ragReplies;
+    volatile boolean retryAfter, ragReplies, ragRefusal;
     volatile String receivedBody;
 
     @BeforeEach void start() throws Exception {
@@ -54,7 +54,8 @@ class ChatTimeoutConfigurationTest {
             try {
                 Thread.sleep(chat ? (number == 1 ? firstDelay : laterDelay) : embeddingDelay);
                 int status = chat ? chatStatus : embeddingStatus;
-                String content = ragReplies && number == 1
+                String content = ragRefusal ? "{\"answerable\":false,\"evidenceCitationIds\":[],\"reason\":\"insufficient fixture\"}"
+                        : ragReplies && number == 1
                         ? "{\"answerable\":true,\"evidenceCitationIds\":[\"S1\"],\"reason\":\"fixture\"}"
                         : "Synthetic answer [S1].";
                 String body = status >= 400
@@ -104,7 +105,6 @@ class ChatTimeoutConfigurationTest {
             try { check.accept(c); }
             finally {
                 // Auto-configured model ownership is unchanged. Release SDK pools in this short-lived fixture.
-                closeClients(c.getBean(OpenAiChatModel.class));
                 closeClients(c.getBean(OpenAiEmbeddingModel.class));
             }
         });
@@ -135,6 +135,27 @@ class ChatTimeoutConfigurationTest {
             expectTimeout(() -> c.getBean(ChatModel.class).call(new Prompt("synthetic")));
             assertThat(chatCalls).hasValue(1);
         });
+    }
+
+    @Test void sdkClientsCloseExactlyOnceAndFacadeNeverOwnsThem() {
+        var sync=mock(com.openai.client.OpenAIClient.class);
+        var async=mock(com.openai.client.OpenAIClientAsync.class);
+        var original=OpenAiChatModel.builder().openAiClient(sync).openAiClientAsync(async)
+                .options(OpenAiChatOptions.builder().model("synthetic").build()).build();
+        new ApplicationContextRunner().withUserConfiguration(ChatTimeoutConfiguration.class)
+                .withBean("openAiChatModel",OpenAiChatModel.class,()->original)
+                .withBean(OpenAiCommonProperties.class,OpenAiCommonProperties::new)
+                .withBean(OpenAiChatProperties.class,OpenAiChatProperties::new)
+                .run(c->{
+                    var lifecycle=c.getBean("chatClientLifecycle",org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor.class);
+                    assertThat(lifecycle.requiresDestruction(original)).isTrue();
+                    assertThat(lifecycle.requiresDestruction(c.getBean(ChatModel.class))).isFalse();
+                    lifecycle.postProcessBeforeDestruction(c.getBean(ChatModel.class),"timeoutConfiguredChatModel");
+                    verifyNoInteractions(sync,async);
+                    lifecycle.postProcessBeforeDestruction(original,"openAiChatModel");
+                    lifecycle.postProcessBeforeDestruction(original,"openAiChatModel");
+                });
+        verify(sync,times(1)).close();verify(async,times(1)).close();
     }
 
     @Test void separatePromptOptionsCannotRestoreDefault60sAndAreNotMutated() {

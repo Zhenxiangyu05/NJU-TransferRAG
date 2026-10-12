@@ -63,9 +63,11 @@ class AiRemoteGuardTest {
     @Test void disabledBypassesProtectionAndKeepsOriginalModel(){var g=guard(false,0,Duration.ofMillis(1));assertArrayEquals(new float[]{1,0,0},g.embed(embedding(),"q"));assertEquals(0,g.breaker("queryEmbedding").getMetrics().getNumberOfSuccessfulCalls());}
     @Test void inputErrorsNotCircuitFailures(){var g=guard(true,0,Duration.ofSeconds(2));for(int i=0;i<5;i++)assertThrows(IllegalArgumentException.class,()->g.call("deepseekChat",()->{throw new IllegalArgumentException();}));assertEquals(CircuitBreaker.State.CLOSED,g.breaker("deepseekChat").getState());}
     @Configuration(proxyBeanMethods=false)
+    @Import(com.yu.transferrag.config.ChatTimeoutConfiguration.class)
     static class Beans {
+        @Bean org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties commonProperties(){return new org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties();}
         @Bean OpenAiChatProperties chatProperties(Environment e){var p=new OpenAiChatProperties();p.setBaseUrl(e.getRequiredProperty("test.base-url"));p.setApiKey("synthetic-test-token");p.setModel("test");return p;}
-        @Bean ChatModel chatModel(OpenAiChatProperties p){return OpenAiChatModel.builder().options(p.toOptions().mutate().baseUrl(p.getBaseUrl()).apiKey(p.getApiKey()).maxRetries(p.getOptions().getMaxRetries()!=null?p.getOptions().getMaxRetries():p.getMaxRetries()).timeout(p.getOptions().getTimeout()!=null?p.getOptions().getTimeout():p.getTimeout()).build()).build();}
+        @Bean OpenAiChatModel chatModel(OpenAiChatProperties p){return OpenAiChatModel.builder().options(p.toOptions().mutate().baseUrl(p.getBaseUrl()).apiKey(p.getApiKey()).maxRetries(p.getOptions().getMaxRetries()!=null?p.getOptions().getMaxRetries():p.getMaxRetries()).timeout(p.getOptions().getTimeout()!=null?p.getOptions().getTimeout():p.getTimeout()).build()).build();}
     }
     @Test void realSpringChatBeanIsProtectedAndSdkDoesNotRetry(){
         new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class,Beans.class)
@@ -76,7 +78,7 @@ class AiRemoteGuardTest {
     }
     @Test void realSpringChatBeanDisabledKeepsOriginalType(){
         new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class,Beans.class).withPropertyValues("test.base-url="+base())
-                .run(c->{assertNull(c.getStartupFailure());assertInstanceOf(OpenAiChatModel.class,c.getBean(ChatModel.class));assertNotNull(c.getBean(ChatModel.class).call(new Prompt("test")));});
+                .run(c->{assertNull(c.getStartupFailure());assertNotNull(c.getBean(OpenAiChatModel.class));assertNotNull(c.getBean(ChatModel.class).call(new Prompt("test")));});
     }
     @Test void cacheHitWorksWithOpenEmbeddingCircuitAndMissIsProtected(){
         var g=guard(true,0,Duration.ofSeconds(2));var data=new ConcurrentHashMap<String,byte[]>();
@@ -87,7 +89,7 @@ class AiRemoteGuardTest {
         assertEquals("AI_CIRCUIT_OPEN",assertThrows(ProtectionException.class,()->cache.embed("different")).code());assertEquals(1,requests.get());assertEquals(1,cache.stats().embeddingCalls());
     }
     @Test void actualSpringAiAutoConfigurationBeanUsesGuard(){
-        new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class)
+        new ApplicationContextRunner().withUserConfiguration(AiResilienceConfiguration.class,com.yu.transferrag.config.ChatTimeoutConfiguration.class)
                 .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration.class))
                 .withBean(org.springframework.ai.model.tool.ToolCallingManager.class,()->org.mockito.Mockito.mock(org.springframework.ai.model.tool.ToolCallingManager.class))
                 .withPropertyValues("spring.ai.openai.base-url="+base(),"spring.ai.openai.api-key=synthetic-test-token","spring.ai.openai.chat.options.model=test",

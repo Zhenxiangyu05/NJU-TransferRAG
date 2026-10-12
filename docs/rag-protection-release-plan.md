@@ -1,5 +1,10 @@
 # RAG protection: local implementation and independent production rollout
 
+For the merged Chat Timeout Hotfix candidate, use
+[the integration review and rollout plan](rag-protection-hotfix-integration.md).
+This earlier protection-only plan and its old artifact are not a deployable
+substitute for the merged candidate with the production Hotfix retained.
+
 This is a preparation document, not permission to change production. Both new
 flags default to false. No SQL migration, data import, document embedding, Gold
 update, Nginx change, or Redis authentication change is required by this code.

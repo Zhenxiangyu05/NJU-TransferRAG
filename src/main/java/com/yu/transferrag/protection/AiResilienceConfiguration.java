@@ -29,11 +29,11 @@ public class AiResilienceConfiguration {
             if(!env.getProperty("app.ai.resilience.enabled",Boolean.class,false))return bean;
             if(bean instanceof OpenAiChatProperties properties){
                 properties.setMaxRetries(0);
-                properties.setTimeout(org.springframework.boot.convert.DurationStyle.detectAndParse(env.getProperty("app.ai.resilience.chat-timeout","60s")));
                 properties.getOptions().setMaxRetries(0);
-                properties.getOptions().setTimeout(properties.getTimeout());
             }
-            if(bean instanceof OpenAiChatModel model)return new ChatModel(){
+            // Keep the concrete auto-configured client and its lifecycle intact. Decorate
+            // only the primary timeout facade, after its authoritative Prompt options.
+            if(name.equals("timeoutConfiguredChatModel") && bean instanceof ChatModel model)return new ChatModel(){
                 @Override public ChatResponse call(Prompt prompt){return guards.getObject().call("deepseekChat",()->model.call(prompt));}
                 @Override public ChatOptions getDefaultOptions(){return model.getDefaultOptions();}
                 @Override public Flux<ChatResponse> stream(Prompt prompt){return Flux.error(new UnsupportedOperationException("Streaming is not enabled for protected RAG"));}
