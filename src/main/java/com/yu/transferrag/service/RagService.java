@@ -1,6 +1,8 @@
 package com.yu.transferrag.service;
 
 import com.yu.transferrag.exception.AiServiceUnavailableException;
+import com.yu.transferrag.diagnostics.RagDiagnostics;
+import static com.yu.transferrag.diagnostics.RagDiagnostics.Stage.*;
 
 import com.yu.transferrag.dto.AnswerabilityResult;
 import com.yu.transferrag.dto.RagResponse;
@@ -121,7 +123,7 @@ public class RagService {
             throw new IllegalArgumentException("question 不能为空");
         }
         if (!useCanonicalFirst) {
-            List<SearchResultResponse> evidenceResults = retrievalService.search(question, 3);
+            List<SearchResultResponse> evidenceResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.search(question, 3));
             EvaluationTrace.Builder trace = evaluationTrace.get();
             if (trace != null) trace.evidenceRanking(evidenceResults, false);
             logRetrieval("EVIDENCE", 0, evidenceResults.size(), false, null);
@@ -131,8 +133,8 @@ public class RagService {
     }
 
     private RagResponse askCanonicalFirst(String question) {
-        RetrievalService.PreparedQuery preparedQuery = retrievalService.prepareCanonicalFirst(question);
-        List<SearchResultResponse> canonicalResults = retrievalService.searchCanonical(preparedQuery, 3);
+        RetrievalService.PreparedQuery preparedQuery = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.prepareCanonicalFirst(question));
+        List<SearchResultResponse> canonicalResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.searchCanonical(preparedQuery, 3));
         EvaluationTrace.Builder trace = evaluationTrace.get();
         if (trace != null) trace.canonicalRanking(canonicalResults);
         if (canonicalResults.isEmpty()) {
@@ -142,7 +144,7 @@ public class RagService {
             return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "LOW_RELEVANCE");
         }
 
-        CanonicalEvidenceBundle bundle = buildCanonicalEvidence(canonicalResults);
+        CanonicalEvidenceBundle bundle = RagDiagnostics.measure(RETRIEVAL, () -> buildCanonicalEvidence(canonicalResults));
         if (!bundle.complete()) {
             return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "INCOMPLETE_PROVENANCE");
         }
@@ -190,7 +192,7 @@ public class RagService {
                                            String reason) {
         EvaluationTrace.Builder trace = evaluationTrace.get();
         if (trace != null) trace.fallback(reason);
-        List<SearchResultResponse> evidenceResults = retrievalService.searchEvidence(preparedQuery, 3);
+        List<SearchResultResponse> evidenceResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.searchEvidence(preparedQuery, 3));
         if (trace != null) trace.evidenceRanking(evidenceResults, true);
         logRetrieval("EVIDENCE", canonicalCandidateCount, evidenceResults.size(), true, reason);
         return answerFromEvidence(question, evidenceResults);
@@ -244,8 +246,8 @@ public class RagService {
                 : SYSTEM_INSTRUCTION;
         Prompt prompt = new Prompt(List.of(new SystemMessage(systemInstruction),
                 new UserMessage(userPrompt)));
-        String answer = extractAnswer(AiServiceUnavailableException.call(
-                AiServiceUnavailableException.Stage.GENERATION, () -> chatModel.call(prompt)));
+        String answer = RagDiagnostics.measure(GENERATION, () -> extractAnswer(AiServiceUnavailableException.call(
+                AiServiceUnavailableException.Stage.GENERATION, () -> chatModel.call(prompt))));
         RagResponse response = new RagResponse();
         response.setQuestion(question);
         response.setAnswer(answer);

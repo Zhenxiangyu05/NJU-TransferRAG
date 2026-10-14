@@ -49,6 +49,7 @@ class ChatProviderIsolationTest {
         volatile int status = 200;
         volatile long delay;
         volatile boolean refuse;
+        volatile boolean disconnect;
         Stub() throws Exception {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
             server.setExecutor(pool);
@@ -57,6 +58,7 @@ class ChatProviderIsolationTest {
                 String path = x.getRequestURI().getPath();
                 requests.add(new Request(path, x.getRequestHeaders().getFirst("Authorization"), body));
                 try {
+                    if (disconnect) return;
                     Thread.sleep(delay);
                     Map<String, Object> response;
                     if (status != 200) response = Map.of("error", Map.of("type", "server_error", "message", "fixture"));

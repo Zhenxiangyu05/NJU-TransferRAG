@@ -22,6 +22,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(com.yu.transferrag.protection.ProtectionException.class)
     public ResponseEntity<Map<String,Object>> protection(com.yu.transferrag.protection.ProtectionException e) {
+        com.yu.transferrag.diagnostics.RagDiagnostics.recordFailure(e);
         return ResponseEntity.status(e.status()).header("Retry-After",Long.toString(Math.max(1,e.retryAfter())))
                 .body(Map.of("status",e.status(),"code",e.code(),"message",e.getMessage()));
     }
@@ -37,6 +38,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AiServiceUnavailableException.class)
     public ResponseEntity<Map<String, Object>> aiUnavailable(
             AiServiceUnavailableException exception, HttpServletRequest request) {
+        com.yu.transferrag.diagnostics.RagDiagnostics.recordFailure(exception);
         // Never log the throwable, its message, body, headers, or user input.
         logger.warn("AI provider unavailable: stage={} status={} exception={}",
                 exception.getStage(), exception.getUpstreamStatus(),

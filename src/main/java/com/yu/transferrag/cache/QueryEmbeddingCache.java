@@ -35,6 +35,10 @@ public final class QueryEmbeddingCache {
     }
     public String key(String query) { return "nju:embedding:"+config.version()+":"+signature()+":"+EmbeddingVectorCodec.sha(query); }
     public float[] embed(String query) {
+        return com.yu.transferrag.diagnostics.RagDiagnostics.measure(
+                com.yu.transferrag.diagnostics.RagDiagnostics.Stage.QUERY_EMBEDDING, () -> embedInternal(query));
+    }
+    private float[] embedInternal(String query) {
         Objects.requireNonNull(query,"Query must not be null");
         if (!config.enabled()) return provider(query); // No Redis access or cache validation in disabled mode.
         String signature=signature(), inputHash=EmbeddingVectorCodec.sha(query);

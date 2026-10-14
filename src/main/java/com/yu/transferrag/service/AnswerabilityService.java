@@ -66,11 +66,12 @@ public class AnswerabilityService {
                 """.formatted(question, sourcesContext, outputConverter.getFormat());
 
         try {
-            ChatResponse response = AiServiceUnavailableException.call(
+            ChatResponse response = com.yu.transferrag.diagnostics.RagDiagnostics.measure(
+                    com.yu.transferrag.diagnostics.RagDiagnostics.Stage.ANSWERABILITY, () -> AiServiceUnavailableException.call(
                     AiServiceUnavailableException.Stage.ANSWERABILITY, () -> chatModel.call(new Prompt(List.of(
                     new SystemMessage(SYSTEM_INSTRUCTION),
                     new UserMessage(userPrompt)
-            ))));
+            )))));
             String output = extractOutput(response);
             AnswerabilityResult parsed = outputConverter.convert(output);
             AnswerabilityResult validated = validate(parsed, sources);

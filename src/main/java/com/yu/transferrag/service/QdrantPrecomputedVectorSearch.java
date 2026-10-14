@@ -51,7 +51,9 @@ public class QdrantPrecomputedVectorSearch implements PrecomputedVectorSearch {
     @Override
     public float[] embed(String query) {
         return AiServiceUnavailableException.call(AiServiceUnavailableException.Stage.EMBEDDING,
-                () -> queryCache == null ? embeddingModel.embed(query) : queryCache.embed(query));
+                () -> queryCache == null ? com.yu.transferrag.diagnostics.RagDiagnostics.measure(
+                        com.yu.transferrag.diagnostics.RagDiagnostics.Stage.QUERY_EMBEDDING,
+                        () -> embeddingModel.embed(query)) : queryCache.embed(query));
     }
 
     @Override
