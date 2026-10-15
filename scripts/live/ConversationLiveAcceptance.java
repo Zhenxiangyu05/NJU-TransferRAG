@@ -39,10 +39,23 @@ public final class ConversationLiveAcceptance {
     static final List<Map<String,Object>> results=new ArrayList<>();
     static int requests;
     static boolean resume;
+    static String job="legacy";
+    static final Path BUDGET=Path.of("target/conversation-v2-budget.json");
+    static final ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> validationLogs=new ch.qos.logback.core.read.ListAppender<>();
+    static void reserveBudget() throws Exception {
+        if(job.equals("legacy"))return;
+        var ledger=Files.exists(BUDGET)?JSON.readTree(Files.readString(BUDGET)):JSON.createObjectNode().put("questions",0);
+        int count=ledger.path("questions").asInt();require(count<20);
+        ((com.fasterxml.jackson.databind.node.ObjectNode)ledger).put("questions",count+1);
+        Files.writeString(BUDGET,JSON.writeValueAsString(ledger));
+    }
     static void require(boolean condition) {if(!condition)throw new IllegalStateException("SAFE_ACCEPTANCE_ASSERTION");}
     static void persist() throws Exception {Files.writeString(RESULT,JSON.writeValueAsString(Map.of("requests",requests,"results",results,"key_rotation","DEFERRED_UNRESOLVED")));}
     public static void main(String[] args) {
         boolean offline=args.length==1&&args[0].equals("--offline");
+        if(args.length==1&&Set.of("--diagnose-v2","--verify-v2").contains(args[0])) {
+            job=args[0].substring(2);RESULT=Path.of("target/conversation-"+job+"-20261015.json");
+        }
         resume=args.length==1&&args[0].equals("--resume-after-fixture-fix");
         if(offline)RESULT=Path.of("target/conversation-offline-20261015.json");
         try {
@@ -57,6 +70,8 @@ public final class ConversationLiveAcceptance {
             require(secrets.get("AI_EMBEDDING_MODEL").equals("bge-m3"));
             // Do not expose test inputs, replies, exception messages or SDK HTTP logging.
             ((ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)).setLevel(ch.qos.logback.classic.Level.OFF);
+            validationLogs.start();var validationLogger=(ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger(StandaloneQuestionRewriter.class);
+            validationLogger.setLevel(ch.qos.logback.classic.Level.INFO);validationLogger.setAdditive(false);validationLogger.addAppender(validationLogs);
             String password=UUID.randomUUID().toString();
             try(var redis=new GenericContainer<>("redis:7.4-alpine").withExposedPorts(6379)
                     .withCommand("redis-server","--requirepass",password,"--save","","--appendonly","no")
@@ -124,7 +139,7 @@ public final class ConversationLiveAcceptance {
                 ()->"school-bge-m3-only",new io.micrometer.core.instrument.simple.SimpleMeterRegistry());cache.setRemoteGuard(guard);
         var vectors=SimpleVectorStore.builder(new QueryOnlyEmbeddingModel(original,cache)).build();
         String[] texts={
-                "仅用于本地软件测试，不是真实学校政策。南京大学转软件工程的合成测试条件：大一学生可申请，需要完成高等数学课程。软件工程考试内容明确为Java基础和程序设计。",
+                "仅用于本地软件测试，不是真实学校政策。南京大学转软件工程的合成测试条件：大一学生可申请，需要完成高等数学课程。软件工程考试内容明确为Java基础和程序设计。软件工程机考备考应重点练习Java基础、程序设计和编程题训练。",
                 "仅用于本地软件测试，不是真实学校政策。南京大学转计算机科学与技术的合成测试条件：大一学生可申请。计算机科学与技术专业考试内容明确为离散数学和算法设计，不采用软件工程的Java基础考试。",
                 "仅用于本地软件测试，不是真实学校通知。南京大学图书馆合成测试开放时间：周六和周日均为上午9点至下午5点。"};
         String[] majors={"软件工程","计算机科学与技术",""};String[] departments={"软件学院","计算机学院","校园服务"};
@@ -150,18 +165,23 @@ public final class ConversationLiveAcceptance {
         var store=new RedisConversationStore(new StringRedisTemplate(connection),properties);
         ObjectProvider<ConversationStore> stores=mock(ObjectProvider.class);when(stores.getIfAvailable()).thenReturn(store);
         var service=new ConversationService(stores,properties,rewriter,rag,readiness);
-        String[] questions={"本地测试资料中，南京大学转软件工程需要哪些条件？","那考试考什么？","我刚才说错了，是计算机科学与技术专业，考试考什么？","本地测试资料中，南京大学图书馆周末几点开放？","那考试考什么？","本地测试资料中，南京大学转软件工程的考试考什么？"};
-        long[] expectedDocs={9001,9001,9002,9003,0,9001};
+        String[] questions=job.equals("diagnose-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？"}
+                :job.equals("verify-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？","我刚才说错了，是计算机科学与技术专业，考试考什么？","本地测试资料中，南京大学图书馆周末几点开放？","那考试呢","转软件工程机考要做什么准备？","那我该重点练习哪些内容？","本地测试资料中，南京大学转软件工程的考试考什么？"}
+                :new String[]{"本地测试资料中，南京大学转软件工程需要哪些条件？","那考试考什么？","我刚才说错了，是计算机科学与技术专业，考试考什么？","本地测试资料中，南京大学图书馆周末几点开放？","那考试考什么？","本地测试资料中，南京大学转软件工程的考试考什么？"};
+        long[] expectedDocs=job.equals("diagnose-v2")?new long[]{9001,9001}:job.equals("verify-v2")?new long[]{9001,9001,9002,9003,0,9001,9001,9001}:new long[]{9001,9001,9002,9003,0,9001};
         var session=store.create();String token=session.token(),nonce=session.requestId();
-        int[] sequence=resume?new int[]{5,1,2,3,4}:new int[]{0,1,2,3,4,5};
+        int[] sequence=job.equals("legacy")?(resume?new int[]{5,1,2,3,4}:new int[]{0,1,2,3,4,5}):java.util.stream.IntStream.range(0,questions.length).toArray();
         for(int i:sequence) {
             final int index=i;
             if(i==4){var fresh=service.newConversation(token);token=(String)fresh.get("conversationToken");nonce=(String)fresh.get("nextRequestId");}
-            require(requests<6);requests++;persist();long start=System.nanoTime();int previous=counter.get();completionMicros.set(0);
+            if(job.equals("verify-v2")&&i==5){var fresh=service.newConversation(token);token=(String)fresh.get("conversationToken");nonce=(String)fresh.get("nextRequestId");}
+            require(requests<questions.length);reserveBudget();requests++;persist();long start=System.nanoTime();int previous=counter.get();completionMicros.set(0);validationLogs.list.clear();
             Map<String,Object> safe=new LinkedHashMap<>();safe.put("case",i+1);safe.put("official_chat_model","deepseek-flash");
             try(var scope=RagDiagnostics.begin()) {
                 try {
-                    var answer=service.ask(token,nonce,questions[i]);nonce=answer.getNextRequestId();require(i!=4);
+                    boolean legacy=job.equals("verify-v2")&&i==7;
+                    var answer=legacy?rag.ask(questions[i]):service.ask(token,nonce,questions[i]);if(!legacy)nonce=answer.getNextRequestId();require(i!=4);
+                    safe.put("legacy_single_turn",legacy);
                     var markers=Pattern.compile("\\[(S\\d+)\\]").matcher(answer.getAnswer()).results().map(m->m.group(1)).collect(java.util.stream.Collectors.toSet());
                     var cited=answer.getSources().stream().map(SourceResponse::getCitationId).collect(java.util.stream.Collectors.toSet());
                     safe.put("status",200);safe.put("answer_nonempty",answer.getAnswer()!=null&&!answer.getAnswer().isBlank());
@@ -172,14 +192,18 @@ public final class ConversationLiveAcceptance {
                     require(answer.getSources().stream().anyMatch(s->s.getDocumentId()==expectedDocs[index]));
                     if(i==0||i==1||i==2||i==5)require(answer.getSources().stream().allMatch(s->s.getDocumentId()==expectedDocs[index]));
                     require(!answer.getAnswer().isBlank());
-                    boolean fact=switch(i){case 0->answer.getAnswer().contains("大一")&&answer.getAnswer().contains("高等数学");case 1,5->answer.getAnswer().contains("Java")&&answer.getAnswer().contains("程序设计");case 2->answer.getAnswer().contains("离散数学")&&answer.getAnswer().contains("算法");case 3->(answer.getAnswer().contains("9")||answer.getAnswer().contains("九"))&&(answer.getAnswer().contains("5")||answer.getAnswer().contains("17")||answer.getAnswer().contains("五"));default->false;};require(fact);
+                    boolean fact=(!job.equals("legacy")&&(i==0||i==1||i==5||i==6||i==7))?answer.getAnswer().contains("Java")&&(answer.getAnswer().contains("程序设计")||answer.getAnswer().contains("编程"))
+                            :switch(i){case 0->answer.getAnswer().contains("大一")&&answer.getAnswer().contains("高等数学");case 1,5->answer.getAnswer().contains("Java")&&answer.getAnswer().contains("程序设计");case 2->answer.getAnswer().contains("离散数学")&&answer.getAnswer().contains("算法");case 3->(answer.getAnswer().contains("9")||answer.getAnswer().contains("九"))&&(answer.getAnswer().contains("5")||answer.getAnswer().contains("17")||answer.getAnswer().contains("五"));default->false;};require(fact);
                     safe.put("status",200);safe.put("citation_valid",true);safe.put("fact_valid",true);safe.put("document_ids",answer.getSources().stream().map(SourceResponse::getDocumentId).toList());
                 } catch(ConversationException error) {
                     safe.put("status",error.status());safe.put("error_code",error.code());
+                    safe.put("validation_category",error.completionIssue().name());safe.put("completion_ms",completionMicros.get()/1000.0);safe.put("elapsed_ms",(System.nanoTime()-start)/1000000.0);
+                    safe.put("validation_structure",validationLogs.list.stream().map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage).toList());
                     results.add(safe);persist();
+                    if(i!=4)System.out.println("SAFE_CASE="+JSON.writeValueAsString(safe));
                     require(i==4&&error.status()==422&&error.code().equals("CONTEXT_REQUIRED"));nonce=error.nextRequestId();safe.put("status",422);safe.put("expected_clarification",true);
                 }
-                int calls=counter.get()-previous;require(calls==((i==1||i==2)?1:0));
+                int calls=counter.get()-previous;require(calls==((i==1||i==2||(job.equals("verify-v2")&&i==6))?1:0));
                 safe.put("completion_calls",calls);safe.put("completion_ms",completionMicros.get()/1000.0);safe.put("elapsed_ms",(System.nanoTime()-start)/1000000.0);safe.put("pass",true);
                 persist();System.out.println("SAFE_CASE="+JSON.writeValueAsString(safe));
             }

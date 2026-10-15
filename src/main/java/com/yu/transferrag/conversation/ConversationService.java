@@ -84,8 +84,8 @@ public class ConversationService {
             return response;
         } catch (ConversationException e) {
             degradation = e.code().startsWith("CONTEXT_") ? e.code() : "SESSION_REJECTED";
-            if (start != 0) LOG.info("RAG conversation: id={} context_used=false completion_executed={} completion_us={} degradation={}",
-                    com.yu.transferrag.diagnostics.RagDiagnostics.requestId(), e.completionAttempted(), (System.nanoTime() - start) / 1000, degradation);
+            if (start != 0) LOG.info("RAG conversation: id={} context_used=false completion_executed={} completion_us={} degradation={} validation={}",
+                    com.yu.transferrag.diagnostics.RagDiagnostics.requestId(), e.completionAttempted(), (System.nanoTime() - start) / 1000, degradation, e.completionIssue());
             throw e.next(state.nextRequestId());
         } catch (com.yu.transferrag.exception.AiServiceUnavailableException e) {
             com.yu.transferrag.diagnostics.RagDiagnostics.recordFailure(e);

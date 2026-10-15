@@ -7,6 +7,7 @@ public final class ConversationException extends RuntimeException {
     private String nextRequestId;
     private boolean completionAttempted;
     private Long retryAfter;
+    private CompletionIssue completionIssue = CompletionIssue.NONE;
     public ConversationException(int status, String code, String message) {
         super(message); this.status = status; this.code = code;
     }
@@ -18,6 +19,8 @@ public final class ConversationException extends RuntimeException {
     public ConversationException attempted(boolean value) { completionAttempted = value; return this; }
     public Long retryAfter() { return retryAfter; }
     public ConversationException retryAfter(long value) { retryAfter = Math.max(1, value); return this; }
+    public CompletionIssue completionIssue() { return completionIssue; }
+    public ConversationException diagnostic(CompletionIssue value) { completionIssue = value; return this; }
     public static ConversationException unavailable() {
         return new ConversationException(503, "CONVERSATION_UNAVAILABLE", "会话服务暂不可用，请稍后重试或使用完整问题进行单轮查询。");
     }

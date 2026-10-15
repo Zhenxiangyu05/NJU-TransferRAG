@@ -88,4 +88,38 @@ class StandaloneQuestionRewriterTest {
         when(chat.call(any(Prompt.class))).thenThrow(new RuntimeException(new java.net.SocketTimeoutException("private fixture")));
         assertThatThrownBy(() -> rewriter.resolve("那考试呢", history())).isInstanceOf(ConversationException.class).hasMessageNotContaining("private fixture"); verify(chat, times(1)).call(any(Prompt.class));
     }
+    @Test void fullyScopedNounFormRetrievalQuestionIsNotAnUnresolvedFollowup() {
+        reply("{\"status\":\"RESOLVED\",\"question\":\"转软件工程机考重点练习内容\"}");
+        assertThat(rewriter.resolve("那我该重点练习哪些内容？",history()).question()).isEqualTo("转软件工程机考重点练习内容");
+    }
+    @Test void aSingleCompleteJsonFenceIsASafeTransportWrapper() {
+        reply("```json\n{\"status\":\"RESOLVED\",\"question\":\"大一转软件工程考试考什么？\"}\n```");
+        assertThat(rewriter.resolve("那考试呢",history()).question()).isEqualTo("大一转软件工程考试考什么？");
+    }
+    @ParameterizedTest @ValueSource(strings={
+            "prefix ```json\n{\"status\":\"RESOLVED\",\"question\":\"大一转软件工程考试考什么？\"}\n```",
+            "```json\n{\"status\":\"RESOLVED\",\"question\":\"大一转软件工程考试考什么？\"}\n``` trailing",
+            "```json\n{\"status\":\"RESOLVED\",\"question\":\"大一转软件工程考试考什么？\"}\n```\n```json\n{}\n```"})
+    void surroundingTextOrMultipleBlocksCannotBeNormalizedIntoSuccess(String text) {
+        reply(text);assertThatThrownBy(()->rewriter.resolve("那考试呢",history())).isInstanceOf(ConversationException.class);
+    }
+    @Test void normalizedFenceCannotBypassYearOrRoleValidation() {
+        reply("```json\n{\"status\":\"RESOLVED\",\"question\":\"2028年转软件工程考试考什么？\"}\n```");
+        assertThatThrownBy(()->rewriter.resolve("那考试呢",history())).isInstanceOf(ConversationException.class);
+        reply("{\"status\":\"RESOLVED\",\"question\":\"软件工程\"}");
+        assertThatThrownBy(()->rewriter.resolve("那考试呢",history())).isInstanceOf(ConversationException.class);
+    }
+    @Test void detailedDiagnosticsNeverContainProviderContentOrQueries() {
+        var logger=(ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger(StandaloneQuestionRewriter.class);
+        var logs=new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();logs.start();logger.addAppender(logs);
+        try(var scope=com.yu.transferrag.diagnostics.RagDiagnostics.begin()) {
+            reply("{\"status\":false,\"question\":\"PRIVATE_SYNTHETIC_MARKER\"}");
+            assertThatThrownBy(()->rewriter.resolve("那考试呢",history())).isInstanceOf(ConversationException.class)
+                    .satisfies(error->assertThat(((ConversationException)error).completionIssue()).isEqualTo(CompletionIssue.FIELD_TYPES));
+            assertThat(logs.list).isNotEmpty().allSatisfy(event->{
+                assertThat(event.getThrowableProxy()).isNull();
+                assertThat(event.getFormattedMessage()).contains("reason=FIELD_TYPES","node_type=OBJECT","field_count=2").doesNotContain("PRIVATE_SYNTHETIC_MARKER","那考试呢","软件工程");
+            });
+        } finally {logger.detachAppender(logs);logs.stop();}
+    }
 }

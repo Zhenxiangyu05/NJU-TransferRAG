@@ -1,8 +1,9 @@
-param([switch]$Execute,[switch]$ResumeAfterFixtureFix)
+param([switch]$Execute,[switch]$ResumeAfterFixtureFix,[ValidateSet('legacy','diagnose-v2','verify-v2')][string]$Job='legacy')
 $ErrorActionPreference='Stop'
 $taskRoot=Split-Path $PSScriptRoot -Parent
 if(-not $Execute){throw 'No paid calls made. Requires explicitly approved -Execute; maximum six question attempts.'}
-if((Test-Path (Join-Path $taskRoot 'target/conversation-live-20261015.json')) -and -not $ResumeAfterFixtureFix){throw 'Attempt ledger already exists. No automatic rerun is permitted.'}
+$taskLedger=if($Job -eq 'legacy'){'target/conversation-live-20261015.json'}else{'target/conversation-'+$Job+'-20261015.json'}
+if((Test-Path (Join-Path $taskRoot $taskLedger)) -and -not $ResumeAfterFixtureFix){throw 'Attempt ledger already exists. No automatic rerun is permitted.'}
 $taskReadCode=@'
 import pathlib,subprocess,json
 try:
@@ -26,6 +27,7 @@ try {
     $taskProcess.ArgumentList.Add('-cp');$taskProcess.ArgumentList.Add((Join-Path $taskRoot 'target/live-classes')+';'+(Join-Path $taskRoot 'target/classes')+';'+$taskClasspath)
     $taskProcess.ArgumentList.Add('com.yu.transferrag.conversation.ConversationLiveAcceptance')
     if($ResumeAfterFixtureFix){$taskProcess.ArgumentList.Add('--resume-after-fixture-fix')}
+    if($Job -ne 'legacy'){$taskProcess.ArgumentList.Add('--'+$Job)}
     $taskProcess.UseShellExecute=$false
     foreach($taskName in @($taskProcess.Environment.Keys)){if($taskName -match '^(AI_|DEEPSEEK_|SPRING_AI_|DB_PASSWORD$|NJU_REDIS_PASSWORD$|RAG_RATE_LIMIT_HMAC_SECRET$|APP_AI_|APP_CACHE_|APP_RAG_|APP_IMPORT_|OPENAI_)'){$taskProcess.Environment.Remove($taskName)|Out-Null}}
     $taskProcess.RedirectStandardInput=$true;$taskProcess.RedirectStandardOutput=$true;$taskProcess.RedirectStandardError=$true
