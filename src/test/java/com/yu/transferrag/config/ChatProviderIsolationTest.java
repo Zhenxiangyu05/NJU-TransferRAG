@@ -102,6 +102,7 @@ class ChatProviderIsolationTest {
                 .withUserConfiguration(ChatTimeoutConfiguration.class, AiResilienceConfiguration.class)
                 .withBean(ToolCallingManager.class, () -> mock(ToolCallingManager.class))
                 .withInitializer(c -> {
+                    c.getEnvironment().getPropertySources().remove(org.springframework.core.env.StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME);
                     try { c.getEnvironment().getPropertySources().addLast(new ResourcePropertySource("classpath:application.properties")); }
                     catch (java.io.IOException e) { throw new IllegalStateException(e); }
                     c.getEnvironment().getPropertySources().addLast(new SystemEnvironmentPropertySource("fixture-env", Map.of(
@@ -183,7 +184,7 @@ class ChatProviderIsolationTest {
 
     void assertOfficial(Request r) {
         assertThat(r.path()).isEqualTo("/chat/completions");
-        assertThat(r.auth()).isEqualTo("Bearer " + OFFICIAL_KEY).doesNotContain(SCHOOL_KEY);
+        assertThat(java.util.Objects.equals(r.auth(), "Bearer " + OFFICIAL_KEY)).as("official synthetic authentication identity").isTrue();
         assertThat(r.body().path("model").asText()).isEqualTo("deepseek-flash");
         assertThat(r.body().path("thinking").path("type").asText()).isEqualTo("disabled");
     }
