@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import AnswerPanel from './components/AnswerPanel.vue'
 import AskForm from './components/AskForm.vue'
 import LegalPage from './components/LegalPage.vue'
@@ -8,9 +8,12 @@ import FeedbackPage from './components/FeedbackPage.vue'
 import SourceReaderPage from './components/SourceReaderPage.vue'
 import { icpNumber, policeRecordNumber } from './complianceConfig.js'
 import { createConversationClient } from './conversationClient.js'
+import { initialChatState, createChatTimeline } from './chatTimeline.js'
+import { connectChatScroll } from './chatScroll.js'
 
 const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
 const sourcePath = pagePath.match(/^\/sources\/(\d+)$/)
+const isChat = !['/legal', '/privacy', '/feedback'].includes(pagePath) && !sourcePath
 
 const recommendedQuestions = [
   '转软件工程机考要做什么准备？',
@@ -21,105 +24,88 @@ const recommendedQuestions = [
   '软件学院转专业面试真题？',
 ]
 
-const question = ref('')
-const loading = ref(false)
-const answer = ref('')
-const sources = ref([])
-const error = ref('')
-const turns = ref([])
-const conversation = createConversationClient()
-
-async function askQuestion() {
-  const normalizedQuestion = question.value.trim()
-  if (!normalizedQuestion || loading.value) {
-    return
-  }
-
-  error.value = ''
-  answer.value = ''
-  sources.value = []
-  loading.value = true
-
-  try {
-    const data = await conversation.ask(normalizedQuestion)
-    turns.value.push({ question: normalizedQuestion, answer: data.answer, sources: data.sources })
-    if (turns.value.length > 8) turns.value.shift()
-    question.value = ''
-  } catch (failure) {
-    error.value = failure.message || '请求失败，请稍后重试。'
-  } finally {
-    loading.value = false
-  }
-}
-
-async function newConversation() {
-  if (loading.value) return
-  loading.value = true
-  error.value = ''
-  try {
-    await conversation.reset()
-    turns.value = []
-    question.value = ''
-    answer.value = ''
-    sources.value = []
-  } catch (failure) { error.value = failure.message || '无法新建对话，请稍后重试。' }
-  finally { loading.value = false }
-}
-
-function selectQuestion(value) {
-  question.value = value
-}
+const chat = reactive(initialChatState())
+const timeline = createChatTimeline(createConversationClient(), chat)
+const scrollView = ref(null)
+const scrollContent = ref(null)
+const following = ref(true)
+const viewportHeight = ref(null)
+let scrollOwner
+const viewport = window.visualViewport
+function resizeViewport() { viewportHeight.value = `${viewport?.height || window.innerHeight}px` }
+onMounted(() => {
+  if (!isChat) return
+  document.body.classList.add('chat-page')
+  resizeViewport()
+  viewport?.addEventListener('resize', resizeViewport)
+  window.addEventListener('resize', resizeViewport)
+  scrollOwner = connectChatScroll(scrollView.value, scrollContent.value, value => { following.value = value })
+})
+onUnmounted(() => {
+  document.body.classList.remove('chat-page')
+  viewport?.removeEventListener('resize', resizeViewport)
+  window.removeEventListener('resize', resizeViewport)
+  scrollOwner?.destroy()
+})
+watch(() => [chat.turns.length, chat.sending, chat.resetting], async () => {
+  await nextTick()
+  if (!chat.turns.length) scrollOwner?.bottom()
+  else scrollOwner?.refresh()
+})
+function selectQuestion(value) { chat.draft = value }
 </script>
 
 <template>
-  <div class="site-shell">
+  <div class="site-shell" :class="{ 'chat-shell': isChat }" :style="isChat && viewportHeight ? { height: viewportHeight } : undefined">
     <header class="site-header">
       <div class="brand-mark" aria-hidden="true">N</div>
       <div>
         <p class="brand-name">NJU Compass</p>
         <p class="brand-subtitle">南大校园知识助手</p>
       </div>
+      <button v-if="isChat" type="button" class="new-conversation-button" :disabled="chat.resetting" @click="timeline.reset">
+        <span aria-hidden="true">＋</span> {{ chat.resetting ? '正在重置…' : '新对话' }}
+      </button>
     </header>
 
-    <main class="main-content">
+    <main class="main-content" :class="{ 'chat-main': isChat }">
       <LegalPage v-if="pagePath === '/legal'" />
       <PrivacyPage v-else-if="pagePath === '/privacy'" />
       <FeedbackPage v-else-if="pagePath === '/feedback'" />
       <SourceReaderPage v-else-if="sourcePath" :document-id="sourcePath[1]" />
       <template v-else>
-        <section class="intro" aria-labelledby="page-title">
+        <div class="chat-stage">
+        <section ref="scrollView" class="chat-scroll" tabindex="0" aria-label="当前对话消息">
+        <div ref="scrollContent" class="chat-content">
+        <section v-if="!chat.turns.length" class="intro chat-welcome" aria-labelledby="page-title">
           <p class="eyebrow">CAMPUS KNOWLEDGE SEARCH</p>
           <h1 id="page-title">南京大学校园知识助手</h1>
           <p class="nonofficial-badge">非官方个人项目 · AI 生成内容</p>
           <p class="intro-copy">
-            汇集培养方案、转专业政策、学院指南与学习经验，通过检索相关资料提供带来源的校园知识问答。
+            从一个问题开始，也可以接着追问。回答基于知识库资料，并附上参考文档。
           </p>
+          <div class="recommendation-list welcome-questions">
+            <button v-for="item in recommendedQuestions" :key="item" type="button" :disabled="chat.resetting || chat.resetRequired" @click="selectQuestion(item)">{{ item }}<span aria-hidden="true">↗</span></button>
+          </div>
         </section>
-
-        <AskForm
-          v-model="question"
-          :loading="loading"
-          :recommended-questions="recommendedQuestions"
-          @submit="askQuestion"
-          @select-question="selectQuestion"
-        />
-
-        <div class="conversation-controls">
-          <p>可接着追问 · 仅使用有限近期上下文，闲置后自动过期</p>
-          <button type="button" class="new-conversation-button" :disabled="loading" @click="newConversation">新对话</button>
+        <p v-if="chat.resetting" class="chat-reset-status" role="status">正在等待上一条请求结束并重置上下文，请稍候…</p>
+        <section v-for="turn in chat.turns" :key="turn.id" class="chat-turn" :data-turn-id="turn.id" :aria-label="`第 ${turn.id} 轮问答`">
+          <div class="user-message"><span class="sr-only">你：</span><p>{{ turn.question }}</p></div>
+          <div class="assistant-message">
+            <div class="assistant-label"><span class="assistant-avatar" aria-hidden="true">N</span><span>NJU Compass</span></div>
+            <AnswerPanel :answer="turn.answer" :sources="turn.sources" :loading="turn.status === 'pending'" :error="turn.error" :source-heading-id="`sources-turn-${turn.id}`" />
+            <button v-if="turn.status === 'error'" type="button" class="edit-question" :disabled="chat.sending || chat.resetting" @click="selectQuestion(turn.question)">重新编辑问题</button>
+          </div>
+        </section>
         </div>
-
-        <section v-for="(turn, index) in turns" :key="turn" class="conversation-turn">
-          <p class="conversation-question">{{ turn.question }}</p>
-          <AnswerPanel :answer="turn.answer" :sources="turn.sources" :source-heading-id="`sources-heading-${index}`" />
         </section>
-
-        <AnswerPanel
-          :answer="answer"
-          :sources="sources"
-          :loading="loading"
-          :error="error"
-        />
+        <button v-if="!following && chat.turns.length" type="button" class="back-to-bottom" @click="scrollOwner?.bottom()">↓ 回到底部</button>
+        </div>
+        <div class="chat-composer">
+          <p v-if="chat.controlError" class="reset-error" role="alert">{{ chat.controlError }}</p>
+          <AskForm v-model="chat.draft" :loading="chat.sending" :blocked="chat.resetting || chat.resetRequired" @submit="timeline.send" />
+          <p class="context-note">本页保留全部消息 · 模型仅使用最近 4 轮有效上下文，约 30 分钟过期</p>
+        </div>
       </template>
     </main>
 

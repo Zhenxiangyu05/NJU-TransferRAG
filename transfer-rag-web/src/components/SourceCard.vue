@@ -1,9 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { citationAnchor, publicReadingCheck } from '../referenceDocuments.js'
 import { readingUrl } from '../sourceReading.js'
 
 const props = defineProps({
   source: { type: Object, required: true },
+  citationScope: { type: String, default: 'sources-heading' },
 })
 
 const sourceLabel = computed(() => {
@@ -26,28 +28,35 @@ const sourceTypeText = computed(() => ({
   GITHUB: 'GitHub 资料',
 }[props.source.sourceType] || props.source.sourceType || '类型未标注'))
 
-const sourcePageUrl = computed(() => {
-  if (typeof props.source.sourceUrl !== 'string' || !props.source.sourceUrl.trim()) return null
-  try {
-    const url = new URL(props.source.sourceUrl)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null
-  } catch {
-    return null
-  }
-})
-
-const originalUrl = computed(() => props.source.sourceType === 'CURATED'
-  ? null
-  : readingUrl(props.source.documentId, props.source.sourcePage))
+const originalUrl = ref(null)
+const checking = ref(true)
+watch(() => props.source, async (source, _, cleanup) => {
+  let current = true
+  cleanup(() => { current = false })
+  originalUrl.value = null
+  checking.value = true
+  const url = await publicReadingCheck(source)
+  if (current) { originalUrl.value = url; checking.value = false }
+}, { immediate: true })
+const references = computed(() => props.source.references || [props.source])
 </script>
 
 <template>
   <article class="source-card">
     <div class="source-card-topline">
-      <span class="citation-id">[{{ source.citationId || '—' }}]</span>
+      <span v-for="reference in references" :key="reference.citationId" :id="citationAnchor(citationScope, reference.citationId)" class="citation-id" tabindex="-1">
+        <a v-if="originalUrl" :href="readingUrl(source.documentId, reference.sourcePage)" :aria-label="`查看引用 ${reference.citationId} 原文`" target="_blank" rel="noopener noreferrer">[{{ reference.citationId || '—' }}]<small v-if="reference.sourcePage"> p.{{ reference.sourcePage }}</small></a>
+        <template v-else>[{{ reference.citationId || '—' }}]<small v-if="reference.sourcePage"> p.{{ reference.sourcePage }}</small></template>
+      </span>
       <span class="source-badge" :class="{ official: source.official }">{{ sourceLabel }}</span>
     </div>
-    <h3>《{{ source.title || '未命名资料' }}》</h3>
+    <h3><a v-if="originalUrl" :href="originalUrl" target="_blank" rel="noopener noreferrer">{{ source.title || '资料标题未提供' }}<span aria-hidden="true"> ↗</span></a><span v-else>{{ source.title || '资料标题未提供' }}</span></h3>
+    <div class="source-access-status">
+      <a v-if="originalUrl" class="source-link" :href="originalUrl" target="_blank" rel="noopener noreferrer">查看原文 ↗</a>
+      <span v-else>{{ checking ? '正在核验原文访问权限…' : '原文未公开或暂不可用' }}</span>
+    </div>
+    <details class="source-metadata">
+    <summary>资料信息</summary>
     <dl class="source-details">
       <div><dt>来源类型</dt><dd>{{ sourceTypeText }}</dd></div>
       <div><dt>学院</dt><dd>{{ source.chunkDepartment || source.documentDepartment || '未标注' }}</dd></div>
@@ -56,19 +65,6 @@ const originalUrl = computed(() => props.source.sourceType === 'CURATED'
       <div v-if="source.policyYear != null"><dt>政策年份</dt><dd>{{ source.policyYear }}</dd></div>
       <div><dt>检索年份</dt><dd>{{ source.effectiveYear || '未标注' }}</dd></div>
     </dl>
-    <div v-if="originalUrl || sourcePageUrl" class="source-actions">
-      <a v-if="originalUrl" class="source-link" :href="originalUrl" target="_blank" rel="noopener noreferrer">
-        查看原文<span aria-hidden="true">↗</span>
-      </a>
-      <a
-        v-if="sourcePageUrl"
-        class="source-link source-link-muted"
-        :href="sourcePageUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        来源页面<span aria-hidden="true">↗</span>
-      </a>
-    </div>
+    </details>
   </article>
 </template>

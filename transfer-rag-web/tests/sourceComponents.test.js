@@ -4,7 +4,7 @@ import { createServer } from 'vite'
 import { createSSRApp } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 
-test('SourceCard links to original Evidence document and page, leaving metadata unchanged', async () => {
+test('SourceCard preserves escaped metadata and fails closed before public original approval', async () => {
   const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' })
   try {
     const { default: SourceCard } = await server.ssrLoadModule('/src/components/SourceCard.vue')
@@ -12,8 +12,9 @@ test('SourceCard links to original Evidence document and page, leaving metadata 
       title: '<script>unsafe title</script>', documentDepartment: '软件学院', documentYear: 2026,
       effectiveYear: 2026, policyYear: null }
     const html = await renderToString(createSSRApp(SourceCard, { source }))
-    assert.ok(html.includes('href="/sources/2?page=3"'))
-    assert.ok(html.includes('查看原文'))
+    assert.ok(!html.includes('href="/sources/2?page=3"'))
+    assert.ok(!html.includes('查看原文'))
+    assert.ok(html.includes('核验原文访问权限'))
     assert.ok(html.includes('软件学院'))
     assert.ok(html.includes('资料年份'))
     assert.ok(!html.includes('政策年份'))
