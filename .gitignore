@@ -64,6 +64,9 @@ src/main/resources/application-secret.properties
 ### Logs ###
 *.log
 logs/
+__pycache__/
+*.pyc
+*.dpapi
 
 ### Evaluation local checkpoints / debug artifacts ###
 evaluation/**/*-results.json

@@ -33,6 +33,12 @@ class QueryEmbeddingCacheTest {
         assertEquals(.5,c.stats().hitRate());assertFalse(c.key("校园问题").contains("校园问题"));
         assertTrue(c.key("校园问题").matches("nju:embedding:v1:[a-f0-9]{64}:[a-f0-9]{64}"));
     }
+    @Test void contextualIndependentQuestionsCannotShareEmbeddingCacheEntries() {
+        var m=model();var c=cache(m,new MemoryStore(),settings(true));
+        String software="2025年转软件工程考试考什么？",computer="2026年转计算机专业考试考什么？";
+        assertNotEquals(c.key(software),c.key(computer));c.embed(software);c.embed(computer);c.embed(software);
+        verify(m,times(1)).embed(software);verify(m,times(1)).embed(computer);
+    }
     @Test void whitespaceAndDifferentQueriesAreNotNormalized() {
         var m=model();var c=cache(m,new MemoryStore(),settings(true));
         c.embed("test");c.embed("test ");c.embed("other");verify(m,times(3)).embed(anyString());

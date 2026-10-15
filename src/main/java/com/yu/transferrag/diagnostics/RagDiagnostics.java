@@ -20,7 +20,7 @@ public final class RagDiagnostics {
     private static final Logger LOG = LoggerFactory.getLogger(RagDiagnostics.class);
     private static final ThreadLocal<Request> CURRENT = new ThreadLocal<>();
     public static final String MDC_KEY = "ragRequestId";
-    public enum Stage { QUERY_EMBEDDING, RETRIEVAL, ANSWERABILITY, GENERATION, REQUEST }
+    public enum Stage { CONTEXT_COMPLETION, QUERY_EMBEDDING, RETRIEVAL, ANSWERABILITY, GENERATION, REQUEST }
     public enum Category {
         NONE, CONNECT_TIMEOUT, READ_OR_REQUEST_TIMEOUT, TIMEOUT_UNSPECIFIED, DNS_FAILURE, TLS_FAILURE,
         CONNECTION_RESET, EOF, CONNECTION_FAILURE, SOCKET_IO, INTERRUPTED_IO,

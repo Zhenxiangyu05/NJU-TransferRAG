@@ -47,6 +47,7 @@ function selectQuestion(question) {
         :value="modelValue"
         :disabled="loading"
         rows="5"
+        maxlength="500"
         placeholder="搜索你关心的校园学习与院系信息……"
         @input="updateQuestion"
         @keydown="handleKeydown"

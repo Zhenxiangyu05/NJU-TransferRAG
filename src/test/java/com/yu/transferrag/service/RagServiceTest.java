@@ -272,6 +272,23 @@ class RagServiceTest {
         assertFalse(finalPrompt.contains("来源 201 的正文"));
     }
 
+    @Test
+    void contextualQuestionFeedsRetrievalAndAnswerabilityButKeepsCurrentIntentAndCitations() {
+        String current = "那考试呢", resolved = "2025年转软件工程的考试考什么？";
+        when(retrievalService.search(resolved, 3)).thenReturn(List.of(searchResult(6,116,0,.8,"软件学院","软件工程",2025,2025)));
+        when(documentRepository.findAllById(any())).thenReturn(List.of(document(6,"Synthetic","软件学院",2025,"PERSONAL","DEPARTMENT")));
+        when(answerabilityService.check(org.mockito.ArgumentMatchers.eq(resolved),anyString(),anyList()))
+                .thenReturn(new AnswerabilityResult(true,List.of("S1"),"fixture"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("Synthetic supported fact [S1]"));
+        RagResponse response=ragService.askWithContext(current,resolved);
+        assertEquals(current,response.getQuestion());assertEquals(6L,response.getSources().getFirst().getDocumentId());
+        verify(retrievalService).search(resolved,3);verify(retrievalService,never()).search(current,3);
+        var capture=ArgumentCaptor.forClass(Prompt.class);verify(chatModel).call(capture.capture());
+        assertTrue(capture.getValue().getUserMessage().getText().contains(current));
+        assertTrue(capture.getValue().getUserMessage().getText().contains(resolved));
+        assertTrue(capture.getValue().getUserMessage().getText().contains("不是知识证据"));
+    }
+
     private SearchResultResponse searchResult(long documentId,
                                               long chunkId,
                                               int chunkIndex,

@@ -7,6 +7,7 @@ import PrivacyPage from './components/PrivacyPage.vue'
 import FeedbackPage from './components/FeedbackPage.vue'
 import SourceReaderPage from './components/SourceReaderPage.vue'
 import { icpNumber, policeRecordNumber } from './complianceConfig.js'
+import { createConversationClient } from './conversationClient.js'
 
 const pagePath = window.location.pathname.replace(/\/+$/, '') || '/'
 const sourcePath = pagePath.match(/^\/sources\/(\d+)$/)
@@ -25,6 +26,8 @@ const loading = ref(false)
 const answer = ref('')
 const sources = ref([])
 const error = ref('')
+const turns = ref([])
+const conversation = createConversationClient()
 
 async function askQuestion() {
   const normalizedQuestion = question.value.trim()
@@ -38,30 +41,29 @@ async function askQuestion() {
   loading.value = true
 
   try {
-    const response = await fetch('/api/rag/ask', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ question: normalizedQuestion }),
-    })
-
-    if (!response.ok) {
-      throw new Error('HTTP request failed')
-    }
-
-    const data = await response.json()
-    if (!data || typeof data.answer !== 'string' || !Array.isArray(data.sources)) {
-      throw new Error('Invalid response payload')
-    }
-
-    answer.value = data.answer
-    sources.value = data.sources
-  } catch {
-    error.value = '请求失败，请稍后重试。'
+    const data = await conversation.ask(normalizedQuestion)
+    turns.value.push({ question: normalizedQuestion, answer: data.answer, sources: data.sources })
+    if (turns.value.length > 8) turns.value.shift()
+    question.value = ''
+  } catch (failure) {
+    error.value = failure.message || '请求失败，请稍后重试。'
   } finally {
     loading.value = false
   }
+}
+
+async function newConversation() {
+  if (loading.value) return
+  loading.value = true
+  error.value = ''
+  try {
+    await conversation.reset()
+    turns.value = []
+    question.value = ''
+    answer.value = ''
+    sources.value = []
+  } catch (failure) { error.value = failure.message || '无法新建对话，请稍后重试。' }
+  finally { loading.value = false }
 }
 
 function selectQuestion(value) {
@@ -101,6 +103,16 @@ function selectQuestion(value) {
           @submit="askQuestion"
           @select-question="selectQuestion"
         />
+
+        <div class="conversation-controls">
+          <p>可接着追问 · 仅使用有限近期上下文，闲置后自动过期</p>
+          <button type="button" class="new-conversation-button" :disabled="loading" @click="newConversation">新对话</button>
+        </div>
+
+        <section v-for="(turn, index) in turns" :key="turn" class="conversation-turn">
+          <p class="conversation-question">{{ turn.question }}</p>
+          <AnswerPanel :answer="turn.answer" :sources="turn.sources" :source-heading-id="`sources-heading-${index}`" />
+        </section>
 
         <AnswerPanel
           :answer="answer"

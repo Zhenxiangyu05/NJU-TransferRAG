@@ -82,6 +82,25 @@ public class ChatTimeoutConfiguration {
         return new TimeoutConfiguredChatModel(delegate, timeout, ChatProviderConfiguration.official(environment));
     }
 
+    /** Same SDK, provider and semaphore; only this optional wording call has a shorter real HTTP deadline. */
+    @Bean("conversationCompletionChatModel")
+    @ConditionalOnProperty(name = "app.rag.conversation.enabled", havingValue = "true")
+    ChatModel conversationCompletionChatModel(OpenAiChatModel delegate, OpenAiCommonProperties common,
+            OpenAiChatProperties chat, Environment environment,
+            com.yu.transferrag.conversation.ConversationProperties properties,
+            org.springframework.beans.factory.ObjectProvider<com.yu.transferrag.protection.AiRemoteGuard> guards) {
+        Duration configured = OpenAiAutoConfigurationUtil.resolveCommonProperties(common, chat).getTimeout();
+        Duration timeout = properties.completionTimeout().compareTo(configured) < 0 ? properties.completionTimeout() : configured;
+        ChatModel shorter = new TimeoutConfiguredChatModel(delegate, timeout, ChatProviderConfiguration.official(environment));
+        return new ChatModel() {
+            @Override public ChatResponse call(Prompt prompt) {
+                var guard = guards.getIfAvailable();
+                return guard == null ? shorter.call(prompt) : guard.call("deepseekChat", () -> shorter.call(prompt));
+            }
+            @Override public ChatOptions getDefaultOptions() { return shorter.getDefaultOptions(); }
+        };
+    }
+
     /** Owns no clients or executors: the original auto-configured model retains its lifecycle. */
     static final class TimeoutConfiguredChatModel implements ChatModel {
         private final OpenAiChatModel delegate;

@@ -102,6 +102,11 @@ public class RagService {
         return ask(question, canonicalFirstEnabled);
     }
 
+    /** Resolve before the existing entity/year parser, so retrieval and metadata filters share one question. */
+    public RagResponse askWithContext(String currentQuestion, String independentQuestion) {
+        return ask(currentQuestion, independentQuestion, canonicalFirstEnabled);
+    }
+
     EvaluationTraceResult askForEvaluation(String question, boolean useCanonicalFirst) {
         if (evaluationTrace.get() != null) {
             throw new IllegalStateException("Nested evaluation traces are not supported");
@@ -119,41 +124,45 @@ public class RagService {
     }
 
     private RagResponse ask(String question, boolean useCanonicalFirst) {
+        return ask(question, question, useCanonicalFirst);
+    }
+
+    private RagResponse ask(String question, String retrievalQuestion, boolean useCanonicalFirst) {
         if (question == null || question.isBlank()) {
             throw new IllegalArgumentException("question 不能为空");
         }
         if (!useCanonicalFirst) {
-            List<SearchResultResponse> evidenceResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.search(question, 3));
+            List<SearchResultResponse> evidenceResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.search(retrievalQuestion, 3));
             EvaluationTrace.Builder trace = evaluationTrace.get();
             if (trace != null) trace.evidenceRanking(evidenceResults, false);
             logRetrieval("EVIDENCE", 0, evidenceResults.size(), false, null);
-            return answerFromEvidence(question, evidenceResults);
+            return answerFromEvidence(question, retrievalQuestion, evidenceResults);
         }
-        return askCanonicalFirst(question);
+        return askCanonicalFirst(question, retrievalQuestion);
     }
 
-    private RagResponse askCanonicalFirst(String question) {
-        RetrievalService.PreparedQuery preparedQuery = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.prepareCanonicalFirst(question));
+    private RagResponse askCanonicalFirst(String question, String retrievalQuestion) {
+        RetrievalService.PreparedQuery preparedQuery = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.prepareCanonicalFirst(retrievalQuestion));
         List<SearchResultResponse> canonicalResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.searchCanonical(preparedQuery, 3));
         EvaluationTrace.Builder trace = evaluationTrace.get();
         if (trace != null) trace.canonicalRanking(canonicalResults);
         if (canonicalResults.isEmpty()) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_CANONICAL_RESULT");
+            return fallbackToEvidence(question, retrievalQuestion, preparedQuery, canonicalResults.size(), "NO_CANONICAL_RESULT");
         }
         if (!passesRelevanceGate(canonicalResults)) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "LOW_RELEVANCE");
+            return fallbackToEvidence(question, retrievalQuestion, preparedQuery, canonicalResults.size(), "LOW_RELEVANCE");
         }
 
         CanonicalEvidenceBundle bundle = RagDiagnostics.measure(RETRIEVAL, () -> buildCanonicalEvidence(canonicalResults));
         if (!bundle.complete()) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "INCOMPLETE_PROVENANCE");
+            return fallbackToEvidence(question, retrievalQuestion, preparedQuery, canonicalResults.size(), "INCOMPLETE_PROVENANCE");
         }
 
         AnswerabilityResult answerability = answerabilityService.check(
-                question, bundle.answerabilityContext(), bundle.sources());
+                retrievalQuestion, bundle.answerabilityContext(), bundle.sources());
         if (trace != null) trace.retrievedContext(bundle.answerabilityContext());
         if (!answerability.answerable()) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NOT_ANSWERABLE");
+            return fallbackToEvidence(question, retrievalQuestion, preparedQuery, canonicalResults.size(), "NOT_ANSWERABLE");
         }
 
         Set<String> approvedIds = new LinkedHashSet<>(answerability.evidenceCitationIds());
@@ -165,7 +174,7 @@ public class RagService {
                 .filter(citation -> approvedIds.contains(citation.source().getCitationId()))
                 .toList();
         if (selected.isEmpty() || approvedFacts.isEmpty()) {
-            return fallbackToEvidence(question, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
+            return fallbackToEvidence(question, retrievalQuestion, preparedQuery, canonicalResults.size(), "NO_APPROVED_EVIDENCE");
         }
 
         String userPrompt = """
@@ -177,7 +186,7 @@ public class RagService {
 
                 已通过证据充分性检查的 Sources：
                 %s
-                """.formatted(question, canonicalKnowledge(approvedFacts, approvedIds),
+                """.formatted(generationIntent(question, retrievalQuestion), canonicalKnowledge(approvedFacts, approvedIds),
                 canonicalCitationContext(selected));
         if (trace != null) trace.approvedContext(canonicalKnowledge(approvedFacts, approvedIds)
                 + "\n\n" + canonicalCitationContext(selected));
@@ -187,6 +196,7 @@ public class RagService {
     }
 
     private RagResponse fallbackToEvidence(String question,
+                                           String retrievalQuestion,
                                            RetrievalService.PreparedQuery preparedQuery,
                                            int canonicalCandidateCount,
                                            String reason) {
@@ -195,7 +205,7 @@ public class RagService {
         List<SearchResultResponse> evidenceResults = RagDiagnostics.measure(RETRIEVAL, () -> retrievalService.searchEvidence(preparedQuery, 3));
         if (trace != null) trace.evidenceRanking(evidenceResults, true);
         logRetrieval("EVIDENCE", canonicalCandidateCount, evidenceResults.size(), true, reason);
-        return answerFromEvidence(question, evidenceResults);
+        return answerFromEvidence(question, retrievalQuestion, evidenceResults);
     }
 
     private void logRetrieval(String retrievalLayer,
@@ -209,7 +219,7 @@ public class RagService {
                 fallbackTriggered, fallbackReason == null ? "NONE" : fallbackReason);
     }
 
-    private RagResponse answerFromEvidence(String question, List<SearchResultResponse> searchResults) {
+    private RagResponse answerFromEvidence(String question, String retrievalQuestion, List<SearchResultResponse> searchResults) {
         searchResults = readiness.filterCandidates(searchResults);
         if (!passesRelevanceGate(searchResults)) {
             return insufficientKnowledgeResponse(question);
@@ -218,7 +228,7 @@ public class RagService {
         String context = buildContext(searchResults, sources);
         EvaluationTrace.Builder trace = evaluationTrace.get();
         if (trace != null) trace.retrievedContext(context);
-        AnswerabilityResult answerability = answerabilityService.check(question, context, sources);
+        AnswerabilityResult answerability = answerabilityService.check(retrievalQuestion, context, sources);
         if (!answerability.answerable()) {
             return insufficientKnowledgeResponse(question);
         }
@@ -233,7 +243,7 @@ public class RagService {
 
                 已通过证据充分性检查的 Sources：
                 %s
-                """.formatted(question, buildContext(evidence.searchResults(), evidence.sources()));
+                """.formatted(generationIntent(question, retrievalQuestion), buildContext(evidence.searchResults(), evidence.sources()));
         if (trace != null) trace.approvedContext(buildContext(evidence.searchResults(), evidence.sources()));
         return generatedResponse(question, userPrompt, evidence.sources(), false);
     }
@@ -253,6 +263,12 @@ public class RagService {
         response.setAnswer(answer);
         response.setSources(sources);
         return response;
+    }
+
+    private static String generationIntent(String current, String resolved) {
+        return current.equals(resolved) ? current : "当前原始问题：" + current
+                + "\n本轮指代/条件补全（只用于理解提问意图，不是知识证据）：" + resolved
+                + "\n事实结论只能依据下方本轮批准的Sources，不从对话历史补充事实。";
     }
 
     private boolean passesRelevanceGate(List<SearchResultResponse> results) {

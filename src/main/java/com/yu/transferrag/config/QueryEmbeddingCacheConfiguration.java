@@ -55,16 +55,16 @@ public class QueryEmbeddingCacheConfiguration {
     }
 
     @Configuration(proxyBeanMethods=false)
-    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false} or ${app.ai.resilience.enabled:false}")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false} or ${app.ai.resilience.enabled:false} or ${app.rag.conversation.enabled:false}")
     @EnableConfigurationProperties(QdrantVectorStoreProperties.class)
     static class Enabled {
         @Bean(destroyMethod="shutdown")
-        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false}")
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false} or ${app.rag.conversation.enabled:false}")
         DefaultClientResources queryCacheRedisResources() {
             return DefaultClientResources.builder().ioThreadPoolSize(2).computationThreadPoolSize(2).build();
         }
         @Bean
-        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false}")
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.cache.embedding.enabled:false} or ${app.rag.rate-limit.enabled:false} or ${app.rag.conversation.enabled:false}")
         LettuceConnectionFactory queryCacheRedisConnectionFactory(
                 @Qualifier("queryCacheRedisResources") DefaultClientResources resources,Environment env) {
             var server=new RedisStandaloneConfiguration(env.getProperty("app.cache.embedding.redis.host","127.0.0.1"),

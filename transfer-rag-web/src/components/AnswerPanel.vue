@@ -11,6 +11,7 @@ const props = defineProps({
   sources: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   error: { type: String, default: '' },
+  sourceHeadingId: { type: String, default: 'sources-heading' },
 })
 
 const renderedAnswer = computed(() => {
@@ -55,11 +56,11 @@ const isRefusal = computed(() => props.answer.trim() === REFUSAL_ANSWER)
       </p>
     </article>
 
-    <section v-if="sources.length > 0" class="sources-section" aria-labelledby="sources-heading">
+    <section v-if="sources.length > 0" class="sources-section" :aria-labelledby="sourceHeadingId">
       <div class="sources-heading-row">
         <div>
           <p class="section-kicker">EVIDENCE</p>
-          <h2 id="sources-heading">回答依据</h2>
+          <h2 :id="sourceHeadingId">回答依据</h2>
         </div>
         <span>{{ sources.length }} 条资料</span>
       </div>

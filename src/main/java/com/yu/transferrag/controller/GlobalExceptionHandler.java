@@ -20,6 +20,23 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.bind.MethodArgumentNotValidException.class})
+    public ResponseEntity<Map<String, Object>> invalidBody() {
+        // Default converter warnings can include untrusted JSON field names; never log the rejected body.
+        return ResponseEntity.badRequest().body(Map.of("status", 400, "code", "INVALID_REQUEST", "message", "请求格式或字段不符合要求。"));
+    }
+
+    @ExceptionHandler(com.yu.transferrag.conversation.ConversationException.class)
+    public ResponseEntity<Map<String, Object>> conversation(com.yu.transferrag.conversation.ConversationException e) {
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("status", e.status()); body.put("code", e.code()); body.put("message", e.getMessage());
+        if (e.nextRequestId() != null) body.put("nextRequestId", e.nextRequestId());
+        var builder = ResponseEntity.status(e.status()).cacheControl(org.springframework.http.CacheControl.noStore());
+        if (e.retryAfter() != null) builder.header("Retry-After", e.retryAfter().toString());
+        return builder.body(body);
+    }
+
     @ExceptionHandler(com.yu.transferrag.protection.ProtectionException.class)
     public ResponseEntity<Map<String,Object>> protection(com.yu.transferrag.protection.ProtectionException e) {
         com.yu.transferrag.diagnostics.RagDiagnostics.recordFailure(e);

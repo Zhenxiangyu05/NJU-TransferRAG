@@ -674,6 +674,38 @@ class CanonicalFirstRagServiceTest {
         assertTrue(prompt.getSystemMessage().getText().contains("按每条 fact 自身的年份限定表述"));
     }
 
+    @Test
+    void contextualCanonicalUsesResolvedQueryAndKeepsOriginalIntent() {
+        String current="那考试呢",resolved="软件学院转专业考试考什么？";
+        var canonical=canonicalResult(900L,"[F0] Synthetic supported fact.",.8);
+        var document=evidenceDocument(12L,"Synthetic evidence");
+        when(retrievalService.prepareCanonicalFirst(resolved)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery,3)).thenReturn(List.of(canonical));
+        when(evidenceRefRepository.findByCanonicalChunk_IdInOrderByCanonicalChunk_IdAscFactIndexAscIdAsc(List.of(900L)))
+                .thenReturn(List.of(evidenceRef(1,900,0,document,null,"Synthetic supported fact.")));
+        when(answerabilityService.check(org.mockito.ArgumentMatchers.eq(resolved),anyString(),anyList())).thenReturn(new AnswerabilityResult(true,List.of("S1"),"fixture"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("Synthetic supported fact. [S1]"));
+        var response=ragService.askWithContext(current,resolved);
+        assertEquals(current,response.getQuestion());assertEquals(12L,response.getSources().getFirst().getDocumentId());
+        verify(retrievalService,never()).prepareCanonicalFirst(current);verify(retrievalService,never()).searchEvidence(any(),any(Integer.class));
+    }
+
+    @Test
+    void contextualFallbackUsesSamePreparedQueryAndEvidenceCitation() {
+        String current="这个有年级限制吗",resolved="软件工程转专业有年级限制吗？";
+        var evidence=new SearchResultResponse();evidence.setDocumentId(12L);evidence.setChunkId(330L);evidence.setScore(.8);
+        evidence.setDocumentRole(DocumentRole.EVIDENCE);evidence.setContent("Synthetic supported fact.");
+        when(retrievalService.prepareCanonicalFirst(resolved)).thenReturn(preparedQuery);
+        when(retrievalService.searchCanonical(preparedQuery,3)).thenReturn(List.of());
+        when(retrievalService.searchEvidence(preparedQuery,3)).thenReturn(List.of(evidence));
+        when(documentRepository.findAllById(any())).thenReturn(List.of(evidenceDocument(12L,"Synthetic evidence")));
+        when(answerabilityService.check(org.mockito.ArgumentMatchers.eq(resolved),anyString(),anyList())).thenReturn(new AnswerabilityResult(true,List.of("S1"),"fixture"));
+        when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse("Synthetic supported fact. [S1]"));
+        var response=ragService.askWithContext(current,resolved);
+        assertEquals(current,response.getQuestion());assertEquals(330L,response.getSources().getFirst().getChunkId());
+        verify(retrievalService).prepareCanonicalFirst(resolved);verify(retrievalService).searchEvidence(preparedQuery,3);
+    }
+
     private Prompt generateCanonicalPrompt(List<SearchResultResponse> candidates,
                                            List<EvidenceRef> refs, List<String> approvedIds) {
         String question = "来源权威性测试";
