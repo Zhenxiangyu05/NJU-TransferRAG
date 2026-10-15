@@ -53,7 +53,7 @@ public final class ConversationLiveAcceptance {
     static void persist() throws Exception {Files.writeString(RESULT,JSON.writeValueAsString(Map.of("requests",requests,"results",results,"key_rotation","DEFERRED_UNRESOLVED")));}
     public static void main(String[] args) {
         boolean offline=args.length==1&&args[0].equals("--offline");
-        if(args.length==1&&Set.of("--diagnose-v2","--verify-v2").contains(args[0])) {
+        if(args.length==1&&Set.of("--diagnose-v2","--verify-v2","--verify-alias-v2").contains(args[0])) {
             job=args[0].substring(2);RESULT=Path.of("target/conversation-"+job+"-20261015.json");
         }
         resume=args.length==1&&args[0].equals("--resume-after-fixture-fix");
@@ -152,6 +152,7 @@ public final class ConversationLiveAcceptance {
         vectors.add(points); // One approved synthetic-corpus embedding batch; never production data.
         var aliases=mock(EntityAliasRepository.class);var aliasList=new ArrayList<EntityAlias>();
         for(int i=0;i<2;i++){var alias=new EntityAlias();alias.setStandardName(majors[i]);alias.setAlias(i==0?"软件专业":"计算机专业");alias.setEntityType("MAJOR");alias.setDepartment(departments[i]);aliasList.add(alias);}
+        if(job.equals("verify-alias-v2"))aliasList.clear(); // Match confirmed production dictionary coverage for these subjects.
         when(aliases.findAll()).thenReturn(aliasList);var entities=new QueryRewriteService(aliases);
         var repository=mock(DocumentRepository.class);when(repository.findAllById(any())).thenAnswer(inv->{var ids=(Iterable<Long>)inv.getArgument(0);var selected=new ArrayList<com.yu.transferrag.entity.Document>();for(Long id:ids)documents.stream().filter(d->d.getId().equals(id)).forEach(selected::add);return selected;});
         when(repository.findReadinessByIds(anyCollection())).thenAnswer(inv->{Collection<Long> ids=inv.getArgument(0);return documents.stream().filter(d->ids.contains(d.getId())).map(d->{var view=mock(DocumentReadinessView.class);when(view.getDocumentId()).thenReturn(d.getId());when(view.getDocumentRole()).thenReturn(DocumentRole.EVIDENCE);when(view.getTaskId()).thenReturn(null);return view;}).toList();});
@@ -165,22 +166,23 @@ public final class ConversationLiveAcceptance {
         var store=new RedisConversationStore(new StringRedisTemplate(connection),properties);
         ObjectProvider<ConversationStore> stores=mock(ObjectProvider.class);when(stores.getIfAvailable()).thenReturn(store);
         var service=new ConversationService(stores,properties,rewriter,rag,readiness);
-        String[] questions=job.equals("diagnose-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？"}
+        String[] questions=job.equals("verify-alias-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？","我刚才说错了，是计算机科学与技术专业，考试考什么？","转软件工程机考要做什么准备？","那我该重点练习哪些内容？"}
+                :job.equals("diagnose-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？"}
                 :job.equals("verify-v2")?new String[]{"转软件工程机考要做什么准备？","那我该重点练习哪些内容？","我刚才说错了，是计算机科学与技术专业，考试考什么？","本地测试资料中，南京大学图书馆周末几点开放？","那考试呢","转软件工程机考要做什么准备？","那我该重点练习哪些内容？","本地测试资料中，南京大学转软件工程的考试考什么？"}
                 :new String[]{"本地测试资料中，南京大学转软件工程需要哪些条件？","那考试考什么？","我刚才说错了，是计算机科学与技术专业，考试考什么？","本地测试资料中，南京大学图书馆周末几点开放？","那考试考什么？","本地测试资料中，南京大学转软件工程的考试考什么？"};
-        long[] expectedDocs=job.equals("diagnose-v2")?new long[]{9001,9001}:job.equals("verify-v2")?new long[]{9001,9001,9002,9003,0,9001,9001,9001}:new long[]{9001,9001,9002,9003,0,9001};
+        long[] expectedDocs=job.equals("verify-alias-v2")?new long[]{9001,9001,9002,9001,9001}:job.equals("diagnose-v2")?new long[]{9001,9001}:job.equals("verify-v2")?new long[]{9001,9001,9002,9003,0,9001,9001,9001}:new long[]{9001,9001,9002,9003,0,9001};
         var session=store.create();String token=session.token(),nonce=session.requestId();
         int[] sequence=job.equals("legacy")?(resume?new int[]{5,1,2,3,4}:new int[]{0,1,2,3,4,5}):java.util.stream.IntStream.range(0,questions.length).toArray();
         for(int i:sequence) {
             final int index=i;
-            if(i==4){var fresh=service.newConversation(token);token=(String)fresh.get("conversationToken");nonce=(String)fresh.get("nextRequestId");}
+            if((i==4&&!job.equals("verify-alias-v2"))||(i==3&&job.equals("verify-alias-v2"))){var fresh=service.newConversation(token);token=(String)fresh.get("conversationToken");nonce=(String)fresh.get("nextRequestId");}
             if(job.equals("verify-v2")&&i==5){var fresh=service.newConversation(token);token=(String)fresh.get("conversationToken");nonce=(String)fresh.get("nextRequestId");}
             require(requests<questions.length);reserveBudget();requests++;persist();long start=System.nanoTime();int previous=counter.get();completionMicros.set(0);validationLogs.list.clear();
             Map<String,Object> safe=new LinkedHashMap<>();safe.put("case",i+1);safe.put("official_chat_model","deepseek-flash");
             try(var scope=RagDiagnostics.begin()) {
                 try {
                     boolean legacy=job.equals("verify-v2")&&i==7;
-                    var answer=legacy?rag.ask(questions[i]):service.ask(token,nonce,questions[i]);if(!legacy)nonce=answer.getNextRequestId();require(i!=4);
+                    var answer=legacy?rag.ask(questions[i]):service.ask(token,nonce,questions[i]);if(!legacy)nonce=answer.getNextRequestId();require(i!=4||job.equals("verify-alias-v2"));
                     safe.put("legacy_single_turn",legacy);
                     var markers=Pattern.compile("\\[(S\\d+)\\]").matcher(answer.getAnswer()).results().map(m->m.group(1)).collect(java.util.stream.Collectors.toSet());
                     var cited=answer.getSources().stream().map(SourceResponse::getCitationId).collect(java.util.stream.Collectors.toSet());
@@ -192,7 +194,7 @@ public final class ConversationLiveAcceptance {
                     require(answer.getSources().stream().anyMatch(s->s.getDocumentId()==expectedDocs[index]));
                     if(i==0||i==1||i==2||i==5)require(answer.getSources().stream().allMatch(s->s.getDocumentId()==expectedDocs[index]));
                     require(!answer.getAnswer().isBlank());
-                    boolean fact=(!job.equals("legacy")&&(i==0||i==1||i==5||i==6||i==7))?answer.getAnswer().contains("Java")&&(answer.getAnswer().contains("程序设计")||answer.getAnswer().contains("编程"))
+                    boolean fact=(!job.equals("legacy")&&(i==0||i==1||i==5||i==6||i==7||(job.equals("verify-alias-v2")&&(i==3||i==4))))?answer.getAnswer().contains("Java")&&(answer.getAnswer().contains("程序设计")||answer.getAnswer().contains("编程"))
                             :switch(i){case 0->answer.getAnswer().contains("大一")&&answer.getAnswer().contains("高等数学");case 1,5->answer.getAnswer().contains("Java")&&answer.getAnswer().contains("程序设计");case 2->answer.getAnswer().contains("离散数学")&&answer.getAnswer().contains("算法");case 3->(answer.getAnswer().contains("9")||answer.getAnswer().contains("九"))&&(answer.getAnswer().contains("5")||answer.getAnswer().contains("17")||answer.getAnswer().contains("五"));default->false;};require(fact);
                     safe.put("status",200);safe.put("citation_valid",true);safe.put("fact_valid",true);safe.put("document_ids",answer.getSources().stream().map(SourceResponse::getDocumentId).toList());
                 } catch(ConversationException error) {
@@ -200,10 +202,10 @@ public final class ConversationLiveAcceptance {
                     safe.put("validation_category",error.completionIssue().name());safe.put("completion_ms",completionMicros.get()/1000.0);safe.put("elapsed_ms",(System.nanoTime()-start)/1000000.0);
                     safe.put("validation_structure",validationLogs.list.stream().map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage).toList());
                     results.add(safe);persist();
-                    if(i!=4)System.out.println("SAFE_CASE="+JSON.writeValueAsString(safe));
-                    require(i==4&&error.status()==422&&error.code().equals("CONTEXT_REQUIRED"));nonce=error.nextRequestId();safe.put("status",422);safe.put("expected_clarification",true);
+                    if(i!=4||job.equals("verify-alias-v2"))System.out.println("SAFE_CASE="+JSON.writeValueAsString(safe));
+                    require(i==4&&!job.equals("verify-alias-v2")&&error.status()==422&&error.code().equals("CONTEXT_REQUIRED"));nonce=error.nextRequestId();safe.put("status",422);safe.put("expected_clarification",true);
                 }
-                int calls=counter.get()-previous;require(calls==((i==1||i==2||(job.equals("verify-v2")&&i==6))?1:0));
+                int calls=counter.get()-previous;require(calls==((i==1||i==2||(job.equals("verify-v2")&&i==6)||(job.equals("verify-alias-v2")&&i==4))?1:0));
                 safe.put("completion_calls",calls);safe.put("completion_ms",completionMicros.get()/1000.0);safe.put("elapsed_ms",(System.nanoTime()-start)/1000000.0);safe.put("pass",true);
                 persist();System.out.println("SAFE_CASE="+JSON.writeValueAsString(safe));
             }

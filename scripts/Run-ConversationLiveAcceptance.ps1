@@ -1,4 +1,4 @@
-param([switch]$Execute,[switch]$ResumeAfterFixtureFix,[ValidateSet('legacy','diagnose-v2','verify-v2')][string]$Job='legacy')
+param([switch]$Execute,[switch]$ResumeAfterFixtureFix,[ValidateSet('legacy','diagnose-v2','verify-v2','verify-alias-v2')][string]$Job='legacy')
 $ErrorActionPreference='Stop'
 $taskRoot=Split-Path $PSScriptRoot -Parent
 if(-not $Execute){throw 'No paid calls made. Requires explicitly approved -Execute; maximum six question attempts.'}

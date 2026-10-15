@@ -122,4 +122,28 @@ class StandaloneQuestionRewriterTest {
             });
         } finally {logger.detachAppender(logs);logs.stop();}
     }
+    StandaloneQuestionRewriter withoutDictionary() {
+        var repository=mock(EntityAliasRepository.class);when(repository.findAll()).thenReturn(List.of());
+        ObjectProvider<ChatModel> models=mock(ObjectProvider.class);when(models.getObject()).thenReturn(chat);
+        return new StandaloneQuestionRewriter(models,new QueryRewriteService(repository),properties());
+    }
+    List<ConversationStore.Turn> dictionaryFreeHistory() {
+        return List.of(new ConversationStore.Turn("转软件工程机考要做什么准备？","转软件工程机考要做什么准备？"));
+    }
+    @Test void dictionaryAbsenceDoesNotEraseTheExplicitSuccessfulConversationTopic() {
+        reply("{\"status\":\"RESOLVED\",\"question\":\"软件工程机考应该重点练习哪些内容？\"}");
+        assertThat(withoutDictionary().resolve("那我该重点练习哪些内容？",dictionaryFreeHistory()).usedContext()).isTrue();
+    }
+    @Test void dictionaryFreeCorrectionUsesLatestLiteralTopicAndRejectsPreviousTopic() {
+        reply("{\"status\":\"RESOLVED\",\"question\":\"计算机科学与技术专业考试考什么？\"}");
+        assertThat(withoutDictionary().resolve("我刚才说错了，是计算机科学与技术专业，考试考什么？",dictionaryFreeHistory()).question()).contains("计算机科学与技术");
+        reply("{\"status\":\"RESOLVED\",\"question\":\"软件工程机考考什么？\"}");
+        assertThatThrownBy(()->withoutDictionary().resolve("我刚才说错了，是计算机科学与技术专业，考试考什么？",dictionaryFreeHistory())).isInstanceOf(ConversationException.class);
+    }
+    @Test void dictionaryFreeOutputStillNeedsTheActualTopicAndCannotInventAnother() {
+        for(String question:List.of("机考应该重点练习哪些内容？","南京大学生物专业考试考什么？")) {
+            reply("{\"status\":\"RESOLVED\",\"question\":\""+question+"\"}");
+            assertThatThrownBy(()->withoutDictionary().resolve("那我该重点练习哪些内容？",dictionaryFreeHistory())).isInstanceOf(ConversationException.class);
+        }
+    }
 }
